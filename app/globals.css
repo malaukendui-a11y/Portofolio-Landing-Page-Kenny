@@ -154,6 +154,19 @@
   color: var(--fg);
 }
 
+/* Nav after 80 px of scroll (DESIGN §4.1): ink-900 at 80 % with a backdrop blur. */
+@utility surface-dark-glass {
+  --surface: var(--color-ink-900);
+  --fg: var(--color-text-on-dark);
+  --fg-muted: var(--color-muted-on-dark);
+  --accent-fg: var(--color-accent-400);
+  --hairline: var(--color-ink-700);
+  background-color: color-mix(in srgb, var(--color-ink-900) 80%, transparent);
+  color: var(--fg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
