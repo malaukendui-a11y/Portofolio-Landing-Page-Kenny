@@ -10,19 +10,28 @@ for (const lang of ['en', 'id'] as const) {
       await selectLang(page, 'ID')
       await expect(page.locator('html')).toHaveAttribute('lang', 'id')
     }
-    // Scroll through once so every lazy image is requested before the capture.
-    await page.evaluate(async () => {
-      const step = window.innerHeight
-      for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
-        window.scrollTo(0, y)
-        await new Promise((resolve) => setTimeout(resolve, 60))
+    // Force lazy images to load now (they only start near the viewport), then wait.
+    await page.evaluate(() => {
+      for (const img of Array.from(document.images)) {
+        if (img.offsetParent !== null) img.loading = 'eager'
       }
-      window.scrollTo(0, 0)
     })
-    await page.waitForLoadState('networkidle')
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Array.from(document.images)
+              .filter((img) => img.offsetParent !== null)
+              .every((img) => img.complete && img.naturalWidth > 0),
+          ),
+        { timeout: 20_000 },
+      )
+      .toBe(true)
+    // CSS-pixel scale keeps the mobile capture (DPR 2.6) at a sane bitmap size.
     await page.screenshot({
       path: `test-results/screenshots/${testInfo.project.name}-${lang}.png`,
       fullPage: true,
+      scale: 'css',
     })
   })
 }
