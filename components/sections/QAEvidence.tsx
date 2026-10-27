@@ -1,5 +1,6 @@
 'use client'
 
+import { qaArtifacts } from '@/content/qa'
 import { useLang } from '@/lib/i18n'
 import { Section } from '@/components/ui/Section'
 import { SectionLabel } from '@/components/ui/SectionLabel'
@@ -20,19 +21,24 @@ export function QAEvidence() {
             {t.qa.paragraph}
           </p>
         </div>
-        <ul className="grid gap-6 sm:grid-cols-3 lg:col-span-6">
-          {t.qa.artifacts.map((artifact) => (
-            <li
-              key={artifact.title}
-              className="rounded-card border border-hairline bg-paper-50 p-6"
-            >
-              <h3 className="font-display text-h3-sm md:text-h3">{artifact.title}</h3>
-              <p className="mt-2 font-mono text-meta-sm text-fg-muted md:text-meta">
-                {artifact.caption}
-              </p>
-            </li>
-          ))}
-        </ul>
+        {qaArtifacts.length > 0 && (
+          <ul className="grid gap-6 sm:grid-cols-3 lg:col-span-6">
+            {qaArtifacts.map((artifact) => {
+              const copy = t.qa.artifacts[artifact.id]
+              return (
+                <li
+                  key={artifact.id}
+                  className="rounded-card border border-hairline bg-paper-50 p-6"
+                >
+                  <h3 className="font-display text-h3-sm md:text-h3">{copy.title}</h3>
+                  <p className="mt-2 font-mono text-meta-sm text-fg-muted md:text-meta">
+                    {copy.caption}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </Section>
   )

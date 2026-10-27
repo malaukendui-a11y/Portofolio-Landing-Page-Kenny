@@ -1,5 +1,6 @@
 'use client'
 
+import { certifications } from '@/content/certifications'
 import { useLang } from '@/lib/i18n'
 import { Section } from '@/components/ui/Section'
 import { SectionLabel } from '@/components/ui/SectionLabel'
@@ -14,14 +15,17 @@ export function Certifications() {
         {t.certifications.heading}
       </h2>
       <ul className="grid gap-6 md:grid-cols-3">
-        {t.certifications.items.map((cert) => (
-          <li key={cert.title} className="rounded-card border border-hairline bg-ink-800 p-6">
-            <p className="font-mono text-meta-sm text-fg-muted md:text-meta">{cert.period}</p>
-            <h3 className="mt-3 font-display text-h3-sm md:text-h3">{cert.title}</h3>
-            <p className="mt-2 text-body text-fg-muted">{cert.issuer}</p>
-            <p className="mt-4 text-body">{cert.scope}</p>
-          </li>
-        ))}
+        {certifications.map((cert) => {
+          const copy = t.certifications.items[cert.id]
+          return (
+            <li key={cert.id} className="rounded-card border border-hairline bg-ink-800 p-6">
+              <p className="font-mono text-meta-sm text-fg-muted md:text-meta">{copy.period}</p>
+              <h3 className="mt-3 font-display text-h3-sm md:text-h3">{copy.title}</h3>
+              <p className="mt-2 text-body text-fg-muted">{copy.issuer}</p>
+              <p className="mt-4 text-body">{copy.scope}</p>
+            </li>
+          )
+        })}
       </ul>
     </Section>
   )

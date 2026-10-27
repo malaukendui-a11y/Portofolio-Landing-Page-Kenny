@@ -16,6 +16,8 @@ const en = {
     skipToContent: 'Skip to content',
     language: 'Language',
     menu: 'Menu',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
   },
   hero: {
     name: 'Ananda Kenny',
@@ -23,6 +25,7 @@ const en = {
     availability: 'Open to work',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Intro',
+    portraitAlt: 'Ananda Kenny, portrait in a black shirt, looking at the camera',
   },
   intro: {
     label: 'Intro',
@@ -89,6 +92,7 @@ const en = {
     heading: 'Projects',
     roleLabel: 'Role',
     stackLabel: 'Stack',
+    openScreenshots: 'Open screenshots of {title}',
     status: {
       live: 'Live',
       'in-qa': 'In QA',
@@ -145,11 +149,20 @@ const en = {
       'At Bank Mandiri I tested Project Kopra, a wholesale digital super-platform, through manual and UAT cycles.',
     paragraph:
       'Project artifacts from Kopra are confidential, so the documents here come from my own products: the test plan, test cases and bug reports produced while taking Trading Compass through QA.',
-    artifacts: [
-      { title: 'Test plan', caption: 'Trading Compass · scope, risks, entry and exit criteria' },
-      { title: 'Test cases', caption: 'Trading Compass · scenario- and step-level cases' },
-      { title: 'Bug report', caption: 'Trading Compass · severity, steps to reproduce, re-test' },
-    ],
+    artifacts: {
+      'test-plan': {
+        title: 'Test plan',
+        caption: 'Trading Compass · scope, risks, entry and exit criteria',
+      },
+      'test-cases': {
+        title: 'Test cases',
+        caption: 'Trading Compass · scenario- and step-level cases',
+      },
+      'bug-report': {
+        title: 'Bug report',
+        caption: 'Trading Compass · severity, steps to reproduce, re-test',
+      },
+    },
   },
   experience: {
     label: 'Experience & education',
@@ -183,32 +196,42 @@ const en = {
   certifications: {
     label: 'Certifications',
     heading: 'Certifications',
-    items: [
-      {
+    openCertificate: 'Open certificate: {title}',
+    certificateNo: 'No.',
+    verify: 'Verify',
+    items: {
+      'revou-intro-software-engineering': {
+        title: 'Intro to Software Engineering',
+        issuer: 'RevoU Coding Camp',
+        period: 'September 2026',
+        scope: '1-week certified online course · certificate of attendance',
+      },
+      'gunadarma-designing-software': {
         title: 'Designing Software',
         issuer: 'Universitas Gunadarma',
         period: 'May – Jun 2025',
         scope: 'Software design principles, modelling and documentation',
       },
-      {
-        title: 'JavaScript Programming Language Fundamentals',
-        issuer: 'Universitas Gunadarma',
-        period: 'Nov 2023',
-        scope: 'Core JavaScript: syntax, functions, the DOM and asynchronous code',
-      },
-      {
+      'gunadarma-desktop-programming': {
         title: 'Fundamental Desktop Programming — Java & Oracle PL/SQL',
         issuer: 'Universitas Gunadarma',
         period: 'Feb 2024',
         scope: 'Desktop applications in Java with Oracle PL/SQL databases',
       },
-    ],
+      'gunadarma-javascript-fundamentals': {
+        title: 'JavaScript Programming Language Fundamentals',
+        issuer: 'Universitas Gunadarma',
+        period: 'Nov 2023',
+        scope: 'Core JavaScript: syntax, functions, the DOM and asynchronous code',
+      },
+    },
   },
   reachOut: {
     label: 'Reach out',
     ticker: 'Reach Out —',
     heading: 'Let’s work together',
     intro: 'Recruiters: grab the CV and email me. Clients: WhatsApp is the fastest way to start.',
+    portraitAlt: 'Ananda Kenny looking down at his phone, waiting for your message',
     email: { label: 'Email', copy: 'Copy email', copied: 'Copied' },
     whatsapp: {
       label: 'WhatsApp',
@@ -219,6 +242,13 @@ const en = {
     ctas: { email: 'Email me', whatsapp: 'Chat on WhatsApp' },
     socialsLabel: 'Elsewhere',
     backToTop: 'Back to top',
+  },
+  lightbox: {
+    label: 'Image viewer',
+    close: 'Close',
+    previous: 'Previous image',
+    next: 'Next image',
+    counter: '{current} / {total}',
   },
   footer: {
     copyright: '© {year} Ananda Kenny',
