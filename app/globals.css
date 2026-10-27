@@ -1,26 +1,202 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Design tokens — DESIGN.md §3. This is the only place raw values live.
+ * Components use the generated utilities (bg-ink-900, text-statement, …)
+ * or the semantic surface tokens below. CLAUDE.md rule 6.
+ */
+@theme {
+  /* 3.1 Colour — the default Tailwind palette is removed so only tokens exist. */
+  --color-*: initial;
+  --color-ink-900: #121111;
+  --color-ink-800: #1a1918;
+  --color-ink-700: #2a2827;
+  --color-paper-100: #e6e3de;
+  --color-paper-50: #f2f0ec;
+  --color-text-on-dark: #f5f3f0;
+  --color-muted-on-dark: #a7a09e;
+  --color-text-on-paper: #121111;
+  --color-muted-on-paper: #5e5856;
+  --color-accent-400: #d9634b;
+  --color-accent-500: #c2503b;
+  --color-accent-600: #a04035;
+  --color-accent-glow: rgba(217, 99, 75, 0.18);
+  --color-success: #4f9d69;
+
+  /* 3.2 Typography — sizes in rem (16px base), with leading / tracking / weight. */
+  --text-*: initial;
+  --text-ticker: clamp(6rem, 15.8vw, 14.25rem);
+  --text-ticker--line-height: 0.8;
+  --text-ticker--letter-spacing: -0.04em;
+  --text-ticker--font-weight: 500;
+
+  --text-statement: 3.375rem;
+  --text-statement--line-height: 1.05;
+  --text-statement--letter-spacing: -0.03em;
+  --text-statement--font-weight: 600;
+  --text-statement-md: 2.75rem;
+  --text-statement-md--line-height: 1.05;
+  --text-statement-md--letter-spacing: -0.03em;
+  --text-statement-md--font-weight: 600;
+  --text-statement-sm: 2rem;
+  --text-statement-sm--line-height: 1.05;
+  --text-statement-sm--letter-spacing: -0.03em;
+  --text-statement-sm--font-weight: 600;
+
+  --text-h2: 2rem;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.033em;
+  --text-h2--font-weight: 600;
+  --text-h2-sm: 1.625rem;
+  --text-h2-sm--line-height: 1.25;
+  --text-h2-sm--letter-spacing: -0.033em;
+  --text-h2-sm--font-weight: 600;
+
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 600;
+  --text-h3-sm: 1.25rem;
+  --text-h3-sm--line-height: 1.3;
+  --text-h3-sm--letter-spacing: -0.02em;
+  --text-h3-sm--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.6;
+  --text-body-lg-sm: 1.0625rem;
+  --text-body-lg-sm--line-height: 1.6;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.08em;
+  --text-label--font-weight: 500;
+  --text-label-sm: 0.75rem;
+  --text-label-sm--line-height: 1.2;
+  --text-label-sm--letter-spacing: 0.08em;
+  --text-label-sm--font-weight: 500;
+
+  --text-meta: 0.875rem;
+  --text-meta--line-height: 1.4;
+  --text-meta-sm: 0.8125rem;
+  --text-meta-sm--line-height: 1.4;
+
+  --text-numeral: 15rem;
+  --text-numeral--line-height: 1;
+  --text-numeral--letter-spacing: -0.05em;
+  --text-numeral--font-weight: 600;
+
+  /* 3.3 Spacing, radii, layout */
+  --spacing-section: 10rem;
+  --spacing-section-md: 6rem;
+  --spacing-section-sm: 4.5rem;
+  --spacing-gutter: 2.5rem;
+  --spacing-gutter-md: 1.5rem;
+  --spacing-gutter-sm: 1.25rem;
+  --spacing-measure: 68ch;
+
+  --radius-*: initial;
+  --radius-card: 1.5rem;
+  --radius-image: 1rem;
+  --radius-pill: 999px;
+  --radius-lightbox: 0.75rem;
+
+  --shadow-*: initial;
+  --shadow-lightbox: 0 24px 64px rgba(0, 0, 0, 0.5);
+
+  /* 3.4 Motion — CSS equivalents of the GSAP eases; GSAP reads lib/motion.ts (M2). */
+  --ease-*: initial;
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --duration-fast: 250ms;
+  --duration-base: 600ms;
+  --duration-slow: 1000ms;
+  --duration-stagger: 60ms;
+  --duration-marquee: 40s;
+  --duration-marquee-sm: 28s;
 }
 
+/* Font families come from next/font variables set on <html> (app/fonts.ts). */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-*: initial;
+  --font-display: var(--font-inter-display), 'Inter', system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+
+  /* Semantic surface colours resolved by the .surface-* classes below. */
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-accent-fg: var(--accent-fg);
+  --color-hairline: var(--hairline);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Surface contexts (DESIGN §3.1 contrast table). */
+@utility surface-dark {
+  --surface: var(--color-ink-900);
+  --fg: var(--color-text-on-dark);
+  --fg-muted: var(--color-muted-on-dark);
+  --accent-fg: var(--color-accent-400);
+  --hairline: var(--color-ink-700);
+  background-color: var(--surface);
+  color: var(--fg);
+}
+
+@utility surface-paper {
+  --surface: var(--color-paper-100);
+  --fg: var(--color-text-on-paper);
+  --fg-muted: var(--color-muted-on-paper);
+  --accent-fg: var(--color-accent-600);
+  --hairline: color-mix(in srgb, var(--color-text-on-paper) 15%, transparent);
+  background-color: var(--surface);
+  color: var(--fg);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    /* Default to the paper surface; sections override. */
+    --surface: var(--color-paper-100);
+    --fg: var(--color-text-on-paper);
+    --fg-muted: var(--color-muted-on-paper);
+    --accent-fg: var(--color-accent-600);
+    --hairline: color-mix(in srgb, var(--color-text-on-paper) 15%, transparent);
+    background-color: var(--surface);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* DESIGN §9 focus ring: accent-600 on paper, accent-400 on dark. */
+  :focus-visible {
+    outline: 2px solid var(--accent-fg);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-glow);
+  }
+
+  /* DESIGN §3.4 reduced motion: instant reveals, no smooth scroll. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

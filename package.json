@@ -9,7 +9,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "pnpm build && playwright test",
-    "analyze": "cross-env ANALYZE=true next build",
+    "analyze": "next analyze",
     "lhci": "pnpm build && lhci autorun"
   },
   "dependencies": {
@@ -20,13 +20,11 @@
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
     "@lhci/cli": "0.15.1",
-    "@next/bundle-analyzer": "16.4.3",
     "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "20.19.43",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "cross-env": "10.1.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.3",
     "eslint-config-prettier": "10.1.8",
