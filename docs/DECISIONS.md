@@ -19,3 +19,4 @@ Append one entry per decision: date · decision · alternative considered · rea
 | 2026-10-27 | Lighthouse CI uploads to `filesystem` (`.lighthouseci/`, git-ignored) | `temporary-public-storage` | no third parties (CLAUDE.md rule 10) |
 | 2026-10-27 | Prettier ignores `*.md` so the PRD/DESIGN docs keep their original formatting | format everything | the first `pnpm format` rewrote the docs' emphasis markers |
 | 2026-10-27 | Default-language metadata only (EN title/description); per-language metadata deferred | per-language metadata now | PRD F-14 schedules it for M4 |
+| 2026-10-27 | Accent pill buttons use `accent-600` as the fill (`text-on-dark` on it = 5.8:1), hover `accent-500` | `accent-500` fill as DESIGN §3.1/§5 suggest | `text-on-dark` on `accent-500` is 4.2:1 — DESIGN rates it "AA large" only; a 16 px button label needs 4.5:1 and axe flags it (TC-002). DESIGN §3.1/§5 should be updated to match |
