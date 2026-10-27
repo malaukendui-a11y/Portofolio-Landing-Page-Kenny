@@ -17,12 +17,12 @@ jobs:
     env:
       CI: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # pnpm version comes from the "packageManager" field in package.json.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -38,10 +38,13 @@ jobs:
       - name: Playwright smoke + axe
         run: pnpm exec playwright test
 
-      - name: Lighthouse CI
+      - name: Lighthouse CI (desktop)
         run: pnpm exec lhci autorun
 
-      - uses: actions/upload-artifact@v4
+      - name: Lighthouse CI (mobile)
+        run: pnpm exec lhci autorun --config=lighthouserc.mobile.cjs
+
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-artifacts

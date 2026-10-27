@@ -154,6 +154,44 @@
   color: var(--fg);
 }
 
+/* Hero / Reach Out glow (DESIGN §4.2 layer 1): soft white behind the portrait
+   (60 % at centre, 0 at 520 px) plus a faint accent glow over the left third,
+   where the glass element will float in M3. Portrait sits at 56 % on desktop,
+   centred on mobile. */
+@utility hero-glow {
+  --portrait-x: 50%;
+  background-image:
+    radial-gradient(
+      circle at var(--portrait-x) 100%,
+      rgba(255, 255, 255, 0.6) 0,
+      transparent 520px
+    ),
+    radial-gradient(circle at 18% 42%, var(--color-accent-glow) 0, transparent 360px);
+  @media (width >= 48rem) {
+    --portrait-x: 56%;
+  }
+}
+
+/* Outlined service numeral (DESIGN §3.2 `outline-numeral`): 1.5 px stroke, no fill. */
+@utility numeral-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--fg-muted);
+  paint-order: stroke;
+}
+
+/* Nav after 80 px of scroll (DESIGN §4.1): ink-900 at 80 % with a backdrop blur. */
+@utility surface-dark-glass {
+  --surface: var(--color-ink-900);
+  --fg: var(--color-text-on-dark);
+  --fg-muted: var(--color-muted-on-dark);
+  --accent-fg: var(--color-accent-400);
+  --hairline: var(--color-ink-700);
+  background-color: color-mix(in srgb, var(--color-ink-900) 80%, transparent);
+  color: var(--fg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

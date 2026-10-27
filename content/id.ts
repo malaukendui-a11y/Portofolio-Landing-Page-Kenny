@@ -16,6 +16,8 @@ const id = {
     skipToContent: 'Lompat ke konten',
     language: 'Bahasa',
     menu: 'Menu',
+    openMenu: 'Buka menu',
+    closeMenu: 'Tutup menu',
   },
   hero: {
     name: 'Ananda Kenny',
@@ -23,6 +25,7 @@ const id = {
     availability: 'Terbuka untuk bekerja',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Perkenalan',
+    portraitAlt: 'Ananda Kenny, potret dengan kemeja hitam, menatap kamera',
   },
   intro: {
     label: 'Perkenalan',
@@ -89,6 +92,7 @@ const id = {
     heading: 'Proyek',
     roleLabel: 'Peran',
     stackLabel: 'Teknologi',
+    openScreenshots: 'Buka tangkapan layar {title}',
     status: {
       live: 'Live',
       'in-qa': 'Tahap QA',
@@ -145,14 +149,20 @@ const id = {
       'Di Bank Mandiri saya menguji Project Kopra, super-platform digital wholesale, melalui siklus pengujian manual dan UAT.',
     paragraph:
       'Artefak Project Kopra bersifat rahasia, jadi dokumen di sini berasal dari produk saya sendiri: test plan, test case, dan laporan bug yang dihasilkan saat membawa Trading Compass melewati tahap QA.',
-    artifacts: [
-      {
+    artifacts: {
+      'test-plan': {
         title: 'Test plan',
         caption: 'Trading Compass · lingkup, risiko, kriteria masuk dan keluar',
       },
-      { title: 'Test case', caption: 'Trading Compass · kasus tingkat skenario dan langkah' },
-      { title: 'Laporan bug', caption: 'Trading Compass · severity, langkah reproduksi, re-test' },
-    ],
+      'test-cases': {
+        title: 'Test case',
+        caption: 'Trading Compass · kasus tingkat skenario dan langkah',
+      },
+      'bug-report': {
+        title: 'Laporan bug',
+        caption: 'Trading Compass · severity, langkah reproduksi, re-test',
+      },
+    },
   },
   experience: {
     label: 'Pengalaman & pendidikan',
@@ -186,26 +196,35 @@ const id = {
   certifications: {
     label: 'Sertifikasi',
     heading: 'Sertifikasi',
-    items: [
-      {
+    openCertificate: 'Buka sertifikat: {title}',
+    certificateNo: 'No.',
+    verify: 'Verifikasi',
+    items: {
+      'revou-intro-software-engineering': {
+        title: 'Intro to Software Engineering',
+        issuer: 'RevoU Coding Camp',
+        period: 'September 2026',
+        scope: 'Kursus online bersertifikat 1 minggu · sertifikat kehadiran',
+      },
+      'gunadarma-designing-software': {
         title: 'Designing Software',
         issuer: 'Universitas Gunadarma',
         period: 'Mei – Jun 2025',
         scope: 'Prinsip desain perangkat lunak, pemodelan, dan dokumentasi',
       },
-      {
-        title: 'JavaScript Programming Language Fundamentals',
-        issuer: 'Universitas Gunadarma',
-        period: 'Nov 2023',
-        scope: 'Dasar JavaScript: sintaks, fungsi, DOM, dan kode asinkron',
-      },
-      {
+      'gunadarma-desktop-programming': {
         title: 'Fundamental Desktop Programming — Java & Oracle PL/SQL',
         issuer: 'Universitas Gunadarma',
         period: 'Feb 2024',
         scope: 'Aplikasi desktop dengan Java dan database Oracle PL/SQL',
       },
-    ],
+      'gunadarma-javascript-fundamentals': {
+        title: 'JavaScript Programming Language Fundamentals',
+        issuer: 'Universitas Gunadarma',
+        period: 'Nov 2023',
+        scope: 'Dasar JavaScript: sintaks, fungsi, DOM, dan kode asinkron',
+      },
+    },
   },
   reachOut: {
     label: 'Hubungi saya',
@@ -213,6 +232,7 @@ const id = {
     heading: 'Mari bekerja sama',
     intro:
       'Rekruter: unduh CV dan kirim email. Klien: WhatsApp adalah cara tercepat untuk memulai.',
+    portraitAlt: 'Ananda Kenny menunduk melihat ponselnya, menunggu pesan Anda',
     email: { label: 'Email', copy: 'Salin email', copied: 'Tersalin' },
     whatsapp: {
       label: 'WhatsApp',
@@ -223,6 +243,13 @@ const id = {
     ctas: { email: 'Kirim email', whatsapp: 'Chat di WhatsApp' },
     socialsLabel: 'Tautan lain',
     backToTop: 'Kembali ke atas',
+  },
+  lightbox: {
+    label: 'Penampil gambar',
+    close: 'Tutup',
+    previous: 'Gambar sebelumnya',
+    next: 'Gambar berikutnya',
+    counter: '{current} / {total}',
   },
   footer: {
     copyright: '© {year} Ananda Kenny',

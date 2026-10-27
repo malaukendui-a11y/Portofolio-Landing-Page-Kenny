@@ -2,7 +2,9 @@
  * Shape shared by content/en.ts and content/id.ts (CLAUDE.md rule 1).
  * A key missing in one language is a type error.
  */
+import type { CertificationId } from './certifications'
 import type { CtaKind, ProjectId, ProjectStatus } from './projects'
+import type { QaArtifactId } from './qa'
 
 export type Lang = 'en' | 'id'
 
@@ -61,6 +63,8 @@ export interface Copy {
     skipToContent: string
     language: string
     menu: string
+    openMenu: string
+    closeMenu: string
   }
   hero: {
     name: string
@@ -68,6 +72,7 @@ export interface Copy {
     availability: string
     socials: { linkedin: string; github: string; whatsapp: string }
     scrollCue: string
+    portraitAlt: string
   }
   intro: {
     label: string
@@ -86,6 +91,8 @@ export interface Copy {
     heading: string
     roleLabel: string
     stackLabel: string
+    /** `{title}` is replaced at render time. */
+    openScreenshots: string
     status: Record<ProjectStatus, string>
     cta: Record<CtaKind, string>
     items: Record<ProjectId, ProjectCopy>
@@ -95,7 +102,7 @@ export interface Copy {
     heading: string
     statement: string
     paragraph: string
-    artifacts: readonly [QaArtifact, QaArtifact, QaArtifact]
+    artifacts: Record<QaArtifactId, QaArtifact>
   }
   experience: {
     label: string
@@ -107,13 +114,18 @@ export interface Copy {
   certifications: {
     label: string
     heading: string
-    items: readonly [Certification, Certification, Certification]
+    /** `{title}` is replaced at render time. */
+    openCertificate: string
+    certificateNo: string
+    verify: string
+    items: Record<CertificationId, Certification>
   }
   reachOut: {
     label: string
     ticker: string
     heading: string
     intro: string
+    portraitAlt: string
     email: { label: string; copy: string; copied: string }
     whatsapp: { label: string; prefill: string }
     location: { label: string; value: string }
@@ -121,6 +133,14 @@ export interface Copy {
     ctas: { email: string; whatsapp: string }
     socialsLabel: string
     backToTop: string
+  }
+  lightbox: {
+    label: string
+    close: string
+    previous: string
+    next: string
+    /** `{current}` and `{total}` are replaced at render time. */
+    counter: string
   }
   footer: {
     /** `{year}` is replaced at render time. */

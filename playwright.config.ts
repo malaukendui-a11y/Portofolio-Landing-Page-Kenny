@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 const baseURL = 'http://localhost:3000'
 
+// Two viewports per CLAUDE.md §7: desktop 1440 and mobile 390. Every spec runs in both.
 export default defineConfig({
   testDir: './tests/playwright',
   fullyParallel: true,
@@ -12,7 +13,16 @@ export default defineConfig({
     baseURL,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: 'mobile',
+      use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } },
+    },
+  ],
   webServer: {
     command: 'pnpm start',
     url: baseURL,

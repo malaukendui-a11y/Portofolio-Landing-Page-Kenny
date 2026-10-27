@@ -45,3 +45,7 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /.analyze/
+
+# large image masters (DESIGN appendix: WebP only in git)
+public/**/*.zip
+public/images/portrait/*.png

@@ -94,7 +94,7 @@ export const projects: readonly Project[] = [
     liveUrl: null,
     repoUrl: null,
     repoPublic: false,
-    pdfUrl: null,
+    pdfUrl: '/papers/big-data-altcoin-analysis-2025.pdf',
     stack: ['Big data', 'Time-series analysis', 'Cryptocurrency markets'],
     images: [],
   },
