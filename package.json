@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "test": "pnpm build && playwright test",
     "analyze": "next analyze",
-    "lhci": "pnpm build && lhci autorun"
+    "lhci": "pnpm build && lhci autorun && lhci autorun --config=lighthouserc.mobile.cjs"
   },
   "dependencies": {
     "next": "16.4.3",
@@ -22,7 +22,7 @@
     "@lhci/cli": "0.15.1",
     "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "4.3.3",
-    "@types/node": "20.19.43",
+    "@types/node": "22.20.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "9.39.5",

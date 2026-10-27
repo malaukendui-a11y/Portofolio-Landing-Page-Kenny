@@ -1,8 +1,8 @@
 ---
 title: "DESIGN — Ananda Kenny Portfolio"
-subtitle: "Design Preference, Tokens & Motion Specification · v1.0"
+subtitle: "Design Preference, Tokens & Motion Specification · v1.1"
 author: "Owner: Ananda Kenny Esqiel Bisaratua · Drafted with Claude"
-date: "25 October 2026"
+date: "28 October 2026 (v1.1) · first issued 25 October 2026"
 ---
 
 # 1. Design intent
@@ -61,8 +61,8 @@ All tokens live in `app/globals.css` as CSS custom properties and are mirrored i
 | `text-on-paper` | `#121111` | Primary text on paper | 15:1 on paper-100 |
 | `muted-on-paper` | `#5E5856` | Secondary text on paper | 5.6:1 on paper-100 |
 | `accent-400` | `#D9634B` | Accent text/icons **on dark** | 5.2:1 on ink-900 (AA) |
-| `accent-500` | `#C2503B` | Buttons, badges, large accent type (≥ 24 px) | 4.0:1 on ink-900 (AA large) |
-| `accent-600` | `#A04035` | Accent text **on paper**, pressed states | 5.1:1 on paper-100 (AA) |
+| `accent-500` | `#C2503B` | **Hover** state of filled accent buttons, badges, large accent type (≥ 24 px) | 4.0:1 on ink-900 (AA large only — never under 16 px label text at rest) |
+| `accent-600` | `#A04035` | **Fill of filled accent buttons** (label `text-on-dark`), accent text **on paper**, pressed states | 5.8:1 with text-on-dark (AA) · 5.1:1 on paper-100 (AA) |
 | `accent-glow` | `rgba(217, 99, 75, 0.18)` | Soft radial glow behind the glass element | — |
 | `success` | `#4F9D69` | "Open to work" dot only | — |
 
@@ -112,7 +112,7 @@ Reduced motion (`prefers-reduced-motion: reduce`): reveals become instant (opaci
 
 ## 4.1 Navigation
 
-Sticky, transparent over the hero, gains `ink-900/80` backdrop blur after 80 px of scroll. Left: `© Ananda Kenny` (body, 18 px). Centre: Work · About · Contact. Right: `EN / ID` toggle (mono) and a pill button **Download CV** (`accent-500` on dark, `ink-900` on paper). Mobile: brand + hamburger; the menu is a full-screen `ink-900` overlay with the same links and the CV button.
+Sticky, transparent over the hero, gains `ink-900/80` backdrop blur after 80 px of scroll. Left: `© Ananda Kenny` (body, 18 px). Centre: Work · About · Contact. Right: `EN / ID` toggle (mono) and a pill button **Download CV** (filled `accent-600` with `accent-500` on hover on dark, `ink-900` on paper). Mobile: brand + hamburger; the menu is a full-screen `ink-900` overlay with the same links and the CV button.
 
 ## 4.2 Hero (paper surface)
 
@@ -132,7 +132,7 @@ Label `//  INTRO`. Statement (54 px) with 2–3 accented phrases, e.g. *"I'm a s
 
 ## 4.4 What I Do (dark, stacked cards)
 
-Three cards, each `100vh` tall, sticky at `top: 0`, stacking: as card *n+1* scrolls up, card *n* scales to 0.96 and fades to 55 %. Card anatomy: huge outlined numeral `01` left (240 px, stroke only), title `h2` 54 px, description `body-lg muted`, then a numbered list of 4–6 items with hairline dividers and right-aligned mono indices `01…06`. Row hover: text shifts 8 px right, index turns accent.
+Three cards, each `100vh` tall, sticky at `top: 0`, stacking: as card *n+1* scrolls up, card *n* scales to 0.96 and fades to 55 %. Card anatomy: huge outlined numeral `01` left (240 px, stroke only), title at `statement` size (54 px, 32 px mobile), description `body-lg muted`, then a numbered list of 4–6 items with hairline dividers and right-aligned mono indices `01…06`. Row hover: text shifts 8 px right, index turns accent.
 
 Content: **01 Quality Assurance & Testing** (manual & UAT, test case design, regression, bug reporting in Jira, exploratory, API testing basics) · **02 Web Development** (landing pages, company profiles, dashboards, Next.js/React, Supabase, deployment on Vercel) · **03 Product & Project Management** (PRD & design docs, backlog & milestones, stakeholder coordination, QA planning).
 
@@ -154,7 +154,7 @@ Two-column timeline with a hairline spine; each entry: mono date range, `h3` tit
 
 ## 4.8 Certifications (dark)
 
-Three cards in a row (stack on mobile): certificate image (lightbox), issuer badge, period (mono), title, 1-line scope.
+Up to four cards in a row at ≥ 1280 (two at tablet, stacked on mobile), newest first: certificate image at its natural aspect (lightbox), issuer badge, period (mono), title, 1-line scope, certificate number or verify link (mono).
 
 ## 4.9 Reach Out (paper — mirror of the hero)
 
@@ -166,7 +166,7 @@ Giant ticker **"Reach Out —"** in `ink-900`, portrait cutout `kenny-footer-col
 
 # 5. Components
 
-- **Pill button**: 48 px height, 24 px horizontal padding, `body` 16 px/500; filled (accent-500 on dark / ink-900 on paper) and outlined (1 px current colour). Hover: background inverts over `dur-fast`; arrow icon slides 4 px.
+- **Pill button**: 48 px height, 24 px horizontal padding, `body` 16 px/500; filled (`accent-600` fill, `accent-500` on hover, label `text-on-dark` on dark / `ink-900` on paper) and outlined (1 px current colour). Hover: background inverts (or lightens to `accent-500` for the accent fill) over `dur-fast`; arrow icon slides 4 px.
 - **Status badge**: DM Mono 12 px uppercase, 1 px border, 999 px radius, 6×12 px padding.
 - **Tag**: mono 13 px, hairline divider rows (not chips) to match the reference's list rhythm.
 - **Lightbox**: full-screen `ink-900/95`, image max 90vw × 85vh, caption bottom-left in mono, close top-right, arrows on sides; focus trapped; Esc closes.
@@ -228,11 +228,11 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 
 | Asset | File | Notes |
 |---|---|---|
-| Hero portrait | `public/images/portrait/kenny-hero-crop-color@2x.webp` (+ `.png`) | 1600 px tall; soft fade at bottom |
-| Reach Out portrait | `public/images/portrait/kenny-footer-color@2x.webp` (+ `.png`) | 1800 px tall |
-| Alternates | `*-color-soft@2x.*`, `*-bw@2x.*` | Keep in repo for quick swaps |
+| Hero portrait | `public/images/portrait/kenny-hero-crop-color@2x.webp` | 1324 × 1600; soft fade at bottom |
+| Reach Out portrait | `public/images/portrait/kenny-footer-color@2x.webp` | 908 × 1800 |
+| Alternates | `*-color-soft@2x.webp`, `*-bw@2x.webp` | WebP only in git; PNG masters (0.8–1.3 MB each) stay in the owner's source zip, ignored by git |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | Exported from the dev scene |
 | OG image | generated at `app/opengraph-image.tsx` | 1200×630 from hero composition |
-| Certificates | `public/images/certs/cert-{1,2,3}.webp` | from `cert-photo-*.jpg` |
+| Certificates | `public/images/certs/cert-gunadarma-{designing-software,javascript-fundamentals,desktop-programming}.webp`, `cert-revou-intro-software-engineering.webp` | WebP conversions of the photographed originals; data in `content/certifications.ts` |
 | Monogram | `public/brand/k-monogram.svg` | from `kenny-k-logo.svg`, recoloured to tokens |
