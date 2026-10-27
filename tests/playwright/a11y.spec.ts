@@ -1,12 +1,13 @@
-// TC-002: axe scan, zero serious/critical violations in both languages.
+// TC-002: axe scan, zero serious/critical violations in both languages (both viewports).
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { selectLang } from './helpers'
 
 for (const lang of ['en', 'id'] as const) {
   test(`has no serious or critical accessibility violations (${lang})`, async ({ page }) => {
     await page.goto('/')
     if (lang === 'id') {
-      await page.getByRole('button', { name: 'ID', exact: true }).click()
+      await selectLang(page, 'ID')
       await expect(page.locator('html')).toHaveAttribute('lang', 'id')
     }
     const results = await new AxeBuilder({ page })
