@@ -3,6 +3,11 @@
 import { expect, test } from '@playwright/test'
 import { selectLang } from './helpers'
 
+// Full-page capture under combined mobile emulation (isMobile + DPR 2.6) drops the
+// hero portrait from the bitmap although it is loaded and laid out; capture the same
+// 390 px layout without the emulation flags instead (the layout tests keep them).
+test.use({ isMobile: false, hasTouch: false, deviceScaleFactor: 1 })
+
 for (const lang of ['en', 'id'] as const) {
   test(`full-page screenshot (${lang})`, async ({ page }, testInfo) => {
     await page.goto('/')
