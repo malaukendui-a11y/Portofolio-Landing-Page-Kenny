@@ -172,6 +172,13 @@
   }
 }
 
+/* Outlined service numeral (DESIGN §3.2 `outline-numeral`): 1.5 px stroke, no fill. */
+@utility numeral-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--fg-muted);
+  paint-order: stroke;
+}
+
 /* Nav after 80 px of scroll (DESIGN §4.1): ink-900 at 80 % with a backdrop blur. */
 @utility surface-dark-glass {
   --surface: var(--color-ink-900);
