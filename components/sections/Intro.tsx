@@ -30,11 +30,7 @@ export function Intro() {
         {t.intro.paragraph}
       </p>
       <div className="mt-10 flex flex-wrap gap-4">
-        <ButtonLink
-          href="#work"
-          variant="filled"
-          className="bg-accent-500 text-text-on-dark hover:bg-accent-400"
-        >
+        <ButtonLink href="#work" variant="accent">
           {t.intro.seeWork}
         </ButtonLink>
         {site.cvUrl && (
