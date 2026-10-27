@@ -5,6 +5,7 @@ import { site } from '@/content/site'
 import { useLang } from '@/lib/i18n'
 import { useRestoreFocus } from '@/lib/useRestoreFocus'
 import { useScrollLock } from '@/lib/useScrollLock'
+import { trapTab } from '@/lib/trapTab'
 import { ButtonLink } from './Button'
 import { LangToggle } from './LangToggle'
 import { MenuIcon, XIcon } from './icons'
@@ -122,6 +123,7 @@ export function Nav() {
         ref={menuRef}
         aria-label={t.nav.menu}
         onClose={onMenuClosed}
+        onKeyDown={(event) => trapTab(event, menuRef.current)}
         className="surface-dark fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none p-0 backdrop:bg-ink-900"
       >
         {menuOpen && (

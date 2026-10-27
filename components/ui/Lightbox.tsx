@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Reac
 import { useLang } from '@/lib/i18n'
 import { useRestoreFocus } from '@/lib/useRestoreFocus'
 import { useScrollLock } from '@/lib/useScrollLock'
+import { trapTab } from '@/lib/trapTab'
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from './icons'
 
 export interface LightboxItem {
@@ -59,6 +60,7 @@ function Lightbox({
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => {
+    trapTab(event, dialogRef.current)
     if (event.key === 'ArrowRight') {
       event.preventDefault()
       step(1)
