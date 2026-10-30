@@ -257,6 +257,28 @@
   }
 }
 
+/* Loader overlay (PRD F-12, components/ui/Loader): hidden unless the pre-paint script
+   flagged <html data-loader>. Fixed, so it never shifts layout. If JS has not taken
+   over (`data-loader="js"`) by 1.5 s, CSS fades it out on its own: the maximum holds
+   even when hydration is slow or fails. */
+@keyframes loader-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@utility loader-overlay {
+  display: none;
+  html[data-loader] & {
+    display: flex;
+    animation: loader-failsafe var(--duration-base) var(--ease-expo) 1.5s forwards;
+  }
+  html[data-loader='js'] & {
+    animation: none;
+  }
+}
+
 /* Outlined service numeral (DESIGN §3.2 `outline-numeral`): 1.5 px stroke, no fill. */
 @utility numeral-outline {
   color: transparent;

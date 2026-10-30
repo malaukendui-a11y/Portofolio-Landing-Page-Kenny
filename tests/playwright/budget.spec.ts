@@ -1,7 +1,7 @@
 // TC-018: initial JS budget (CLAUDE.md rule 3) — every script the production build sends
 // for `/` on load, summed as encoded (gzip) bytes, must stay within 250 KB. The lazy 3D
 // chunk (M3) will be excluded here by name.
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 const BUDGET_BYTES = 250 * 1024
 

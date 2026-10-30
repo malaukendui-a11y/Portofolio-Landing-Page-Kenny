@@ -2,7 +2,7 @@
 // app/globals.css and as GSAP values in lib/motion.ts. This keeps the two in step,
 // and checks that the hover duration utility really applies the token.
 import { readFileSync } from 'node:fs'
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { DUR, EASE, MARQUEE, STAGGER } from '../../lib/motion'
 
 const css = readFileSync('app/globals.css', 'utf8')

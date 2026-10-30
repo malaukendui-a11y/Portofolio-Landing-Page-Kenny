@@ -1,6 +1,7 @@
 // M2 motion: TC-022 (Lenis + anchor navigation), TC-023 (marquee), TC-024 (reduced-motion
 // path), TC-027 (reveals + SplitText).
-import { expect, test, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
 import { revealAll, selectLang } from './helpers'

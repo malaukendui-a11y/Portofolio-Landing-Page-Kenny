@@ -6,6 +6,7 @@ import Image from 'next/image'
  * width/height reserve the box; `priority` only for the hero (CLAUDE.md rule 9).
  */
 export function Portrait({
+  id,
   src,
   width,
   height,
@@ -14,6 +15,7 @@ export function Portrait({
   priority = false,
   className = '',
 }: {
+  id?: string
   src: string
   width: number
   height: number
@@ -24,6 +26,7 @@ export function Portrait({
 }) {
   return (
     <Image
+      id={id}
       src={src}
       width={width}
       height={height}

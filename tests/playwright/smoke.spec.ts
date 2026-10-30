@@ -1,6 +1,6 @@
 // TC-001 (preview renders EN and ID), TC-004 (no third-party requests),
 // TC-005 (status → CTA rules), TC-006 (language persists).
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
 import { selectLang } from './helpers'

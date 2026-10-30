@@ -1,7 +1,7 @@
 // M1 layout checks: TC-008 (hero portrait loaded), TC-009 (no horizontal overflow),
 // TC-010 (mobile menu open/close), TC-011 (nav backdrop after scroll),
 // TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV hidden).
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import en from '../../content/en'
 import { site } from '../../content/site'
 import { hasNoHorizontalOverflow } from './helpers'

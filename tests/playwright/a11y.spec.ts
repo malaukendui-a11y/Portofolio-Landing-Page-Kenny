@@ -1,7 +1,7 @@
 // TC-002: axe scan, zero serious/critical violations in both languages (both viewports).
 // Every reveal is played first: axe skips content still at opacity 0.
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { revealAll, selectLang } from './helpers'
 
 for (const lang of ['en', 'id'] as const) {

@@ -1,5 +1,5 @@
 // TC-007: lightbox keyboard flow (PRD F-08) on the certificates.
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { certifications } from '../../content/certifications'
 import en from '../../content/en'
 

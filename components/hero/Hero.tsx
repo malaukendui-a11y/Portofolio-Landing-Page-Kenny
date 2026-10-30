@@ -1,7 +1,10 @@
 'use client'
 
+import { useLayoutEffect, useRef } from 'react'
 import { site } from '@/content/site'
 import { useLang } from '@/lib/i18n'
+import { onLoaderExit } from '@/lib/loader'
+import { DUR, EASE, gsap, STAGGER, TRAVEL } from '@/lib/motion'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { GithubIcon, LinkedinIcon, MessageCircleIcon } from '@/components/ui/icons'
 import { AvailabilityBadge } from './AvailabilityBadge'
@@ -15,12 +18,48 @@ const HERO_PORTRAIT = {
 }
 
 /**
- * Hero (DESIGN §4.2), static M1 version. Layers back to front: paper surface with
- * the radial glow, the clipped name ticker, the bottom-anchored portrait, then the
- * UI (availability, socials, roles, the //INTRO cue). No WebGL, no motion.
+ * Hero (DESIGN §4.2). Layers back to front: paper surface with the radial glow, the
+ * name marquee, the bottom-anchored portrait, then the UI (availability, socials,
+ * roles, the //INTRO cue). No WebGL yet (M3).
+ *
+ * Entrance (once, only on the session's first visit): as the loader lifts, the
+ * portrait rises 40 px and fades in, then the badge, socials and roles stagger in.
+ * The start states are applied at that moment, under the still-covering overlay, so
+ * the portrait paints at full opacity on load and its LCP is untouched.
  */
 export function Hero() {
   const { t } = useLang()
+  const heroRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(
+    () =>
+      onLoaderExit(() => {
+        gsap.context(() => {
+          gsap
+            .timeline()
+            .from('#hero-portrait', {
+              y: TRAVEL.portrait,
+              opacity: 0,
+              duration: DUR.slow,
+              ease: EASE.expo,
+              clearProps: 'transform,opacity',
+            })
+            .from(
+              '[data-hero-stagger]',
+              {
+                y: TRAVEL.reveal,
+                opacity: 0,
+                duration: DUR.base,
+                ease: EASE.out,
+                stagger: STAGGER,
+                clearProps: 'transform,opacity',
+              },
+              DUR.fast,
+            )
+        }, heroRef)
+      }),
+    [],
+  )
   const socials = [
     site.linkedin
       ? { href: site.linkedin, label: t.hero.socials.linkedin, Icon: LinkedinIcon }
@@ -30,7 +69,7 @@ export function Hero() {
   ].filter((social) => social !== null)
 
   const roles = (
-    <ul className="font-display text-h2-sm md:text-right md:text-h2">
+    <ul data-hero-stagger className="font-display text-h2-sm md:text-right md:text-h2">
       {t.hero.roles.map((role) => (
         <li key={role}>{role}</li>
       ))}
@@ -39,6 +78,7 @@ export function Hero() {
 
   return (
     <section
+      ref={heroRef}
       id="top"
       aria-labelledby="hero-name"
       className="surface-paper relative overflow-hidden"
@@ -48,7 +88,10 @@ export function Hero() {
       </h1>
       <div aria-hidden="true" className="hero-glow absolute inset-0" />
 
-      <div className="relative flex justify-end px-gutter-sm pt-2 md:px-gutter-md lg:px-gutter">
+      <div
+        data-hero-stagger
+        className="relative flex justify-end px-gutter-sm pt-2 md:px-gutter-md lg:px-gutter"
+      >
         <AvailabilityBadge label={t.hero.availability} />
       </div>
 
@@ -56,6 +99,7 @@ export function Hero() {
       <div className="relative min-h-[58svh] md:min-h-[calc(100svh-10rem)]">
         <Ticker text={t.hero.name} className="absolute inset-x-0 top-[28%] md:top-[30%]" />
         <Portrait
+          id="hero-portrait"
           {...HERO_PORTRAIT}
           alt={t.hero.portraitAlt}
           priority
@@ -64,7 +108,7 @@ export function Hero() {
         />
         <div className="absolute inset-x-gutter-md bottom-8 hidden items-end justify-between md:flex lg:inset-x-gutter">
           <div className="flex flex-col gap-10">
-            <ul className="flex flex-col gap-1 text-body">
+            <ul data-hero-stagger className="flex flex-col gap-1 text-body">
               {socials.map((social) => (
                 <li key={social.href}>
                   <a
@@ -89,7 +133,7 @@ export function Hero() {
       <div className="relative flex flex-col gap-6 px-gutter-sm pt-6 pb-8 md:hidden">
         {roles}
         <div className="flex items-center justify-between">
-          <ul className="flex gap-2">
+          <ul data-hero-stagger className="flex gap-2">
             {socials.map((social) => (
               <li key={social.href}>
                 <a

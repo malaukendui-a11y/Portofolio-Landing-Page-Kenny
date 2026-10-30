@@ -1,6 +1,6 @@
 // TC-016: full-page screenshots for the owner's layout review (CLAUDE.md §7),
 // written to test-results/screenshots/<project>-<lang>.png.
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { revealAll, selectLang } from './helpers'
 
 // Full-page capture under combined mobile emulation (isMobile + DPR 2.6) drops the
