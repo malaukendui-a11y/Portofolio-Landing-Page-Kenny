@@ -172,6 +172,22 @@
   }
 }
 
+/* Transition durations from the §3.4 tokens. Tailwind v4 has no `--duration-*` theme
+   namespace, so `duration-fast` would otherwise compile to nothing (M1 hovers ran at
+   the 150 ms default). */
+@utility duration-fast {
+  --tw-duration: var(--duration-fast);
+  transition-duration: var(--duration-fast);
+}
+@utility duration-base {
+  --tw-duration: var(--duration-base);
+  transition-duration: var(--duration-base);
+}
+@utility duration-slow {
+  --tw-duration: var(--duration-slow);
+  transition-duration: var(--duration-slow);
+}
+
 /* Outlined service numeral (DESIGN §3.2 `outline-numeral`): 1.5 px stroke, no fill. */
 @utility numeral-outline {
   color: transparent;
