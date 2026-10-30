@@ -11,7 +11,7 @@ import { ArrowUpIcon, ArrowUpRightIcon, CopyIcon } from '@/components/ui/icons'
 
 const FOOTER_PORTRAIT = {
   src: '/images/portrait/kenny-footer-color@2x.webp',
-  width: 908,
+  width: 883,
   height: 1800,
 }
 

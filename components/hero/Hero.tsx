@@ -10,7 +10,7 @@ import { Ticker } from './Ticker'
 
 const HERO_PORTRAIT = {
   src: '/images/portrait/kenny-hero-crop-color@2x.webp',
-  width: 1324,
+  width: 1045,
   height: 1600,
 }
 
