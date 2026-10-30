@@ -52,7 +52,7 @@ export function ReachOut() {
       <div className="relative px-gutter-sm md:px-gutter-md lg:px-gutter">
         <SectionLabel className="mb-8">{t.reachOut.label}</SectionLabel>
       </div>
-      <Ticker text={t.reachOut.ticker} className="relative" />
+      <Ticker text={t.reachOut.ticker} direction="reverse" className="relative" />
 
       {/* Mobile stage: the portrait sits between the ticker and the contact blocks. */}
       <div className="relative h-[42svh] md:hidden">

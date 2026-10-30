@@ -67,8 +67,62 @@ test.describe('anchor navigation (Lenis)', () => {
   })
 })
 
+test.describe('marquee', () => {
+  const track = (page: Page, section: string) =>
+    page.locator(`#${section} [data-marquee] > .marquee-track`)
+  const translateX = (page: Page, section: string) =>
+    track(page, section).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41)
+
+  test('hero marquee loops at the token speed; Reach Out runs in reverse', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/')
+    const hero = track(page, 'top')
+    await expect(hero).toHaveCSS('animation-name', 'marquee')
+    await expect(hero).toHaveCSS(
+      'animation-duration',
+      testInfo.project.name === 'mobile' ? '28s' : '40s',
+    )
+    await expect(hero).toHaveCSS('animation-play-state', 'running')
+    const before = await translateX(page, 'top')
+    await page.waitForTimeout(500)
+    expect(await translateX(page, 'top')).toBeLessThan(before)
+
+    await expect(track(page, 'contact')).toHaveCSS('animation-direction', 'reverse')
+  })
+
+  test('pauses while the tab is hidden and while off-screen', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('#top [data-marquee]')).not.toHaveAttribute('data-paused')
+    // Reach Out is far below the fold at load.
+    await expect(page.locator('#contact [data-marquee]')).toHaveAttribute('data-paused')
+
+    const setHidden = (hidden: boolean) =>
+      page.evaluate((value) => {
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => value })
+        document.dispatchEvent(new Event('visibilitychange'))
+      }, hidden)
+    await setHidden(true)
+    await expect(track(page, 'top')).toHaveCSS('animation-play-state', 'paused')
+    await setHidden(false)
+    await expect(track(page, 'top')).toHaveCSS('animation-play-state', 'running')
+
+    await page.locator('#contact [data-marquee]').scrollIntoViewIfNeeded()
+    await expect(page.locator('#contact [data-marquee]')).not.toHaveAttribute('data-paused')
+  })
+})
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
+
+  test('marquees are static: one copy group, no animation', async ({ page }) => {
+    await page.goto('/')
+    for (const section of ['top', 'contact']) {
+      const marquee = page.locator(`#${section} [data-marquee]`)
+      await expect(marquee.locator('.marquee-track')).toHaveCSS('animation-name', 'none')
+      await expect(marquee.locator('[data-marquee-copy]')).toBeHidden()
+    }
+  })
 
   test('no Lenis; anchors are native jumps', async ({ page }) => {
     await page.goto('/')

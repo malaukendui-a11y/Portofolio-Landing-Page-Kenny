@@ -188,6 +188,51 @@
   transition-duration: var(--duration-slow);
 }
 
+/* Name marquee (components/hero/Ticker, DESIGN §3.4 `marquee-speed`): two identical
+   groups, the track moves by one group (-50 %) per loop. Paused via `data-paused`;
+   `data-marquee="reverse"` runs it the other way (Reach Out). */
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@utility marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--duration-marquee-sm) linear infinite;
+  will-change: transform;
+  @media (width >= 48rem) {
+    animation-duration: var(--duration-marquee);
+  }
+  [data-marquee='reverse'] > & {
+    animation-direction: reverse;
+  }
+  [data-paused] > & {
+    animation-play-state: paused;
+  }
+  /* Static: one group, its middle copy centred (the M1 resting frame). */
+  @media (prefers-reduced-motion: reduce) {
+    position: relative;
+    left: 50%;
+    translate: -50% 0;
+    animation: none;
+    will-change: auto;
+  }
+}
+
+/* One copy of the text, repeated; the trailing padding keeps the seam gap equal. */
+@utility marquee-group {
+  display: flex;
+  gap: 0.25em;
+  padding-inline-end: 0.25em;
+  &[data-marquee-copy] {
+    @media (prefers-reduced-motion: reduce) {
+      display: none;
+    }
+  }
+}
+
 /* Outlined service numeral (DESIGN §3.2 `outline-numeral`): 1.5 px stroke, no fill. */
 @utility numeral-outline {
   color: transparent;
