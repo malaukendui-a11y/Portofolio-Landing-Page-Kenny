@@ -73,6 +73,7 @@ function Lightbox({
   return (
     <dialog
       ref={dialogRef}
+      data-lenis-prevent
       aria-label={t.lightbox.label}
       onClose={onClosed}
       onKeyDown={onKeyDown}

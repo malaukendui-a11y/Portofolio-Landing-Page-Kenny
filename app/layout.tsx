@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import en from '@/content/en'
 import { LangHtmlSync } from '@/components/ui/LangHtmlSync'
 import { fontClassNames } from './fonts'
+import 'lenis/dist/lenis.css'
 import './globals.css'
 
 // Default-language metadata. Per-language <title> switching lands in M4 (PRD F-14).

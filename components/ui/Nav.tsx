@@ -5,6 +5,7 @@ import { site } from '@/content/site'
 import { useLang } from '@/lib/i18n'
 import { useRestoreFocus } from '@/lib/useRestoreFocus'
 import { useScrollLock } from '@/lib/useScrollLock'
+import { scrollToHash } from '@/lib/smoothScroll'
 import { trapTab } from '@/lib/trapTab'
 import { ButtonLink } from './Button'
 import { LangToggle } from './LangToggle'
@@ -60,8 +61,8 @@ export function Nav() {
     focus.restore()
     const hash = pendingHash.current
     pendingHash.current = null
-    // Navigate after the scroll lock is released by the re-render.
-    if (hash) requestAnimationFrame(() => window.location.assign(hash))
+    // Navigate after the scroll lock is released by the re-render (Lenis or native).
+    if (hash) requestAnimationFrame(() => scrollToHash(hash))
   }, [focus])
 
   const onMenuLinkClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -121,6 +122,7 @@ export function Nav() {
       <dialog
         id="mobile-menu"
         ref={menuRef}
+        data-lenis-prevent
         aria-label={t.nav.menu}
         onClose={onMenuClosed}
         onKeyDown={(event) => trapTab(event, menuRef.current)}

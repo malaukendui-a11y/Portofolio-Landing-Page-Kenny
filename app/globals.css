@@ -209,8 +209,13 @@
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  /* No CSS smooth scrolling: Lenis is the only smooth path (lib/smoothScroll). Before
+     hydration, without JS and under reduced motion, anchors are instant native jumps —
+     a native smooth scroll in flight when Lenis starts would be cut off halfway. */
+
+  /* Sections focused by in-page navigation (lib/smoothScroll) are not controls. */
+  [data-focus-target]:focus {
+    outline: none;
   }
 
   body {
@@ -241,9 +246,6 @@
 
   /* DESIGN §3.4 reduced motion: instant reveals, no smooth scroll. */
   @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
     *,
     ::before,
     ::after {
