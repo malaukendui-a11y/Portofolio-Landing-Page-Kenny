@@ -32,13 +32,15 @@ export function Loader() {
     }
 
     const elapsed = performance.now()
-    if (elapsed >= LOADER_MAX_MS) {
-      // Hydrated late: the CSS failsafe is already fading the overlay out. Let it finish.
-      const timer = setTimeout(
-        () => html.removeAttribute('data-loader'),
-        LOADER_MAX_MS + DUR.base * 1000 - elapsed,
-      )
-      return () => clearTimeout(timer)
+    // Hydrated late and the CSS failsafe is already fading the overlay: let it finish
+    // rather than snapping it back to opaque by taking over.
+    const failsafe = root
+      .getAnimations()
+      .find((animation) => (animation as CSSAnimation).animationName === 'loader-failsafe')
+    if ((failsafe?.effect?.getComputedTiming().progress ?? 0) > 0) {
+      const finish = () => html.removeAttribute('data-loader')
+      root.addEventListener('animationend', finish, { once: true })
+      return () => root.removeEventListener('animationend', finish)
     }
     html.setAttribute('data-loader', 'js')
 
@@ -65,7 +67,9 @@ export function Loader() {
     const image = (portrait ? portrait.decode().catch(() => undefined) : Promise.resolve()).then(
       markReady,
     )
-    const minHold = new Promise((resolve) => setTimeout(resolve, LOADER_MIN_MS - elapsed))
+    const minHold = new Promise((resolve) =>
+      setTimeout(resolve, Math.max(0, LOADER_MIN_MS - elapsed)),
+    )
 
     let exited = false
     const exit = () => {
@@ -87,7 +91,7 @@ export function Loader() {
     }
 
     Promise.all([fonts, image, minHold]).then(exit)
-    const maxTimer = setTimeout(exit, LOADER_MAX_MS - elapsed)
+    const maxTimer = setTimeout(exit, Math.max(0, LOADER_MAX_MS - elapsed))
     SKIP_EVENTS.forEach((type) => window.addEventListener(type, exit, { passive: true }))
     return () => {
       exited = true

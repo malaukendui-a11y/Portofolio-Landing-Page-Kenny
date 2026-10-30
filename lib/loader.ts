@@ -11,9 +11,11 @@ export const LOADER_MAX_MS = 1500
 /**
  * Runs before first paint (inline in <head>): flags <html data-loader> so CSS shows
  * the overlay from the very first frame, unless this session has seen it, storage is
- * blocked, or the user prefers reduced motion.
+ * blocked, or the user prefers reduced motion. It also sets `--loader-cap` to what is
+ * left of the 1.5 s cap, so the CSS failsafe counts from navigation start rather than
+ * from whenever the overlay is first styled.
  */
-export const LOADER_PREPAINT_SCRIPT = `try{if(!sessionStorage.getItem('${LOADER_SESSION_KEY}')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.setAttribute('data-loader','')}catch(e){}`
+export const LOADER_PREPAINT_SCRIPT = `try{if(!sessionStorage.getItem('${LOADER_SESSION_KEY}')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var h=document.documentElement;h.setAttribute('data-loader','');h.style.setProperty('--loader-cap',Math.max(0,${LOADER_MAX_MS}-performance.now())+'ms')}}catch(e){}`
 
 const exitListeners = new Set<() => void>()
 

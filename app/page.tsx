@@ -16,6 +16,8 @@ import { SkipLink } from '@/components/ui/SkipLink'
 export default function HomePage() {
   return (
     <>
+      {/* First in <body>: the overlay must exist before any content can paint. */}
+      <Loader />
       <MotionRoot />
       <SkipLink />
       <Nav />
@@ -30,7 +32,6 @@ export default function HomePage() {
         <ReachOut />
       </main>
       <Footer />
-      <Loader />
     </>
   )
 }

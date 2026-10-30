@@ -39,16 +39,40 @@ async function takeoverAt(page: Page): Promise<number> {
   return (await handle.jsonValue()) as number
 }
 
-/** When the overlay started leaving: JS exit (pointer-events none) or the CSS fade. */
+/**
+ * Records, in the page, the exact moment the overlay starts leaving by either route,
+ * independent of how late a busy main thread gets to observe it: the JS exit (its
+ * inline `pointer-events: none`, caught by a MutationObserver as it is written) or the
+ * CSS failsafe (its animation's start time plus delay, read on `animationstart`).
+ */
+async function recordLeaving(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const store = window as unknown as { leftAt?: number }
+    const mark = (time: number) => {
+      if (store.leftAt === undefined || time < store.leftAt) store.leftAt = time
+    }
+    new MutationObserver(() => {
+      const node = document.querySelector<HTMLElement>('.loader-overlay')
+      if (node?.style.pointerEvents === 'none') mark(performance.now())
+    }).observe(document, { attributes: true, attributeFilter: ['style'], subtree: true })
+    document.addEventListener(
+      'animationstart',
+      (event) => {
+        if (event.animationName !== 'loader-failsafe') return
+        const animation = (event.target as Element)
+          .getAnimations()
+          .find((item) => (item as CSSAnimation).animationName === 'loader-failsafe')
+        const delay = Number(animation?.effect?.getTiming().delay ?? 0)
+        if (animation?.startTime != null) mark(Number(animation.startTime) + delay)
+      },
+      true,
+    )
+  })
+}
+
 async function leftAt(page: Page): Promise<number> {
   const handle = await page.waitForFunction(
-    () => {
-      const node = document.querySelector('.loader-overlay')
-      if (!node) return 0
-      const style = getComputedStyle(node)
-      const leaving = style.pointerEvents === 'none' || Number(style.opacity) < 1
-      return leaving ? performance.now() : 0
-    },
+    () => (window as unknown as { leftAt?: number }).leftAt,
     undefined,
     POLL,
   )
@@ -68,6 +92,15 @@ test('first visit shows the loader, which leaves on its own and never returns th
 }) => {
   await page.goto('/', { waitUntil: 'commit' })
   await expect(overlay(page)).toBeVisible()
+  // First in <body>, ahead of the hero, so it exists before any content can paint.
+  const overlayFirst = await page.evaluate(
+    () =>
+      document
+        .querySelector('.loader-overlay')!
+        .compareDocumentPosition(document.getElementById('top')!) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  )
+  expect(overlayFirst).toBeTruthy()
   // Gone after at most the 1.5 s hold plus the 1 s exit.
   await expect(overlay(page)).toBeHidden({ timeout: LOADER_MAX_MS + DUR.slow * 1000 + 1_000 })
   expect(await page.evaluate((key) => sessionStorage.getItem(key), LOADER_SESSION_KEY)).toBe('1')
@@ -106,6 +139,7 @@ test('first visit shows the loader, which leaves on its own and never returns th
 
 test('a key press skips the hold', async ({ page }) => {
   await delayPortrait(page, 4_000)
+  await recordLeaving(page)
   await page.goto('/', { waitUntil: 'commit' })
   const tookOver = await takeoverAt(page)
   test.skip(
@@ -119,12 +153,13 @@ test('a key press skips the hold', async ({ page }) => {
 
 test('the hold never exceeds 1.5 s, even while the portrait is still loading', async ({ page }) => {
   await delayPortrait(page, 4_000)
+  await recordLeaving(page)
   await page.goto('/', { waitUntil: 'commit' })
   const left = await leftAt(page)
   test.info().annotations.push({ type: 'loader-left-at', description: `${Math.round(left)} ms` })
-  // JS exit or CSS failsafe, long before the portrait arrives at 4 s; the tolerance
-  // covers a machine starved by the whole suite running in parallel.
-  expect(left).toBeLessThan(LOADER_MAX_MS + 500)
+  // JS exit or CSS failsafe, long before the portrait arrives at 4 s; a little slack
+  // for the JS timer on a machine starved by the whole suite running in parallel.
+  expect(left).toBeLessThan(LOADER_MAX_MS + 150)
 })
 
 test('the hero enters as the loader lifts and settles with no leftover styles', async ({
@@ -134,7 +169,7 @@ test('the hero enters as the loader lifts and settles with no leftover styles', 
   const tookOver = await takeoverAt(page)
   test.skip(tookOver < 0, 'hydrated after the cap: the CSS failsafe ends the hold, no entrance')
   const portrait = page.locator('#hero-portrait')
-  await leftAt(page)
+  await expect(overlay(page)).toHaveCSS('pointer-events', 'none', { timeout: 3_000 })
   // Mid-entrance the portrait is still fading in.
   expect(Number(await portrait.evaluate((img) => getComputedStyle(img).opacity))).toBeLessThan(1)
   await expect(overlay(page)).toBeHidden({ timeout: 3_000 })
