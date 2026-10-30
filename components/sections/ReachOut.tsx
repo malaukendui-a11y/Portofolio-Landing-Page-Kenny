@@ -144,7 +144,7 @@ export function ReachOut() {
             >
               {t.reachOut.backToTop}
               <span className="inline-flex size-12 items-center justify-center rounded-pill border border-fg text-fg transition-colors duration-fast ease-out group-hover:bg-fg group-hover:text-surface">
-                <ArrowUpIcon />
+                <ArrowUpIcon className="transition-transform duration-fast ease-out group-hover:-translate-y-1" />
               </span>
             </a>
           </div>

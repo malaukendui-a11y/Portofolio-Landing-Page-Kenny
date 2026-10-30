@@ -281,3 +281,39 @@ test.describe('stacked cards', () => {
     await expectPlainList(page, 'work')
   })
 })
+
+// TC-029: hover states (DESIGN §4.4 rows, §5 pill buttons). Tailwind's `hover:` sits behind
+// `@media (hover: hover)`, which the touch emulation of the mobile project does not match.
+test.describe('hover', () => {
+  test.beforeEach(({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'hover needs a fine pointer')
+  })
+
+  test('pill buttons invert over dur-fast and the arrow slides', async ({ page }) => {
+    await page.goto('/')
+    const contact = page.locator('#contact')
+    const filled = contact.getByRole('link', { name: en.reachOut.ctas.email })
+    await expect(filled).toHaveCSS('transition-duration', '0.25s')
+    await expect(filled).toHaveCSS('background-color', 'rgb(18, 17, 17)')
+    await filled.hover()
+    await expect(filled).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(filled).toHaveCSS('color', 'rgb(18, 17, 17)')
+
+    const outlined = contact.getByRole('link', { name: en.reachOut.ctas.whatsapp })
+    const arrow = outlined.locator('[data-arrow]')
+    await expect(arrow).toHaveCSS('translate', 'none')
+    await outlined.hover()
+    await expect(outlined).toHaveCSS('background-color', 'rgb(18, 17, 17)')
+    await expect(outlined).toHaveCSS('color', 'rgb(230, 227, 222)')
+    await expect(arrow).toHaveCSS('translate', '3px -3px')
+  })
+
+  test('service rows indent 8 px and the index turns accent', async ({ page }) => {
+    await page.goto('/')
+    const row = page.locator('#services li').first()
+    const [text, index] = [row.locator('span').first(), row.locator('span').last()]
+    await row.hover()
+    await expect(text).toHaveCSS('translate', '8px')
+    await expect(index).toHaveCSS('color', 'rgb(217, 99, 75)')
+  })
+})

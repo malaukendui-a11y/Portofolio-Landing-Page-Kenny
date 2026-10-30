@@ -2,17 +2,20 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 type Variant = 'filled' | 'outlined' | 'accent'
 
+// Every variant keeps a 1 px border so the pill does not change size when it inverts;
+// a trailing arrow icon slides 4 px toward where it points.
 const base =
-  'inline-flex min-h-12 items-center justify-center gap-2 rounded-pill px-6 font-medium text-body transition-colors duration-fast ease-out'
+  'inline-flex min-h-12 items-center justify-center gap-2 rounded-pill border px-6 font-medium text-body transition-colors duration-fast ease-out [&_[data-arrow]]:transition-transform [&_[data-arrow]]:duration-fast [&_[data-arrow]]:ease-out hover:[&_[data-arrow]]:translate-x-0.75 hover:[&_[data-arrow]]:-translate-y-0.75'
 
 /**
- * DESIGN §5 (v1.1): filled = ink on paper / light on dark; accent = terracotta pill on dark
- * with an accent-600 fill (text-on-dark reaches 5.8:1) and accent-500 on hover.
+ * DESIGN §5 (v1.1): filled = ink on paper / light on dark and outlined invert on hover over
+ * dur-fast; accent = terracotta pill on dark with an accent-600 fill (text-on-dark reaches
+ * 5.8:1) that lightens to accent-500 on hover.
  */
 const variants: Record<Variant, string> = {
-  filled: 'bg-fg text-surface hover:bg-accent-fg',
-  outlined: 'border border-current text-fg hover:bg-fg hover:text-surface',
-  accent: 'bg-accent-600 text-text-on-dark hover:bg-accent-500',
+  filled: 'border-fg bg-fg text-surface hover:bg-transparent hover:text-fg',
+  outlined: 'border-fg text-fg hover:bg-fg hover:text-surface',
+  accent: 'border-transparent bg-accent-600 text-text-on-dark hover:bg-accent-500',
 }
 
 export function buttonClasses(variant: Variant = 'filled', className = ''): string {
