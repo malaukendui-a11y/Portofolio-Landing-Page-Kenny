@@ -71,19 +71,32 @@ test('first visit shows the loader, which leaves on its own and never returns th
   // Gone after at most the 1.5 s hold plus the 1 s exit.
   await expect(overlay(page)).toBeHidden({ timeout: LOADER_MAX_MS + DUR.slow * 1000 + 1_000 })
   expect(await page.evaluate((key) => sessionStorage.getItem(key), LOADER_SESSION_KEY)).toBe('1')
-  // Fixed overlay: no layout shift from it.
-  const cls = await page.evaluate(
+  // Fixed overlay with a fixed-width counter: nothing inside it shifts, and the page stays
+  // well under the CLS budget.
+  const shifts = await page.evaluate(
     () =>
-      new Promise<number>((resolve) => {
+      new Promise<{ total: number; fromOverlay: number }>((resolve) => {
+        type Shift = PerformanceEntry & {
+          value: number
+          sources: { node?: Node | null }[]
+        }
         let total = 0
+        let fromOverlay = 0
         new PerformanceObserver((list) => {
-          for (const entry of list.getEntries() as (PerformanceEntry & { value: number })[])
+          for (const entry of list.getEntries() as Shift[]) {
             total += entry.value
+            const inOverlay = entry.sources.some(
+              (source) =>
+                source.node instanceof Element && source.node.closest('.loader-overlay') !== null,
+            )
+            if (inOverlay) fromOverlay += entry.value
+          }
         }).observe({ type: 'layout-shift', buffered: true })
-        setTimeout(() => resolve(total), 100)
+        setTimeout(() => resolve({ total, fromOverlay }), 100)
       }),
   )
-  expect(cls).toBeLessThan(0.1)
+  expect(shifts.fromOverlay).toBe(0)
+  expect(shifts.total).toBeLessThan(0.1)
 
   await page.reload({ waitUntil: 'commit' })
   await page.waitForLoadState('domcontentloaded')

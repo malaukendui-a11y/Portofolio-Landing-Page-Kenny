@@ -104,7 +104,9 @@ export function Loader() {
       className="loader-overlay surface-dark fixed inset-0 z-50 flex-col justify-between px-gutter-sm py-4 md:px-gutter-md lg:px-gutter lg:pb-10"
     >
       <p className="text-body-lg text-fg">{t.nav.brand}</p>
-      <p className="self-end font-display text-ticker leading-none tabular-nums">
+      {/* A box sized in em (not ch): neither the counter growing 0 → 100 nor the web font
+          swapping in may move it (CLS). */}
+      <p className="w-[2em] self-end text-right font-display text-ticker leading-none tabular-nums">
         <span ref={countRef}>0</span>
         <span className="font-mono text-label text-fg-muted">%</span>
       </p>
