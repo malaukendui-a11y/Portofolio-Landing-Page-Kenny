@@ -79,7 +79,7 @@ export function Hero() {
                 </li>
               ))}
             </ul>
-            <SectionLabel>{t.hero.scrollCue}</SectionLabel>
+            <SectionLabel reveal={false}>{t.hero.scrollCue}</SectionLabel>
           </div>
           {roles}
         </div>
@@ -104,7 +104,7 @@ export function Hero() {
               </li>
             ))}
           </ul>
-          <SectionLabel>{t.hero.scrollCue}</SectionLabel>
+          <SectionLabel reveal={false}>{t.hero.scrollCue}</SectionLabel>
         </div>
       </div>
     </section>

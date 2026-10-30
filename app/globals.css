@@ -190,7 +190,9 @@
 
 /* Name marquee (components/hero/Ticker, DESIGN §3.4 `marquee-speed`): two identical
    groups, the track moves by one group (-50 %) per loop. Paused via `data-paused`;
-   `data-marquee="reverse"` runs it the other way (Reach Out). */
+   `data-marquee="reverse"` runs it the other way (Reach Out). No `will-change`: the
+   running animation already promotes the track to its own compositor layer, and
+   `will-change` would keep a ~10 000 px layer alive even while the marquee is paused. */
 @keyframes marquee {
   to {
     transform: translate3d(-50%, 0, 0);
@@ -201,7 +203,6 @@
   display: flex;
   width: max-content;
   animation: marquee var(--duration-marquee-sm) linear infinite;
-  will-change: transform;
   @media (width >= 48rem) {
     animation-duration: var(--duration-marquee);
   }
@@ -217,7 +218,6 @@
     left: 50%;
     translate: -50% 0;
     animation: none;
-    will-change: auto;
   }
 }
 

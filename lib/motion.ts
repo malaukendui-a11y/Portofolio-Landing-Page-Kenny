@@ -29,6 +29,13 @@ export const STAGGER = 0.06
 /** `marquee-speed`: seconds per full loop (the CSS animation reads the same tokens). */
 export const MARQUEE = { desktop: 40, mobile: 28 } as const
 
+/** Travel in px: block reveals rise 24, the hero portrait rises 40 (PRD M2 brief). */
+export const TRAVEL = { reveal: 24, portrait: 40 } as const
+
+/** Reveals fire once when the element's top crosses 85 % of the viewport height. */
+export const REVEAL_LINE = 0.85
+export const REVEAL_START = `top ${REVEAL_LINE * 100}%`
+
 /** Stacked cards (DESIGN §4.4 / §4.5): what card n becomes as card n+1 arrives. */
 export const STACK = { scale: 0.96, opacity: 0.55 } as const
 

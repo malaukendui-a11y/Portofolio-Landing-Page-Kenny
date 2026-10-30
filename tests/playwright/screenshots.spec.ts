@@ -1,7 +1,7 @@
 // TC-016: full-page screenshots for the owner's layout review (CLAUDE.md §7),
 // written to test-results/screenshots/<project>-<lang>.png.
 import { expect, test } from '@playwright/test'
-import { selectLang } from './helpers'
+import { revealAll, selectLang } from './helpers'
 
 // Full-page capture under combined mobile emulation (isMobile + DPR 2.6) drops the
 // hero portrait from the bitmap although it is loaded and laid out; capture the same
@@ -10,12 +10,14 @@ test.use({ isMobile: false, hasTouch: false, deviceScaleFactor: 1 })
 
 for (const lang of ['en', 'id'] as const) {
   test(`full-page screenshot (${lang})`, async ({ page }, testInfo) => {
+    test.slow() // scrolls through every reveal and waits for every lazy image
     await page.goto('/')
     if (lang === 'id') {
       await selectLang(page, 'ID')
       await expect(page.locator('html')).toHaveAttribute('lang', 'id')
     }
-    // Force lazy images to load now (they only start near the viewport), then wait.
+    // Play every once-only reveal, then force lazy images to load and wait for them.
+    await revealAll(page)
     await page.evaluate(() => {
       for (const img of Array.from(document.images)) {
         if (img.offsetParent !== null) img.loading = 'eager'

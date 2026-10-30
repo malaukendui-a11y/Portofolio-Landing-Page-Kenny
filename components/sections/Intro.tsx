@@ -1,18 +1,29 @@
 'use client'
 
+import { useRef } from 'react'
 import { site } from '@/content/site'
 import { useLang } from '@/lib/i18n'
+import { useLineReveal } from '@/lib/useLineReveal'
 import { ButtonLink } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 
-/** Intro (DESIGN §4.3): statement with accented phrases, short bio, two CTAs. */
+/**
+ * Intro (DESIGN §4.3): statement with accented phrases, short bio, two CTAs. The
+ * statement reveals line by line (SplitText); `key={lang}` remounts it on a language
+ * switch so React never reconciles split markup. Paragraph and buttons fade up.
+ */
 export function Intro() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
+  const statementRef = useRef<HTMLHeadingElement>(null)
+  useLineReveal(statementRef, lang)
+
   return (
     <Section id="about" surface="dark" labelledBy="intro-statement">
       <SectionLabel className="mb-8">{t.intro.label}</SectionLabel>
       <h2
+        key={lang}
+        ref={statementRef}
         id="intro-statement"
         className="max-w-measure font-display text-statement-sm md:text-statement-md lg:text-statement"
       >
@@ -26,10 +37,10 @@ export function Intro() {
           ),
         )}
       </h2>
-      <p className="mt-8 max-w-[60ch] text-body-lg-sm text-fg-muted md:text-body-lg">
+      <p data-reveal className="mt-8 max-w-[60ch] text-body-lg-sm text-fg-muted md:text-body-lg">
         {t.intro.paragraph}
       </p>
-      <div className="mt-10 flex flex-wrap gap-4">
+      <div data-reveal className="mt-10 flex flex-wrap gap-4">
         <ButtonLink href="#work" variant="accent">
           {t.intro.seeWork}
         </ButtonLink>

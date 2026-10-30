@@ -67,7 +67,7 @@ export function ReachOut() {
       <div className="relative px-gutter-sm pt-10 pb-10 md:px-gutter-md md:pt-16 lg:px-gutter lg:pb-16">
         <div className="grid gap-12 md:grid-cols-12 md:items-end">
           <div className="md:col-span-6 lg:col-span-5">
-            <h2 id="contact-heading" className="font-display text-h2-sm md:text-h2">
+            <h2 id="contact-heading" data-reveal className="font-display text-h2-sm md:text-h2">
               {t.reachOut.heading}
             </h2>
             <p className="mt-4 max-w-[60ch] text-body-lg-sm text-fg-muted md:text-body-lg">

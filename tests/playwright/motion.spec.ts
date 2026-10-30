@@ -1,6 +1,11 @@
-// M2 motion: TC-022 (Lenis + anchor navigation) and TC-024 (reduced-motion path).
+// M2 motion: TC-022 (Lenis + anchor navigation), TC-023 (marquee), TC-024 (reduced-motion
+// path), TC-027 (reveals + SplitText).
 import { expect, test, type Page } from '@playwright/test'
 import en from '../../content/en'
+import id from '../../content/id'
+import { revealAll, selectLang } from './helpers'
+
+const statementText = (copy: typeof en) => copy.intro.statement.map((part) => part.text).join('')
 
 const LENIS = /(^|\s)lenis(\s|$)/
 
@@ -84,9 +89,9 @@ test.describe('marquee', () => {
       testInfo.project.name === 'mobile' ? '28s' : '40s',
     )
     await expect(hero).toHaveCSS('animation-play-state', 'running')
+    // The track moves left (a cold browser can take a moment to produce frames).
     const before = await translateX(page, 'top')
-    await page.waitForTimeout(500)
-    expect(await translateX(page, 'top')).toBeLessThan(before)
+    await expect.poll(() => translateX(page, 'top')).toBeLessThan(before)
 
     await expect(track(page, 'contact')).toHaveCSS('animation-direction', 'reverse')
   })
@@ -112,8 +117,60 @@ test.describe('marquee', () => {
   })
 })
 
+test.describe('reveals', () => {
+  test('labels and headings below the fold fade up once on enter', async ({ page }) => {
+    await gotoWithLenis(page)
+    const label = page.locator('#experience [data-reveal]').first()
+    await expect(label).toHaveCSS('opacity', '0')
+    await label.scrollIntoViewIfNeeded()
+    await expect(label).toHaveCSS('opacity', '1')
+    await expect(label).toHaveCSS('transform', 'none')
+  })
+
+  test('the Intro statement splits into lines, then reverts to plain markup', async ({ page }) => {
+    await gotoWithLenis(page)
+    const statement = page.locator('#intro-statement')
+    await expect(statement.locator('div').first()).toBeAttached() // split, waiting below the fold
+    await statement.scrollIntoViewIfNeeded()
+    await expect(statement.locator('div')).toHaveCount(0)
+    await expect(statement).toHaveText(statementText(en))
+    await expect(statement).toHaveCSS('opacity', '1')
+  })
+
+  test('switching language mid-page keeps the statement intact, with no errors', async ({
+    page,
+  }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await gotoWithLenis(page)
+    // Toggle before the reveal (split DOM in place), then scroll through and back.
+    await selectLang(page, 'ID')
+    await expect(page.locator('#intro-statement')).toHaveText(statementText(id))
+    await revealAll(page)
+    await selectLang(page, 'EN')
+    await expect(page.locator('#intro-statement')).toHaveText(statementText(en))
+    expect(errors).toEqual([])
+  })
+})
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
+
+  test('reveals are an opacity fade only; the statement is never split', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    const statement = page.locator('#intro-statement')
+    await expect(statement).toHaveCSS('opacity', '0')
+    await expect(statement.locator('div')).toHaveCount(0)
+    const label = page.locator('#experience [data-reveal]').first()
+    await expect(label).toHaveCSS('transform', 'none')
+    await revealAll(page)
+    await expect(label).toHaveCSS('opacity', '1')
+    await expect(statement).toHaveCSS('opacity', '1')
+  })
 
   test('marquees are static: one copy group, no animation', async ({ page }) => {
     await page.goto('/')
