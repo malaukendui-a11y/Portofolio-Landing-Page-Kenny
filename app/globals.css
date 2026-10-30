@@ -96,6 +96,10 @@
   --spacing-gutter-md: 1.5rem;
   --spacing-gutter-sm: 1.25rem;
   --spacing-measure: 68ch;
+  /* Sticky nav height (py-4 + 48 px pill): stacked cards stick just below it. */
+  --spacing-nav: 5rem;
+  /* DESIGN §4.5: each project card sticks 24 px lower than the one before. */
+  --spacing-stack-offset: 1.5rem;
 
   --radius-*: initial;
   --radius-card: 1.5rem;
@@ -230,6 +234,26 @@
     @media (prefers-reduced-motion: reduce) {
       display: none;
     }
+  }
+}
+
+/* Sticky stacked cards (DESIGN §4.4 / §4.5, lib/useStackedCards): from 1024 px and
+   only when motion is allowed; otherwise the cards are a plain list. Card n sticks at
+   nav + n × --stack-offset (0 for Services, 24 px for Projects via `stack-offset`). */
+@utility stack-card {
+  @media (width >= 64rem) and (prefers-reduced-motion: no-preference) {
+    position: sticky;
+    top: calc(var(--spacing-nav) + var(--stack-index, 0) * var(--stack-offset, 0rem));
+    transform-origin: 50% 0;
+  }
+}
+@utility stack-offset {
+  --stack-offset: var(--spacing-stack-offset);
+}
+/* Services cards fill the viewport below the nav while they are stacked. */
+@utility stack-card-full {
+  @media (width >= 64rem) and (prefers-reduced-motion: no-preference) {
+    min-height: calc(100svh - var(--spacing-nav));
   }
 }
 

@@ -188,4 +188,96 @@ test.describe('reduced motion', () => {
     await page.locator('footer').getByRole('link', { name: en.nav.contact }).click()
     await expectAt(page, 'contact')
   })
+
+  test('stacked cards are a plain list', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await expectPlainList(page, 'services')
+    await expectPlainList(page, 'work')
+  })
+})
+
+/** Card n's scale (from the computed matrix) and opacity. */
+function cardState(page: Page, section: string, index: number) {
+  return page
+    .locator(`#${section} article`)
+    .nth(index)
+    .evaluate((card) => {
+      const style = getComputedStyle(card)
+      return { scale: new DOMMatrix(style.transform).a, opacity: Number(style.opacity) }
+    })
+}
+
+/** Scrolls so card n+1's top sits `fraction` of the way from the viewport bottom to its sticky top. */
+async function bringNextCard(page: Page, section: string, index: number, fraction: number) {
+  await page.evaluate(
+    ({ section, index, fraction }) => {
+      const next = document.querySelectorAll<HTMLElement>(`#${section} article`)[index + 1]
+      const stickyTop = parseFloat(getComputedStyle(next).top)
+      const from = window.innerHeight
+      const goal = from + (stickyTop - from) * fraction
+      window.scrollTo(0, window.scrollY + next.getBoundingClientRect().top - goal)
+    },
+    { section, index, fraction },
+  )
+}
+
+/** Every card in normal flow, untransformed and opaque after scrolling through. */
+async function expectPlainList(page: Page, section: string) {
+  const cards = page.locator(`#${section} article`)
+  await cards.last().scrollIntoViewIfNeeded()
+  for (const card of await cards.all()) {
+    await expect(card).not.toHaveCSS('position', 'sticky')
+    await expect(card).toHaveCSS('transform', 'none')
+    await expect(card).toHaveCSS('opacity', '1')
+  }
+}
+
+test.describe('stacked cards', () => {
+  test('at 1440, card n scales and dims as card n+1 arrives, and recovers', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+    await gotoWithLenis(page)
+    for (const section of ['services', 'work']) {
+      await expect(page.locator(`#${section} article`).first()).toHaveCSS('position', 'sticky')
+
+      await bringNextCard(page, section, 0, 0.5)
+      await expect
+        .poll(async () => {
+          const { scale, opacity } = await cardState(page, section, 0)
+          return scale < 1 && scale > 0.96 && opacity < 1 && opacity > 0.55
+        })
+        .toBe(true)
+
+      await bringNextCard(page, section, 0, 1)
+      await expect
+        .poll(async () => {
+          const { scale, opacity } = await cardState(page, section, 0)
+          return Math.abs(scale - 0.96) < 0.005 && Math.abs(opacity - 0.55) < 0.02
+        })
+        .toBe(true)
+
+      // Scrolling back up restores card n.
+      await bringNextCard(page, section, 0, 0)
+      await expect
+        .poll(async () => {
+          const { scale, opacity } = await cardState(page, section, 0)
+          return scale === 1 && opacity === 1
+        })
+        .toBe(true)
+    }
+    // Projects step down 24 px per card.
+    const tops = await page
+      .locator('#work article')
+      .evaluateAll((cards) => cards.map((card) => parseFloat(getComputedStyle(card).top)))
+    expect(tops.slice(1).map((top, i) => top - tops[i])).toEqual(tops.slice(1).map(() => 24))
+  })
+
+  test('below 1024 px the cards are a plain list', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'the 390 px layout')
+    await page.goto('/')
+    await expectPlainList(page, 'services')
+    await expectPlainList(page, 'work')
+  })
 })

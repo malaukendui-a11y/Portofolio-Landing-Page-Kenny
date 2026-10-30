@@ -1,8 +1,11 @@
 'use client'
 
 import Image from 'next/image'
+import { useRef, type CSSProperties } from 'react'
 import { ctasFor, projects, type Project } from '@/content/projects'
 import { useLang } from '@/lib/i18n'
+import { refreshScrollTriggers } from '@/lib/motion'
+import { useStackedCards } from '@/lib/useStackedCards'
 import { StatusBadge } from '@/components/ui/Badge'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { useLightbox, type LightboxItem } from '@/components/ui/Lightbox'
@@ -11,7 +14,8 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 import { ArrowUpRightIcon, FileTextIcon } from '@/components/ui/icons'
 
 /**
- * Projects (DESIGN §4.5, PRD §6) — M1: static stacked cards (sticky stacking is M2).
+ * Projects (DESIGN §4.5, PRD §6): sticky stacked cards from 1024 px, each 24 px lower
+ * than the last (useStackedCards); a plain list below that and under reduced motion.
  * Card grid 7/5: screenshots left (only when the project has images — no placeholder),
  * meta right: mono year, status badge, title, description, role, stack rows, CTA row.
  * CTAs come only from ctasFor; lightbox-backed ones render as real buttons.
@@ -19,6 +23,8 @@ import { ArrowUpRightIcon, FileTextIcon } from '@/components/ui/icons'
 export function Projects() {
   const { t, lang } = useLang()
   const { open, lightbox } = useLightbox()
+  const stackRef = useRef<HTMLDivElement>(null)
+  useStackedCards(stackRef)
 
   const galleryFor = (project: Project, title: string): LightboxItem[] =>
     project.images.map((image) => ({
@@ -35,8 +41,8 @@ export function Projects() {
       <h2 id="projects-heading" className="sr-only">
         {t.projects.heading}
       </h2>
-      <div className="flex flex-col gap-6">
-        {projects.map((project) => {
+      <div ref={stackRef} className="flex flex-col gap-6">
+        {projects.map((project, index) => {
           const copy = t.projects.items[project.id]
           const ctas = ctasFor(project)
           const gallery = galleryFor(project, copy.title)
@@ -45,7 +51,8 @@ export function Projects() {
           return (
             <article
               key={project.id}
-              className="grid gap-8 rounded-card border border-hairline bg-ink-800 p-6 md:p-10 lg:grid-cols-12 lg:gap-10"
+              style={{ '--stack-index': index } as CSSProperties}
+              className="stack-card stack-offset grid gap-8 rounded-card border border-hairline bg-ink-800 p-6 md:p-10 lg:grid-cols-12 lg:gap-10"
             >
               {hasImages && (
                 <div className="lg:col-span-7">
@@ -61,6 +68,7 @@ export function Projects() {
                       height={cover.height}
                       alt={cover.alt[lang]}
                       sizes="(min-width: 1024px) 55vw, 100vw"
+                      onLoad={refreshScrollTriggers}
                       className="h-auto w-full"
                     />
                   </button>
