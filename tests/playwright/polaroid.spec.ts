@@ -1,4 +1,4 @@
-// F1: the Reach Out polaroid line (DESIGN §4.9). TC-032 to TC-046 in docs/QA-PLAN.md.
+// F1: the Reach Out polaroid line (DESIGN §4.9). TC-032 to TC-048 in docs/QA-PLAN.md.
 //
 // Prints sway every frame, so Playwright's stability check never passes on them: cards are
 // clicked and dragged with page.mouse at coordinates. `step()` moves from the current active
@@ -215,6 +215,60 @@ test.describe('polaroid line', () => {
     await expect(count(page)).toHaveText('03 / 06')
   })
 
+  test('a press that leaves and never returns does not block autoplay', async ({ page }) => {
+    await gotoCarousel(page)
+    const area = (await root(page).boundingBox())!
+    const x = area.x + area.width / 2
+    await page.mouse.move(x, area.y + area.height * 0.4)
+    await page.mouse.down()
+    await page.mouse.move(x, Math.max(1, area.y - 20), { steps: 4 })
+    await page.mouse.up()
+    await expect(count(page)).toHaveText('04 / 06', { timeout: 7_000 })
+  })
+
+  test('a drag whose release was lost ends on the next mouse move', async ({ page }) => {
+    await gotoCarousel(page)
+    const area = (await root(page).boundingBox())!
+    const y = area.y + area.height * 0.4
+    const x = area.x + area.width / 2
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    await page.mouse.move(x - 40, y, { steps: 4 })
+    await expect(root(page)).toHaveAttribute('data-drag', '1')
+    await root(page).evaluate((element) => {
+      // pointerId 1: Chromium's id for the mouse, so this reads as the same pointer.
+      const init = { bubbles: true, composed: true, pointerId: 1, pointerType: 'mouse', buttons: 0 }
+      element.dispatchEvent(new PointerEvent('pointermove', init))
+    })
+    await expect(root(page)).toHaveAttribute('data-drag', '0')
+    await page.mouse.up()
+  })
+
+  test('a button press is announced even without keyboard focus', async ({ page }) => {
+    await gotoCarousel(page)
+    const status = root(page).locator('[aria-live]')
+    await expect(status).toHaveAttribute('aria-live', 'off')
+    await next(page).click()
+    await page.mouse.move(0, 0)
+    await expect(count(page)).toHaveText('04 / 06')
+    await expect(status).toHaveAttribute('aria-live', 'polite')
+    await expect(status).toHaveText('Photo 4 of 6')
+    // Autoplay takes over again later, and the region goes quiet with it.
+    await expect(count(page)).toHaveText('05 / 06', { timeout: 11_000 })
+    await expect(status).toHaveAttribute('aria-live', 'off')
+  })
+
+  test('the arrow buttons leave room for their focus ring', async ({ page }) => {
+    await gotoCarousel(page)
+    const area = (await root(page).boundingBox())!
+    for (const button of [next(page), previous(page)]) {
+      const box = (await button.boundingBox())!
+      // DESIGN §9: a 2 px ring at a 2 px offset, and the root clips its overflow.
+      expect(box.x + box.width + 4).toBeLessThanOrEqual(area.x + area.width)
+      expect(box.y + box.height + 4).toBeLessThanOrEqual(area.y + area.height)
+    }
+  })
+
   test('switching language keeps the photo and swaps the copy', async ({ page }) => {
     await gotoCarousel(page)
     await next(page).click()
@@ -282,6 +336,77 @@ test.describe('polaroid line', () => {
       )
       .toBe(true)
     expect(external).toEqual([])
+  })
+})
+
+// Real touch input through CDP (the mobile project has hasTouch): the browser makes its own
+// pan decision and fires its own pointer events, which dispatching PointerEvents cannot.
+test.describe('polaroid line under real touch', () => {
+  test.beforeEach(async ({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'needs touch emulation')
+  })
+
+  type Point = { x: number; y: number; id: number }
+
+  async function touch(page: Page) {
+    const cdp = await page.context().newCDPSession(page)
+    return (type: 'touchStart' | 'touchMove' | 'touchEnd', touchPoints: Point[]) =>
+      cdp.send('Input.dispatchTouchEvent', { type, touchPoints })
+  }
+
+  test('a vertical swipe from a side card scrolls the page and does not jump', async ({ page }) => {
+    await gotoCarousel(page)
+    const { x, y } = await pointOn(page, page.locator('.pl-card[data-i="3"]'))
+    const before = await page.evaluate(() => window.scrollY)
+    const send = await touch(page)
+    await send('touchStart', [{ x, y, id: 0 }])
+    for (let step = 1; step <= 8; step++) {
+      await send('touchMove', [{ x, y: y - step * 30, id: 0 }])
+      await page.waitForTimeout(16)
+    }
+    await send('touchEnd', [])
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before)
+    await page.waitForTimeout(500)
+    await expect(count(page)).toHaveText('03 / 06')
+  })
+
+  test('tapping a side card centres it', async ({ page }) => {
+    await gotoCarousel(page)
+    const { x, y } = await pointOn(page, page.locator('.pl-card[data-i="3"]'))
+    await page.touchscreen.tap(x, y)
+    await expect(count(page)).toHaveText('04 / 06')
+  })
+
+  test('two fingers on a print do not fling the line', async ({ page }) => {
+    await gotoCarousel(page)
+    const area = (await root(page).boundingBox())!
+    const y = area.y + area.height * 0.4
+    const a = area.x + 90
+    const b = area.x + 240
+    const send = await touch(page)
+    await send('touchStart', [
+      { x: a, y, id: 0 },
+      { x: b, y, id: 1 },
+    ])
+    for (let step = 1; step <= 10; step++) {
+      await send('touchMove', [
+        { x: a + step, y, id: 0 },
+        { x: b - step, y, id: 1 },
+      ])
+      await page.waitForTimeout(16)
+    }
+    await send('touchEnd', [])
+    await page.waitForTimeout(800)
+    await expect(count(page)).toHaveText('03 / 06')
+  })
+
+  test('the arrow button does not stay filled after a tap', async ({ page }) => {
+    await gotoCarousel(page)
+    await next(page).tap()
+    await expect(count(page)).toHaveText('04 / 06')
+    await page.waitForTimeout(400) // the 250 ms colour transition
+    const fill = await next(page).evaluate((button) => getComputedStyle(button).backgroundColor)
+    expect(fill).toBe('rgba(0, 0, 0, 0)')
   })
 })
 
@@ -366,5 +491,21 @@ test.describe('polaroid line under reduced motion', () => {
     await expect(root(page).locator('[aria-live]')).toHaveAttribute('aria-live', 'polite')
     await next(page).click()
     await expect(count(page)).toHaveText('04 / 06')
+  })
+
+  test('the line jumps instead of sliding (CLAUDE.md rule 5)', async ({ page }) => {
+    await gotoCarousel(page)
+    const positions = await page.evaluate(async () => {
+      const card = document.querySelector<HTMLElement>('.pl-card[data-i="3"]')!
+      const button = document.querySelectorAll<HTMLElement>('.pl-btn')[1]
+      const seen = new Set<string>()
+      button.click()
+      for (let frame = 0; frame < 30; frame++) {
+        await new Promise(requestAnimationFrame)
+        seen.add(card.style.transform)
+      }
+      return seen.size
+    })
+    expect(positions).toBeLessThanOrEqual(2)
   })
 })

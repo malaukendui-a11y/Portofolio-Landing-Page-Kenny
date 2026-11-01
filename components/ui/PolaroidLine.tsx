@@ -17,12 +17,13 @@ import { useReducedMotion } from '@/lib/useReducedMotion'
  * a print, use the arrows or ←/→: the prints slide along the string, swing with the speed you
  * give them and settle with a little overshoot.
  *
- * Ported from the 21st.dev component "Polaroid Line Carousel": the physics (`stringY`,
- * `springStep`, `swingStep`, `nearestAt`) and the frame loop are unchanged. Removed: titles,
- * captions, the painted-landscape fallback and the inline stylesheet (styles are `.pl-*` in
- * app/globals.css). Changed, see docs/DECISIONS.md: size lives in a ref; autoplay runs only on
- * screen and waits for hover or keyboard focus; a cancelled pointer is never a click; a mouse
- * released outside the root ends the drag.
+ * Ported from the 21st.dev component "Polaroid Line Carousel": the physics constants
+ * (`stringY`, `springStep`, `swingStep`, `nearestAt`) are unchanged. Removed: titles, captions,
+ * the painted-landscape fallback and the inline stylesheet (styles are `.pl-*` in
+ * app/globals.css). Changed, see docs/DECISIONS.md: size lives in a ref and the loop places the
+ * prints once off-screen; autoplay runs only on screen and waits for hover or keyboard focus;
+ * only the first finger drags; a cancelled pointer is never a click; a press that leaves the
+ * root ends; under reduced motion the line jumps instead of springing.
  */
 
 export interface PolaroidSlide {
@@ -117,6 +118,9 @@ export function PolaroidLine({
   const [dragging, setDragging] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
+  // A button or key moved the line: announce it, whatever focus did (a touch screen reader may
+  // not focus the button at all). Autoplay's next step hands the region back.
+  const [stepped, setStepped] = useState(false)
 
   const rootRef = useRef<HTMLDivElement>(null)
   const pathRef = useRef<SVGPathElement>(null)
@@ -124,6 +128,7 @@ export function PolaroidLine({
   const sim = useRef({ off: 0, vel: 0, target: 0, a: [] as number[], w: [] as number[] })
   const size = useRef({ w: 0, h: 0, cw: cardWidth })
   const drag = useRef<null | {
+    id: number
     x: number
     off: number
     lx: number
@@ -160,15 +165,20 @@ export function PolaroidLine({
       const spacing = spacingFor(cw)
       const y0 = Math.max(40, h * 0.2)
       const d = drag.current
+      const o = gainInputs.current
       let lineVel: number
       if (d && d.moved) {
         lineVel = d.v * 1000
+      } else if (o.reduced) {
+        // Reduced motion (CLAUDE.md rule 5): the line goes straight to its target.
+        S.off = S.target
+        S.vel = 0
+        lineVel = 0
       } else {
         const before = S.off
         ;[S.off, S.vel] = springStep(S.off, S.vel, S.target, dt)
         lineVel = -(S.off - before) / Math.max(dt, 1e-3)
       }
-      const o = gainInputs.current
       const g = o.reduced ? 0 : o.swing
       const near = nearestAt(S.off, spacing, n)
       for (let i = 0; i < n; i++) {
@@ -254,6 +264,7 @@ export function PolaroidLine({
       timer = window.setInterval(() => {
         if (document.hidden || drag.current) return
         if (performance.now() - lastTouch.current < autoplay) return
+        setStepped(false)
         sim.current.target =
           (activeRef.current >= n - 1 ? 0 : activeRef.current + 1) * spacingFor(size.current.cw)
       }, autoplay)
@@ -267,9 +278,12 @@ export function PolaroidLine({
 
   const onDown = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest('.pl-bar')) return
-    if (e.button !== 0) return
+    // Only the first finger drags: `pan-y` leaves a pinch to us, and a second pointer writing
+    // into the same record would fling the line to one end.
+    if (e.button !== 0 || !e.isPrimary) return
     lastTouch.current = performance.now()
     drag.current = {
+      id: e.pointerId,
       x: e.clientX,
       off: sim.current.off,
       lx: e.clientX,
@@ -281,10 +295,10 @@ export function PolaroidLine({
 
   const onMove = (e: ReactPointerEvent) => {
     const d = drag.current
-    if (!d) return
-    // The button came up outside the root, before anything captured the pointer.
+    if (!d || e.pointerId !== d.id) return
+    // The release never reached us, so the button is up already.
     if (e.pointerType === 'mouse' && e.buttons === 0) {
-      drag.current = null
+      endDrag()
       return
     }
     const dx = e.clientX - d.x
@@ -319,14 +333,27 @@ export function PolaroidLine({
   }
 
   const onUp = (e: ReactPointerEvent) => {
-    const pressed = drag.current !== null
-    if (endDrag() || !pressed) return
+    if (drag.current?.id !== e.pointerId) return
+    if (endDrag()) return
     const card = (e.target as HTMLElement).closest('[data-i]')
     if (card) goTo(Number(card.getAttribute('data-i')))
   }
 
+  // A vertical swipe under `touch-action: pan-y` cancels the pointer: never a click.
+  const onCancel = (e: ReactPointerEvent) => {
+    if (drag.current?.id === e.pointerId) endDrag()
+  }
+
+  const onLeave = (e: ReactPointerEvent) => {
+    if (e.pointerType !== 'mouse') return
+    setHovered(false)
+    // Left without capturing the pointer: its release will not reach us.
+    if (drag.current && !drag.current.moved) drag.current = null
+  }
+
   const step = (dir: number) => {
     lastTouch.current = performance.now()
+    setStepped(true)
     goTo(clamp(activeRef.current + dir, 0, n - 1))
   }
 
@@ -360,14 +387,11 @@ export function PolaroidLine({
       onPointerDown={onDown}
       onPointerMove={onMove}
       onPointerUp={onUp}
-      // A vertical swipe under `touch-action: pan-y` cancels the pointer: never a click.
-      onPointerCancel={endDrag}
+      onPointerCancel={onCancel}
       onPointerEnter={(e) => {
         if (e.pointerType === 'mouse') setHovered(true)
       }}
-      onPointerLeave={(e) => {
-        if (e.pointerType === 'mouse') setHovered(false)
-      }}
+      onPointerLeave={onLeave}
     >
       <svg className="pl-string" aria-hidden="true">
         <path ref={pathRef} />
@@ -415,7 +439,7 @@ export function PolaroidLine({
           <ChevronRightIcon size={16} />
         </button>
       </div>
-      <div className="sr-only" aria-live={rotating ? 'off' : 'polite'}>
+      <div className="sr-only" aria-live={rotating && !stepped ? 'off' : 'polite'}>
         {labels.status.replace('{current}', String(active + 1)).replace('{total}', String(n))}
       </div>
     </div>

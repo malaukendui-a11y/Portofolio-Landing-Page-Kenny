@@ -422,11 +422,12 @@
     border-radius: 1px;
     background: color-mix(in srgb, var(--color-ink-900) 35%, transparent);
   }
+  /* Inset by the focus ring (2 px + 2 px offset, DESIGN §9): the root clips its overflow. */
   .pl-bar {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    left: 0.25rem;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -459,9 +460,12 @@
       background-color var(--duration-fast) var(--ease-out),
       color var(--duration-fast) var(--ease-out);
   }
-  .pl-btn:hover {
-    background: var(--fg);
-    color: var(--surface);
+  /* Hover devices only, as Tailwind's `hover:`: a tapped button must not stay filled. */
+  @media (hover: hover) {
+    .pl-btn:hover {
+      background: var(--fg);
+      color: var(--surface);
+    }
   }
 }
 
