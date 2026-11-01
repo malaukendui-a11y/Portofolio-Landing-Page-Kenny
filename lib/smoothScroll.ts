@@ -19,7 +19,10 @@ export function getLenis(): Lenis | null {
 
 export function startSmoothScroll(): void {
   if (lenis) return
-  lenis = new Lenis({ autoRaf: false })
+  // autoResize: a ResizeObserver on <html> re-measures the page when it grows (late
+  // images, font swap). It sees the growth because lenis.css gives `html.lenis` height
+  // auto, overriding the layout's `h-full`; tests/playwright/motion.spec.ts covers it.
+  lenis = new Lenis({ autoRaf: false, autoResize: true })
   lenis.on('scroll', ScrollTrigger.update)
   gsap.ticker.add(tick)
   // Lenis owns the timing; GSAP's lag smoothing would make the two drift apart.

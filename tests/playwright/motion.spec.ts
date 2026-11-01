@@ -105,6 +105,43 @@ test.describe('anchor navigation (Lenis)', () => {
     )
   })
 
+  test('after images load and the page grows, wheeling down reaches the real bottom', async ({
+    page,
+  }) => {
+    await gotoWithLenis(page)
+    // Load every lazy image (projects, certificates), as scrolling down would.
+    await page.evaluate(() => {
+      for (const image of Array.from(document.images)) image.loading = 'eager'
+    })
+    await expect
+      .poll(
+        () => page.evaluate(() => Array.from(document.images).every((image) => image.complete)),
+        {
+          timeout: 15_000,
+        },
+      )
+      .toBe(true)
+    // The page then grows after Lenis first measured it (late content, a font swap).
+    await page.evaluate(() => {
+      document.querySelector('footer')!.style.paddingBottom = '1200px'
+    })
+    // Keep wheeling, as a visitor would. Each turn is far more than the page, so Lenis aims
+    // straight at its limit: a stale limit stops short every time, a current one does not.
+    const remaining = () =>
+      page.evaluate(
+        () => document.documentElement.scrollHeight - window.innerHeight - window.scrollY,
+      )
+    await expect
+      .poll(
+        async () => {
+          await page.mouse.wheel(0, 100_000)
+          return remaining()
+        },
+        { timeout: 10_000 },
+      )
+      .toBeLessThanOrEqual(1)
+  })
+
   test('footer links, "See my work" and back-to-top reach their sections', async ({ page }) => {
     await gotoWithLenis(page)
     await page.locator('#about').getByRole('link', { name: en.intro.seeWork }).click()
