@@ -158,7 +158,11 @@ Up to four cards in a row at ≥ 1280 (two at tablet, stacked on mobile), newest
 
 ## 4.9 Reach Out (paper — mirror of the hero)
 
-Giant ticker **"Reach Out —"** in `ink-900`, portrait cutout `kenny-footer-color@2x.webp` (looking down and away, which reads as "waiting for your message"), left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Right block: social links and a circular back-to-top button. Two CTA pills: **Email me** (recruiters) and **Chat on WhatsApp** (clients).
+Giant ticker **"Reach Out —"** in `ink-900`, left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Two CTA pills: **Email me** (recruiters) and **Chat on WhatsApp** (clients). Right block: the polaroid line, then social links and a circular back-to-top button.
+
+**Polaroid line** (`components/ui/PolaroidLine`, replaces the footer portrait): six square photos on `paper-50` prints with a blank lip (no titles or captions), pegged to a sagging string at 42 % ink. It starts on the third photo so the line looks full at load. Counter `03 / 06` and two 44 px round arrows sit bottom-right. Drag, click a print, arrows or ←/→ move the line, clamped at both ends; autoplay advances every 4.5 s, wraps 06 → 01, runs only on screen and waits for hover and keyboard focus. Height is reserved: `clamp(400px, 58vh, 600px)` at md+, `clamp(360px, 52svh, 480px)` below. Below md the carousel sits between the ticker and the contact block. Reduced motion: prints hang still, no autoplay, no scale/filter transition, and the line jumps to its target instead of springing; every control keeps working.
+
+Exceptions for this component only: the accent pegs may exceed the three-accent limit of §3.1, and the prints carry soft ink shadows despite §3.3 / §10, because a print on a string has to read as an object.
 
 ## 4.10 Footer (dark, compact)
 
@@ -229,8 +233,8 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 | Asset | File | Notes |
 |---|---|---|
 | Hero portrait | `public/images/portrait/kenny-hero-crop-color@2x.webp` | 1045 × 1600 (v2 cutout); soft fade at bottom |
-| Reach Out portrait | `public/images/portrait/kenny-footer-color@2x.webp` | 883 × 1800 (v2 cutout) |
-| Alternates | `*-color-soft@2x.webp`, `*-bw@2x.webp` | WebP only in git; PNG masters (0.8–1.3 MB each) stay in the owner's source zip, ignored by git |
+| Reach Out polaroids | `public/images/polaroids/polaroid-{01-comprehensive-exam,02-graduation,03-working-laptop,04-nusa-penida,05-touring,06-portrait}.webp` | 1200 × 1200, each under 300 KB; data in `content/polaroids.ts` |
+| Alternates | `kenny-hero-crop-color-soft@2x.webp`, `kenny-hero-crop-bw@2x.webp` | WebP only in git; PNG masters (0.8–1.3 MB each) stay in the owner's source zip, ignored by git |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | Exported from the dev scene |
 | OG image | generated at `app/opengraph-image.tsx` | 1200×630 from hero composition |
