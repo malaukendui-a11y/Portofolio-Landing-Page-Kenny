@@ -244,6 +244,8 @@ const en = {
       region: 'Photos of Ananda Kenny',
       previous: 'Previous photo',
       next: 'Next photo',
+      pause: 'Pause slideshow',
+      play: 'Play slideshow',
       status: 'Photo {current} of {total}',
     },
     email: { label: 'Email', copy: 'Copy email', copied: 'Copied' },

@@ -245,6 +245,8 @@ const id = {
       region: 'Foto-foto Ananda Kenny',
       previous: 'Foto sebelumnya',
       next: 'Foto berikutnya',
+      pause: 'Jeda tayangan foto',
+      play: 'Putar tayangan foto',
       status: 'Foto {current} dari {total}',
     },
     email: { label: 'Email', copy: 'Salin email', copied: 'Tersalin' },

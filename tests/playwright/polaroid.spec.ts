@@ -1,4 +1,5 @@
-// F1: the Reach Out polaroid line (DESIGN §4.9). TC-032 to TC-048 in docs/QA-PLAN.md.
+// F1: the Reach Out polaroid line (DESIGN §4.9). TC-032 to TC-048, TC-050, TC-051 in
+// docs/QA-PLAN.md.
 //
 // Prints sway every frame, so Playwright's stability check never passes on them: cards are
 // clicked and dragged with page.mouse at coordinates. `step()` moves from the current active
@@ -15,6 +16,8 @@ const root = (page: Page) => page.locator('.pl-root')
 const count = (page: Page) => page.locator('.pl-count')
 const next = (page: Page) => page.getByRole('button', { name: labels.next })
 const previous = (page: Page) => page.getByRole('button', { name: labels.previous })
+const pause = (page: Page) => page.getByRole('button', { name: labels.pause })
+const play = (page: Page) => page.getByRole('button', { name: labels.play })
 const activeIndex = (page: Page) => page.locator('.pl-card[data-on="1"]').getAttribute('data-i')
 
 /** Loads `/` and brings the carousel on screen; a visible card proves the first frame ran. */
@@ -56,7 +59,7 @@ test.describe('polaroid line', () => {
 
   test('the arrow buttons step, clamp at both ends and are 44 px targets', async ({ page }) => {
     await gotoCarousel(page)
-    for (const button of [next(page), previous(page)]) {
+    for (const button of [pause(page), next(page), previous(page)]) {
       const box = (await button.boundingBox())!
       expect(box.width).toBeGreaterThanOrEqual(44)
       expect(box.height).toBeGreaterThanOrEqual(44)
@@ -173,6 +176,58 @@ test.describe('polaroid line', () => {
     await expect(count(page)).toHaveText('03 / 06')
   })
 
+  test('pause stops autoplay until play is pressed', async ({ page }) => {
+    await gotoCarousel(page)
+    const status = root(page).locator('[aria-live]')
+    await pause(page).click()
+    await page.mouse.move(0, 0) // off the root, so hover is not what holds it
+    await expect(play(page)).toBeVisible()
+    await expect(status).toHaveAttribute('aria-live', 'polite')
+    await page.waitForTimeout(6_000)
+    await expect(count(page)).toHaveText('03 / 06')
+
+    await play(page).click()
+    await page.mouse.move(0, 0)
+    await expect(pause(page)).toBeVisible()
+    await expect(status).toHaveAttribute('aria-live', 'off')
+    await expect(count(page)).toHaveText('04 / 06', { timeout: 7_000 })
+  })
+
+  test('the arrows still move the line while paused, and it stays paused', async ({ page }) => {
+    await gotoCarousel(page)
+    await pause(page).click()
+    await next(page).click()
+    await expect(count(page)).toHaveText('04 / 06')
+    await page.mouse.move(0, 0)
+    await page.waitForTimeout(6_000)
+    await expect(count(page)).toHaveText('04 / 06')
+    await expect(play(page)).toBeVisible()
+  })
+
+  test('the pause button works from the keyboard and sits before the arrows', async ({ page }) => {
+    await gotoCarousel(page)
+    await root(page).focus()
+    await page.keyboard.press('Tab')
+    await expect(pause(page)).toBeFocused()
+
+    await page.keyboard.press('Enter')
+    await expect(play(page)).toBeFocused()
+    await page.keyboard.press('Space')
+    await expect(pause(page)).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(play(page)).toBeFocused()
+
+    await page.keyboard.press('Tab')
+    await expect(previous(page)).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(next(page)).toBeFocused()
+
+    // Focus leaves the carousel: only the pause itself is left to hold autoplay.
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur())
+    await page.waitForTimeout(6_000)
+    await expect(count(page)).toHaveText('03 / 06')
+  })
+
   test('autoplay does not run while the carousel is off-screen', async ({ page }) => {
     await page.goto('/')
     await page.waitForTimeout(6_000)
@@ -261,7 +316,7 @@ test.describe('polaroid line', () => {
   test('the arrow buttons leave room for their focus ring', async ({ page }) => {
     await gotoCarousel(page)
     const area = (await root(page).boundingBox())!
-    for (const button of [next(page), previous(page)]) {
+    for (const button of [pause(page), next(page), previous(page)]) {
       const box = (await button.boundingBox())!
       // DESIGN §9: a 2 px ring at a 2 px offset, and the root clips its overflow.
       expect(box.x + box.width + 4).toBeLessThanOrEqual(area.x + area.width)
@@ -284,6 +339,8 @@ test.describe('polaroid line', () => {
       copy.alts['nusa-penida'],
     )
     await expect(root(page).locator('[aria-live]')).toHaveText('Foto 4 dari 6')
+    await page.getByRole('button', { name: copy.pause }).click()
+    await expect(page.getByRole('button', { name: copy.play })).toBeVisible()
   })
 
   test('a resize keeps the current photo centred', async ({ page }, testInfo) => {
@@ -462,11 +519,18 @@ test.describe('polaroid line under reduced motion', () => {
     await expect(count(page)).toHaveText('04 / 06')
   })
 
+  test('the pause button is not there, because nothing rotates', async ({ page }) => {
+    await gotoCarousel(page)
+    await expect(next(page)).toBeVisible()
+    await expect(pause(page)).toHaveCount(0)
+    await expect(play(page)).toHaveCount(0)
+  })
+
   test('the line jumps instead of sliding (CLAUDE.md rule 5)', async ({ page }) => {
     await gotoCarousel(page)
-    const positions = await page.evaluate(async () => {
+    const positions = await page.evaluate(async (name) => {
       const card = document.querySelector<HTMLElement>('.pl-card[data-i="3"]')!
-      const button = document.querySelectorAll<HTMLElement>('.pl-btn')[1]
+      const button = document.querySelector<HTMLElement>(`.pl-btn[aria-label="${name}"]`)!
       const seen = new Set<string>()
       button.click()
       for (let frame = 0; frame < 30; frame++) {
@@ -474,7 +538,7 @@ test.describe('polaroid line under reduced motion', () => {
         seen.add(card.style.transform)
       }
       return seen.size
-    })
+    }, labels.next)
     expect(positions).toBeLessThanOrEqual(2)
   })
 })

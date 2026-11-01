@@ -9,7 +9,7 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
-import { ChevronLeftIcon, ChevronRightIcon } from '@/components/ui/icons'
+import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/ui/icons'
 import { useReducedMotion } from '@/lib/useReducedMotion'
 
 /*
@@ -21,9 +21,9 @@ import { useReducedMotion } from '@/lib/useReducedMotion'
  * (`stringY`, `springStep`, `swingStep`, `nearestAt`) are unchanged. Removed: titles, captions,
  * the painted-landscape fallback and the inline stylesheet (styles are `.pl-*` in
  * app/globals.css). Changed, see docs/DECISIONS.md: size lives in a ref and the loop places the
- * prints once off-screen; autoplay runs only on screen and waits for hover or keyboard focus;
- * only the first finger drags; a cancelled pointer is never a click; a press that leaves the
- * root ends; under reduced motion the line jumps instead of springing.
+ * prints once off-screen; autoplay runs only on screen, waits for hover or keyboard focus and
+ * stops at the pause button; only the first finger drags; a cancelled pointer is never a click;
+ * a press that leaves the root ends; under reduced motion the line jumps instead of springing.
  */
 
 export interface PolaroidSlide {
@@ -38,6 +38,8 @@ export interface PolaroidLineLabels {
   region: string
   previous: string
   next: string
+  pause: string
+  play: string
   /** `{current}` and `{total}` are replaced at render time. */
   status: string
 }
@@ -118,6 +120,7 @@ export function PolaroidLine({
   const [dragging, setDragging] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [paused, setPaused] = useState(false)
   // A button or key moved the line: announce it, whatever focus did (a touch screen reader may
   // not focus the button at all). Autoplay's next step hands the region back.
   const [stepped, setStepped] = useState(false)
@@ -248,8 +251,10 @@ export function PolaroidLine({
     }
   }, [cardWidth, n])
 
-  // Autoplay: wraps from the last print to the first; only on screen; waits for the user.
-  const rotating = autoplay > 0 && n > 1 && !reduced && !hovered && !focused
+  // Autoplay: wraps from the last print to the first; only on screen; waits for the user; the
+  // pause button stops it until pressed again (WCAG 2.2.2: hover and focus do not reach a phone).
+  const canRotate = autoplay > 0 && n > 1 && !reduced
+  const rotating = canRotate && !paused && !hovered && !focused
   useEffect(() => {
     const root = rootRef.current
     if (!root || !rotating) return
@@ -427,6 +432,16 @@ export function PolaroidLine({
         <span className="pl-count" aria-hidden="true">
           <b>{pad2(active + 1)}</b> / {pad2(n)}
         </span>
+        {canRotate && (
+          <button
+            type="button"
+            className="pl-btn"
+            aria-label={paused ? labels.play : labels.pause}
+            onClick={() => setPaused(!paused)}
+          >
+            {paused ? <PlayIcon size={16} /> : <PauseIcon size={16} />}
+          </button>
+        )}
         <button
           type="button"
           className="pl-btn"

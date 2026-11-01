@@ -131,6 +131,8 @@ export interface Copy {
       region: string
       previous: string
       next: string
+      pause: string
+      play: string
       /** `{current}` and `{total}` are replaced at render time. */
       status: string
     }
