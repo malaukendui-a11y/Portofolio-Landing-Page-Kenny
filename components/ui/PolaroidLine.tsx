@@ -281,11 +281,28 @@ export function PolaroidLine({
     }
   }, [rotating, autoplay, n])
 
+  /** Ends a drag. Returns false when the pointer never moved far enough to be one. */
+  const endDrag = (thrown = true): boolean => {
+    const d = drag.current
+    drag.current = null
+    lastTouch.current = performance.now()
+    if (!d?.moved) return false
+    setDragging(false)
+    const v = thrown ? d.v : 0
+    sim.current.vel = -v * 1000
+    goTo(nearestAt(sim.current.off - v * 180, spacingFor(size.current.cw), n))
+    return true
+  }
+
   const onDown = (e: ReactPointerEvent) => {
+    // A second finger makes it a pinch, the browser's (`touch-action: pan-y pinch-zoom`). It may
+    // not cancel the first finger, which would then keep driving the line, so drop the drag here.
+    if (!e.isPrimary) {
+      endDrag(false)
+      return
+    }
     if ((e.target as HTMLElement).closest('.pl-bar')) return
-    // Only the first finger drags: `pan-y` leaves a pinch to us, and a second pointer writing
-    // into the same record would fling the line to one end.
-    if (e.button !== 0 || !e.isPrimary) return
+    if (e.button !== 0) return
     lastTouch.current = performance.now()
     drag.current = {
       id: e.pointerId,
@@ -325,18 +342,6 @@ export function PolaroidLine({
     sim.current.off = off
   }
 
-  /** Ends a drag. Returns false when the pointer never moved far enough to be one. */
-  const endDrag = (): boolean => {
-    const d = drag.current
-    drag.current = null
-    lastTouch.current = performance.now()
-    if (!d?.moved) return false
-    setDragging(false)
-    sim.current.vel = -d.v * 1000
-    goTo(nearestAt(sim.current.off - d.v * 180, spacingFor(size.current.cw), n))
-    return true
-  }
-
   const onUp = (e: ReactPointerEvent) => {
     if (drag.current?.id !== e.pointerId) return
     if (endDrag()) return
@@ -344,7 +349,7 @@ export function PolaroidLine({
     if (card) goTo(Number(card.getAttribute('data-i')))
   }
 
-  // A vertical swipe under `touch-action: pan-y` cancels the pointer: never a click.
+  // A vertical swipe cancels the pointer: never a click.
   const onCancel = (e: ReactPointerEvent) => {
     if (drag.current?.id === e.pointerId) endDrag()
   }

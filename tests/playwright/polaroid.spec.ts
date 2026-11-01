@@ -457,6 +457,79 @@ test.describe('polaroid line under real touch', () => {
     await expect(count(page)).toHaveText('03 / 06')
   })
 
+  test('a pinch on the carousel zooms the page and leaves the line alone', async ({ page }) => {
+    await gotoCarousel(page)
+    await expect(root(page)).toHaveCSS('touch-action', 'pan-y pinch-zoom')
+    const area = (await root(page).boundingBox())!
+    const y = area.y + area.height * 0.4
+    const middle = area.x + area.width / 2
+    const send = await touch(page)
+    await send('touchStart', [
+      { x: middle - 30, y, id: 0 },
+      { x: middle + 30, y, id: 1 },
+    ])
+    for (let step = 1; step <= 15; step++) {
+      await send('touchMove', [
+        { x: middle - 30 - step * 8, y, id: 0 },
+        { x: middle + 30 + step * 8, y, id: 1 },
+      ])
+      await page.waitForTimeout(16)
+    }
+    await send('touchEnd', [])
+    await expect.poll(() => page.evaluate(() => window.visualViewport!.scale)).toBeGreaterThan(1)
+    await page.waitForTimeout(800)
+    await expect(count(page)).toHaveText('03 / 06')
+  })
+
+  test('a second finger during a drag does not fling the line', async ({ page }) => {
+    await gotoCarousel(page)
+    const area = (await root(page).boundingBox())!
+    const y = area.y + area.height * 0.4
+    const start = area.x + area.width / 2
+    const other = area.x + 40
+    const send = await touch(page)
+    await send('touchStart', [{ x: start, y, id: 0 }])
+    for (let step = 1; step <= 4; step++) {
+      await send('touchMove', [{ x: start + step * 6, y, id: 0 }])
+      await page.waitForTimeout(16)
+    }
+    const moved = start + 24
+    await send('touchStart', [
+      { x: moved, y, id: 0 },
+      { x: other, y, id: 1 },
+    ])
+    for (let step = 1; step <= 15; step++) {
+      await send('touchMove', [
+        { x: moved + step * 8, y, id: 0 },
+        { x: other - step, y, id: 1 },
+      ])
+      await page.waitForTimeout(16)
+    }
+    await send('touchEnd', [])
+    await expect(root(page)).toHaveAttribute('data-drag', '0')
+    await page.waitForTimeout(800)
+    // The 24 px before the second finger landed is all the line ever saw.
+    await expect(count(page)).toHaveText('03 / 06')
+  })
+
+  test('one finger still drags the line sideways', async ({ page }) => {
+    await gotoCarousel(page)
+    const area = (await root(page).boundingBox())!
+    const y = area.y + area.height * 0.4
+    const start = area.x + area.width / 2
+    const send = await touch(page)
+    await send('touchStart', [{ x: start, y, id: 0 }])
+    for (let step = 1; step <= 15; step++) {
+      await send('touchMove', [{ x: start + step * 10, y, id: 0 }])
+      await page.waitForTimeout(16)
+    }
+    await expect(root(page)).toHaveAttribute('data-drag', '1')
+    await send('touchEnd', [])
+    await expect(root(page)).toHaveAttribute('data-drag', '0')
+    await expect(count(page)).not.toHaveText('03 / 06')
+    expect(await page.evaluate(() => window.visualViewport!.scale)).toBe(1)
+  })
+
   test('the arrow button does not stay filled after a tap', async ({ page }) => {
     await gotoCarousel(page)
     await next(page).tap()

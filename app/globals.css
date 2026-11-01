@@ -326,7 +326,7 @@
     color: var(--fg);
     -webkit-user-select: none;
     user-select: none;
-    touch-action: pan-y;
+    touch-action: pan-y pinch-zoom;
     cursor: grab;
     @media (width >= 48rem) {
       height: clamp(400px, 58vh, 600px);
