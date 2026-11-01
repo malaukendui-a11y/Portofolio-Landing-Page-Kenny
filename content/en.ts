@@ -231,7 +231,6 @@ const en = {
     ticker: 'Reach Out —',
     heading: 'Let’s work together',
     intro: 'Recruiters: grab the CV and email me. Clients: WhatsApp is the fastest way to start.',
-    portraitAlt: 'Ananda Kenny looking down at his phone, waiting for your message',
     polaroids: {
       alts: {
         'comprehensive-exam':

@@ -313,6 +313,158 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* Polaroid line (components/ui/PolaroidLine, DESIGN §4.9). The root reserves its height, so
+   the section never shifts when photos load. Cards stay hidden until the first frame places
+   them, so nothing stacks in the corner before JS runs. Layered so the `className` utilities
+   (grid placement, order) win over these rules and these win over preflight's `img`. */
+@layer components {
+  .pl-root {
+    position: relative;
+    width: 100%;
+    height: clamp(360px, 52svh, 480px);
+    overflow: hidden;
+    color: var(--fg);
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: pan-y;
+    cursor: grab;
+    @media (width >= 48rem) {
+      height: clamp(400px, 58vh, 600px);
+    }
+  }
+  .pl-root[data-drag='1'] {
+    cursor: grabbing;
+  }
+  .pl-string {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .pl-string path {
+    fill: none;
+    stroke: color-mix(in srgb, var(--color-ink-900) 42%, transparent);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .pl-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--pl-cw);
+    visibility: hidden;
+    transform-origin: 50% 0;
+    will-change: transform;
+  }
+  .pl-print {
+    margin-top: 0.625rem;
+    padding: 0.625rem 0.625rem 0;
+    background: var(--color-paper-50);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--color-ink-900) 14%, transparent),
+      0 18px 30px -16px color-mix(in srgb, var(--color-ink-900) 45%, transparent);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      filter var(--duration-base) var(--ease-out);
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+  .pl-card[data-on='0'] .pl-print {
+    transform: scale(0.9);
+    filter: saturate(0.7) brightness(0.96);
+  }
+  .pl-shot {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-ink-900) 8%, var(--color-paper-100));
+  }
+  .pl-shot img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  /* The blank polaroid lip: no titles, by owner decision. */
+  .pl-note {
+    height: 2.625rem;
+  }
+  .pl-peg {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0.625rem;
+    height: 1.625rem;
+    margin-left: -0.3125rem;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--color-accent-600),
+      var(--color-accent-500) 45%,
+      var(--color-accent-600)
+    );
+    box-shadow: 0 2px 3px color-mix(in srgb, var(--color-ink-900) 25%, transparent);
+  }
+  .pl-peg::after {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    left: 0.25rem;
+    width: 2px;
+    height: 0.4375rem;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--color-ink-900) 35%, transparent);
+  }
+  .pl-bar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    cursor: default;
+  }
+  .pl-count {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    line-height: var(--text-label-sm--line-height);
+    letter-spacing: var(--text-label-sm--letter-spacing);
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-muted);
+  }
+  .pl-count b {
+    font-weight: var(--text-label-sm--font-weight);
+    color: var(--fg);
+  }
+  .pl-btn {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--fg);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+  .pl-btn:hover {
+    background: var(--fg);
+    color: var(--surface);
+  }
+}
+
 @layer base {
   /* No CSS smooth scrolling: Lenis is the only smooth path (lib/smoothScroll). Before
      hydration, without JS and under reduced motion, anchors are instant native jumps —

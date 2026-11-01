@@ -126,7 +126,6 @@ export interface Copy {
     ticker: string
     heading: string
     intro: string
-    portraitAlt: string
     polaroids: {
       alts: Record<PolaroidId, string>
       region: string

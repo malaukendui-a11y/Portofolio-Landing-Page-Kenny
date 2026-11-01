@@ -232,7 +232,6 @@ const id = {
     heading: 'Mari bekerja sama',
     intro:
       'Rekruter: unduh CV dan kirim email. Klien: WhatsApp adalah cara tercepat untuk memulai.',
-    portraitAlt: 'Ananda Kenny menunduk melihat ponselnya, menunggu pesan Anda',
     polaroids: {
       alts: {
         'comprehensive-exam':
