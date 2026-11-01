@@ -17,10 +17,14 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
   await trigger.scrollIntoViewIfNeeded()
   await trigger.click()
 
+  // The scroll lock is set and released in a React effect, a moment after the native
+  // <dialog> opens or closes: retry the reads instead of taking one sample.
+  const bodyOverflow = () => page.evaluate(() => document.body.style.overflow)
+
   const dialog = page.getByRole('dialog', { name: en.lightbox.label })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('button', { name: en.lightbox.close })).toBeFocused()
-  expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden')
+  await expect.poll(bodyOverflow).toBe('hidden')
 
   const total = certifications.length
   const counter = (n: number) =>
@@ -47,6 +51,6 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
 
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
-  expect(await page.evaluate(() => document.body.style.overflow)).toBe('')
+  await expect.poll(bodyOverflow).toBe('')
   await expect(trigger).toBeFocused()
 })
