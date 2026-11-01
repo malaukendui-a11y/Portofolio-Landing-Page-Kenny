@@ -232,6 +232,21 @@ const en = {
     heading: 'Let’s work together',
     intro: 'Recruiters: grab the CV and email me. Clients: WhatsApp is the fastest way to start.',
     portraitAlt: 'Ananda Kenny looking down at his phone, waiting for your message',
+    polaroids: {
+      alts: {
+        'comprehensive-exam':
+          'Kenny and a classmate in white shirts and black ties on the day of his comprehensive exam at Gunadarma University',
+        graduation: 'Kenny in graduation gown with his parents',
+        'working-laptop': 'Kenny coding on his laptop at a café at night',
+        'nusa-penida': 'Kenny on the cliffs of Nusa Penida',
+        touring: 'Kenny with his motorbike at a mountain viewpoint',
+        portrait: 'Kenny in a batik shirt and Bank Mandiri lanyard, mirror selfie',
+      },
+      region: 'Photos of Ananda Kenny',
+      previous: 'Previous photo',
+      next: 'Next photo',
+      status: 'Photo {current} of {total}',
+    },
     email: { label: 'Email', copy: 'Copy email', copied: 'Copied' },
     whatsapp: {
       label: 'WhatsApp',

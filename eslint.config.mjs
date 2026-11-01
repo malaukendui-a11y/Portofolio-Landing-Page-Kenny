@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     '.lighthouseci/**',
     'playwright-report/**',
     'test-results/**',
+    '.reference/**',
   ]),
 ])
 

@@ -3,6 +3,7 @@
  * A key missing in one language is a type error.
  */
 import type { CertificationId } from './certifications'
+import type { PolaroidId } from './polaroids'
 import type { CtaKind, ProjectId, ProjectStatus } from './projects'
 import type { QaArtifactId } from './qa'
 
@@ -126,6 +127,14 @@ export interface Copy {
     heading: string
     intro: string
     portraitAlt: string
+    polaroids: {
+      alts: Record<PolaroidId, string>
+      region: string
+      previous: string
+      next: string
+      /** `{current}` and `{total}` are replaced at render time. */
+      status: string
+    }
     email: { label: string; copy: string; copied: string }
     whatsapp: { label: string; prefill: string }
     location: { label: string; value: string }
