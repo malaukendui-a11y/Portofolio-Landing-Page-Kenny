@@ -40,6 +40,18 @@ export async function revealAll(page: Page): Promise<void> {
     { timeout: 10_000 },
   )
   await page.evaluate(() => window.scrollTo(0, 0))
+  // Back at the top the nav's backdrop fades out (observer, then a CSS transition) and the
+  // stacked cards recover; a scan during either reads blended colours and fails on contrast.
+  await page.waitForFunction(
+    () =>
+      !document.querySelector('header')?.classList.contains('surface-dark-glass') &&
+      document.getAnimations().every((animation) => !(animation instanceof CSSTransition)) &&
+      Array.from(document.querySelectorAll('.stack-card')).every(
+        (card) => getComputedStyle(card).opacity === '1',
+      ),
+    undefined,
+    { timeout: 10_000 },
+  )
 }
 
 /** True when the page cannot be scrolled sideways (DESIGN §8). */
