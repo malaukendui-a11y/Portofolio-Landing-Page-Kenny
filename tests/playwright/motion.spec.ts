@@ -363,6 +363,43 @@ test.describe('stacked cards', () => {
     expect(tops.slice(1).map((top, i) => top - tops[i])).toEqual(tops.slice(1).map(() => 24))
   })
 
+  // TC-031, WCAG 2.2 SC 2.4.11: focus moving backwards lands in a card the later ones cover.
+  test('Shift+Tab into a covered card uncovers the focused control', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+    const focusState = () =>
+      page.evaluate(() => {
+        const focused = document.activeElement as HTMLElement
+        const rect = focused.getBoundingClientRect()
+        const hit = document.elementFromPoint(
+          rect.left + rect.width / 2,
+          rect.top + rect.height / 2,
+        )
+        return {
+          topmost: hit !== null && focused.contains(hit),
+          inViewport:
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= window.innerHeight &&
+            rect.right <= window.innerWidth,
+        }
+      })
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 1366, height: 768 },
+    ]) {
+      await page.setViewportSize(viewport)
+      await gotoWithLenis(page)
+      const lastControl = page.locator('#work article').last().locator('a, button').last()
+      await lastControl.focus()
+      await expect(lastControl).toBeFocused()
+      await page.keyboard.press('Shift+Tab')
+      await expect(lastControl).not.toBeFocused()
+      await expect
+        .poll(focusState, { message: `${viewport.width}x${viewport.height}` })
+        .toEqual({ topmost: true, inViewport: true })
+    }
+  })
+
   test('below 1024 px the cards are a plain list', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'the 390 px layout')
     await page.goto('/')
