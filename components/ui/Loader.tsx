@@ -7,13 +7,35 @@ import { DUR, EASE, gsap } from '@/lib/motion'
 
 const SKIP_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const
 
+/** The CSS cap's fade on the overlay (globals.css `loader-failsafe`). */
+function capFade(root: HTMLElement): Animation | undefined {
+  return root
+    .getAnimations()
+    .find((animation) => (animation as CSSAnimation).animationName === 'loader-failsafe')
+}
+
+/** True once the CSS cap has started fading the overlay. */
+function capStarted(root: HTMLElement): boolean {
+  return (capFade(root)?.effect?.getComputedTiming().progress ?? 0) > 0
+}
+
+/** Lets the CSS cap finish its fade, then retires the overlay. */
+function retireAfterCap(root: HTMLElement, html: HTMLElement): void {
+  const retire = () => html.removeAttribute('data-loader')
+  const fade = capFade(root)
+  if (fade) fade.finished.then(retire, () => {})
+  else retire()
+}
+
 /**
  * Loader (PRD F-12, DESIGN §3.4 `dur-slow` / `ease-expo`): a fixed ink overlay with
  * the brand and a percentage tied to the fonts and the hero portrait. Server-rendered
  * but only visible when the pre-paint script set <html data-loader> (first visit of
- * the session, no reduced-motion preference). It holds for at least 600 ms and at most
- * 1.5 s from navigation start, leaves as soon as both assets are in, and any click,
- * key, wheel or touch skips it. The hero stays fully painted underneath, so the
+ * the session, no reduced-motion preference). It holds for at least 600 ms, leaves as
+ * soon as both assets are in, and any click, key, wheel or touch skips it. At 1.5 s this
+ * script also exits, with the designed slide, if it gets there before the CSS cap; the
+ * maximum itself is guaranteed by CSS alone (globals.css `loader-overlay`), so it holds
+ * even when this script is busy or late. The hero stays fully painted underneath, so the
  * portrait's LCP is unaffected; the hero entrance starts as the overlay lifts.
  */
 export function Loader() {
@@ -31,18 +53,15 @@ export function Loader() {
       // Storage blocked: the loader may show again on reload, which is harmless.
     }
 
-    const elapsed = performance.now()
-    // Hydrated late and the CSS failsafe is already fading the overlay: let it finish
+    // Hydrated after the cap: the CSS fade is already lifting the overlay; let it finish
     // rather than snapping it back to opaque by taking over.
-    const failsafe = root
-      .getAnimations()
-      .find((animation) => (animation as CSSAnimation).animationName === 'loader-failsafe')
-    if ((failsafe?.effect?.getComputedTiming().progress ?? 0) > 0) {
-      const finish = () => html.removeAttribute('data-loader')
-      root.addEventListener('animationend', finish, { once: true })
-      return () => root.removeEventListener('animationend', finish)
+    if (capStarted(root)) {
+      retireAfterCap(root, html)
+      return
     }
+    // JS drives the hold from here (counter, early exit); the CSS cap stays armed.
     html.setAttribute('data-loader', 'js')
+    const elapsed = performance.now()
 
     const ctx = gsap.context(() => {}, root)
     const progress = { value: 0 }
@@ -77,6 +96,12 @@ export function Loader() {
       exited = true
       clearTimeout(maxTimer)
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, exit))
+      // The CSS cap got there first (this thread was busy): no slide and no entrance,
+      // the hero is already showing through the fade.
+      if (capStarted(root)) {
+        retireAfterCap(root, html)
+        return
+      }
       ctx.add(() => {
         gsap.set(root, { pointerEvents: 'none' })
         gsap.to(progress, { value: 100, duration: DUR.fast, ease: EASE.out, onUpdate: render })

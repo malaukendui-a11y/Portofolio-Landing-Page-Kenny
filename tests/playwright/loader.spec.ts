@@ -42,18 +42,22 @@ async function takeoverAt(page: Page): Promise<number> {
 /**
  * Records, in the page, the exact moment the overlay starts leaving by either route,
  * independent of how late a busy main thread gets to observe it: the JS exit (its
- * inline `pointer-events: none`, caught by a MutationObserver as it is written) or the
- * CSS failsafe (its animation's start time plus delay, read on `animationstart`).
+ * inline `pointer-events: none`, caught by a MutationObserver as it is written; also
+ * kept as `jsExitAt`) or the CSS cap (its fade's start time plus delay, read on
+ * `animationstart`).
  */
 async function recordLeaving(page: Page): Promise<void> {
   await page.addInitScript(() => {
-    const store = window as unknown as { leftAt?: number }
+    const store = window as unknown as { leftAt?: number; jsExitAt?: number }
     const mark = (time: number) => {
       if (store.leftAt === undefined || time < store.leftAt) store.leftAt = time
     }
     new MutationObserver(() => {
       const node = document.querySelector<HTMLElement>('.loader-overlay')
-      if (node?.style.pointerEvents === 'none') mark(performance.now())
+      if (node?.style.pointerEvents === 'none' && store.jsExitAt === undefined) {
+        store.jsExitAt = performance.now()
+        mark(store.jsExitAt)
+      }
     }).observe(document, { attributes: true, attributeFilter: ['style'], subtree: true })
     document.addEventListener(
       'animationstart',
@@ -77,6 +81,20 @@ async function leftAt(page: Page): Promise<number> {
     POLL,
   )
   return (await handle.jsonValue()) as number
+}
+
+/** Records the lowest inline opacity GSAP gives the hero portrait (the entrance's from-state). */
+async function recordPortraitOpacity(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const store = window as unknown as { portraitMin?: number }
+    new MutationObserver((records) => {
+      for (const record of records) {
+        const node = record.target as HTMLElement
+        if (node.id !== 'hero-portrait' || node.style.opacity === '') continue
+        store.portraitMin = Math.min(store.portraitMin ?? 1, Number(node.style.opacity))
+      }
+    }).observe(document, { attributes: true, attributeFilter: ['style'], subtree: true })
+  })
 }
 
 /** Holds the hero portrait's response so the loader has to wait for it. */
@@ -155,24 +173,109 @@ test('the hold never exceeds 1.5 s, even while the portrait is still loading', a
   await delayPortrait(page, 4_000)
   await recordLeaving(page)
   await page.goto('/', { waitUntil: 'commit' })
+  if ((await takeoverAt(page)) > 0) {
+    // JS taking over the hold must not disarm the CSS cap.
+    const running = await overlay(page).evaluate((node) =>
+      node.getAnimations().map((animation) => (animation as CSSAnimation).animationName),
+    )
+    expect(running).toContain('loader-failsafe')
+  }
   const left = await leftAt(page)
   test.info().annotations.push({ type: 'loader-left-at', description: `${Math.round(left)} ms` })
-  // JS exit or CSS failsafe, long before the portrait arrives at 4 s; a little slack
-  // for the JS timer on a machine starved by the whole suite running in parallel.
-  expect(left).toBeLessThan(LOADER_MAX_MS + 150)
+  // JS exit or CSS cap, long before the portrait arrives at 4 s. The target is 1.5 s;
+  // the tolerance covers a first frame delayed by the whole suite running in parallel
+  // (docs/DECISIONS.md, loader cap).
+  expect(left).toBeLessThan(LOADER_MAX_MS + 500)
+})
+
+test('without any JS, the CSS cap alone lifts the overlay at 1.5 s', async ({ page }) => {
+  // No hydration at all: every script chunk fails (the pre-paint script is inline).
+  await page.route(/\/_next\/static\/.*\.js/, (route) => route.abort())
+  await page.goto('/', { waitUntil: 'commit' })
+  await expect(overlay(page)).toBeVisible()
+  // Hidden once the fade is over (visibility), about 1.5 s + 0.6 s after navigation.
+  await expect(overlay(page)).toBeHidden({ timeout: LOADER_MAX_MS + DUR.base * 1000 + 2_000 })
+  const state = await page.evaluate(() => {
+    const node = document.querySelector<HTMLElement>('.loader-overlay')!
+    const style = getComputedStyle(node)
+    const fade = node
+      .getAnimations()
+      .find((animation) => (animation as CSSAnimation).animationName === 'loader-failsafe')
+    const delay = Number(fade?.effect?.getTiming().delay ?? 0)
+    return {
+      flag: document.documentElement.getAttribute('data-loader'),
+      opacity: style.opacity,
+      pointerEvents: style.pointerEvents,
+      fadeStartsAt: fade?.startTime == null ? null : Number(fade.startTime) + delay,
+      blocksClicks:
+        document.elementFromPoint(innerWidth / 2, innerHeight / 2)?.closest('.loader-overlay') !==
+        null,
+    }
+  })
+  expect(state.flag, 'JS never took over').toBe('')
+  expect(state.opacity).toBe('0')
+  expect(state.pointerEvents).toBe('none')
+  expect(state.blocksClicks).toBe(false)
+  expect(state.fadeStartsAt).toBeLessThan(LOADER_MAX_MS + 500)
+})
+
+type TraceEvent = {
+  name: string
+  ph: string
+  id2?: { local?: string }
+  args?: { data?: { displayName?: string; compositeFailed?: number } }
+}
+
+test("the cap's fade runs on the compositor, independent of the main thread", async ({
+  page,
+  browser,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'compositing does not depend on the viewport')
+  await delayPortrait(page, 4_000)
+  await browser.startTracing(page, {
+    categories: ['blink.animations', 'devtools.timeline', 'disabled-by-default-devtools.timeline'],
+  })
+  await page.goto('/', { waitUntil: 'commit' })
+  await expect(overlay(page)).toBeVisible()
+  await expect(overlay(page)).toBeHidden({ timeout: LOADER_MAX_MS + DUR.slow * 1000 + 2_000 })
+  const { traceEvents } = JSON.parse((await browser.stopTracing()).toString()) as {
+    traceEvents: TraceEvent[]
+  }
+  // Chrome logs every CSS animation it starts, and why it could not composite one.
+  const animations = traceEvents.filter((event) => event.name === 'Animation')
+  const idOf = (name: string) =>
+    animations.find((event) => event.ph === 'b' && event.args?.data?.displayName === name)?.id2
+      ?.local
+  const compositeFailures = (id: string | undefined) =>
+    animations.filter((event) => event.id2?.local === id && event.args?.data?.compositeFailed)
+  const [fade, release] = [idOf('loader-failsafe'), idOf('loader-release')]
+  expect(fade).toBeDefined()
+  expect(release).toBeDefined()
+  // Control: the discrete half (visibility) cannot be composited, and the trace says so …
+  expect(compositeFailures(release).length).toBeGreaterThan(0)
+  // … while the opacity fade never reports a failure.
+  expect(compositeFailures(fade)).toEqual([])
 })
 
 test('the hero enters as the loader lifts and settles with no leftover styles', async ({
   page,
 }) => {
+  await recordLeaving(page)
+  await recordPortraitOpacity(page)
   await page.goto('/', { waitUntil: 'commit' })
-  const tookOver = await takeoverAt(page)
-  test.skip(tookOver < 0, 'hydrated after the cap: the CSS failsafe ends the hold, no entrance')
+  await expect(overlay(page)).toBeHidden({ timeout: 5_000 })
+  const { jsExitAt, portraitMin } = await page.evaluate(() => {
+    const store = window as unknown as { jsExitAt?: number; portraitMin?: number }
+    return { jsExitAt: store.jsExitAt, portraitMin: store.portraitMin }
+  })
+  test.skip(
+    jsExitAt === undefined,
+    'the CSS cap lifted the overlay before JS could: no slide, no entrance by design',
+  )
+  // The entrance ran: GSAP started the portrait from a lower opacity …
+  expect(portraitMin).toBeLessThan(1)
+  // … and left nothing behind.
   const portrait = page.locator('#hero-portrait')
-  await expect(overlay(page)).toHaveCSS('pointer-events', 'none', { timeout: 3_000 })
-  // Mid-entrance the portrait is still fading in.
-  expect(Number(await portrait.evaluate((img) => getComputedStyle(img).opacity))).toBeLessThan(1)
-  await expect(overlay(page)).toBeHidden({ timeout: 3_000 })
   await expect(portrait).toHaveCSS('opacity', '1')
   await expect(portrait).toHaveCSS('transform', 'none')
   // Tailwind's centring (`translate` property) is untouched by the entrance.

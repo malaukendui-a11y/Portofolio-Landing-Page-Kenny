@@ -258,13 +258,27 @@
 }
 
 /* Loader overlay (PRD F-12, components/ui/Loader): hidden unless the pre-paint script
-   flagged <html data-loader>. Fixed, so it never shifts layout. If JS has not taken
-   over (`data-loader="js"`) by 1.5 s after navigation start (`--loader-cap`, set by the
-   same script), CSS fades it out on its own: the maximum holds even when hydration is
-   slow or fails, and the fade runs on the compositor while the main thread is busy. */
+   flagged <html data-loader>. Fixed, so it never shifts layout. The 1.5 s cap is CSS
+   only and always armed: at `--loader-cap` (what is left of 1.5 s after navigation
+   start, set by the same script) the overlay stops taking pointer events and fades out,
+   then hides. The fade animates opacity alone, so the browser runs it on the compositor
+   and the cap holds while the main thread is busy, late or without JS. When JS lifts the
+   overlay sooner, the fade only finishes what is left of it. */
 @keyframes loader-failsafe {
   to {
     opacity: 0;
+  }
+}
+
+/* The discrete half, in its own animation: Chrome will not composite an animation that
+   also changes visibility (trace: compositeFailed, checked in loader.spec.ts). Pointer
+   events go at the cap, visibility once the fade is done. */
+@keyframes loader-release {
+  from {
+    pointer-events: none;
+  }
+  to {
+    pointer-events: none;
     visibility: hidden;
   }
 }
@@ -273,11 +287,9 @@
   display: none;
   html[data-loader] & {
     display: flex;
-    animation: loader-failsafe var(--duration-base) var(--ease-expo) var(--loader-cap, 1.5s)
-      forwards;
-  }
-  html[data-loader='js'] & {
-    animation: none;
+    animation:
+      loader-failsafe var(--duration-base) var(--ease-expo) var(--loader-cap, 1.5s) forwards,
+      loader-release var(--duration-base) linear var(--loader-cap, 1.5s) forwards;
   }
 }
 
