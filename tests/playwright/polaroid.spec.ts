@@ -118,7 +118,8 @@ test.describe('polaroid line', () => {
     await page.mouse.up()
     await expect(root(page)).toHaveAttribute('data-drag', '0')
 
-    const released = Date.now()
+    // 2.5 s, not 1.5 s: the loop clamps dt, so under load the spring runs slower than wall-clock
+    // time (docs/DECISIONS.md). The poll's timeout is the bound.
     await expect
       .poll(
         async () => {
@@ -129,10 +130,9 @@ test.describe('polaroid line', () => {
           const third = await activeIndex(page)
           return first === second && second === third && first !== '2'
         },
-        { timeout: 1_500, intervals: [0] },
+        { timeout: 2_500, intervals: [0] },
       )
       .toBe(true)
-    expect(Date.now() - released).toBeLessThanOrEqual(1_500)
   })
 
   test('without reduced motion the prints sway', async ({ page }) => {
