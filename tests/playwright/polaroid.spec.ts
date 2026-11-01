@@ -538,6 +538,16 @@ test.describe('polaroid line under real touch', () => {
     const fill = await next(page).evaluate((button) => getComputedStyle(button).backgroundColor)
     expect(fill).toBe('rgba(0, 0, 0, 0)')
   })
+
+  test('tapping pause stops autoplay, tapping play starts it again', async ({ page }) => {
+    await gotoCarousel(page)
+    await pause(page).tap()
+    await expect(play(page)).toBeVisible()
+    await page.waitForTimeout(6_000)
+    await expect(count(page)).toHaveText('03 / 06')
+    await play(page).tap()
+    await expect(count(page)).toHaveText('04 / 06', { timeout: 7_000 })
+  })
 })
 
 // On a busy main thread an IntersectionObserver delivers several changes in one callback,
