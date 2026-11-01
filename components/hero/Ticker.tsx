@@ -30,8 +30,9 @@ export function Ticker({
     if (!root) return
     let offscreen = false
     const sync = () => root.toggleAttribute('data-paused', document.hidden || offscreen)
-    const observer = new IntersectionObserver(([entry]) => {
-      offscreen = !entry.isIntersecting
+    const observer = new IntersectionObserver((entries) => {
+      // A busy main thread delivers several changes in one callback, oldest first: read the newest.
+      offscreen = !entries[entries.length - 1].isIntersecting
       sync()
     })
     observer.observe(root)

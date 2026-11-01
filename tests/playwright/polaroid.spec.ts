@@ -7,7 +7,7 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
-import { selectLang } from './helpers'
+import { batchIntersectionChanges, scrollOutAndBack, selectLang } from './helpers'
 
 const labels = en.reachOut.polaroids
 
@@ -415,44 +415,13 @@ test.describe('polaroid line under real touch', () => {
 // 40 ms, and the loop read "out" and stopped while the carousel was on screen.
 test.describe('polaroid line when intersection changes arrive batched', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      const Real = window.IntersectionObserver
-      window.IntersectionObserver = class extends Real {
-        constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
-          let held: IntersectionObserverEntry[] = []
-          let timer = 0
-          super((entries, observer) => {
-            held.push(...entries)
-            window.clearTimeout(timer)
-            timer = window.setTimeout(() => {
-              const batch = held
-              held = []
-              callback(batch, observer)
-            }, 200)
-          }, options)
-        }
-      }
-    })
+    await batchIntersectionChanges(page)
   })
-
-  /** Scrolls the carousel out and back, then waits for the batch to be delivered. */
-  async function outAndBack(page: Page): Promise<void> {
-    await page.evaluate(async () => {
-      const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
-      window.scrollTo(0, 0)
-      await frame()
-      await frame()
-      document.querySelector('.pl-root')!.scrollIntoView({ block: 'center' })
-      await frame()
-      await frame()
-    })
-    await page.waitForTimeout(500)
-  }
 
   test('the frame loop keeps running', async ({ page }) => {
     await gotoCarousel(page)
     await page.waitForTimeout(500)
-    await outAndBack(page)
+    await scrollOutAndBack(page, '.pl-root')
     await next(page).focus()
     await page.keyboard.press('Enter')
     await expect(count(page)).toHaveText('04 / 06')
@@ -461,7 +430,7 @@ test.describe('polaroid line when intersection changes arrive batched', () => {
   test('autoplay keeps running', async ({ page }) => {
     await gotoCarousel(page)
     await page.waitForTimeout(500)
-    await outAndBack(page)
+    await scrollOutAndBack(page, '.pl-root')
     await expect(count(page)).toHaveText('04 / 06', { timeout: 6_000 })
   })
 })
