@@ -73,9 +73,10 @@ export function ArrowUpIcon(props: IconProps) {
   )
 }
 
+/** Marked `data-arrow` so pill buttons can slide it on hover (DESIGN §5). */
 export function ArrowUpRightIcon(props: IconProps) {
   return (
-    <Icon {...props}>
+    <Icon data-arrow="" {...props}>
       <path d="M7 7h10v10" />
       <path d="M7 17 17 7" />
     </Icon>

@@ -228,8 +228,8 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 
 | Asset | File | Notes |
 |---|---|---|
-| Hero portrait | `public/images/portrait/kenny-hero-crop-color@2x.webp` | 1324 × 1600; soft fade at bottom |
-| Reach Out portrait | `public/images/portrait/kenny-footer-color@2x.webp` | 908 × 1800 |
+| Hero portrait | `public/images/portrait/kenny-hero-crop-color@2x.webp` | 1045 × 1600 (v2 cutout); soft fade at bottom |
+| Reach Out portrait | `public/images/portrait/kenny-footer-color@2x.webp` | 883 × 1800 (v2 cutout) |
 | Alternates | `*-color-soft@2x.webp`, `*-bw@2x.webp` | WebP only in git; PNG masters (0.8–1.3 MB each) stay in the owner's source zip, ignored by git |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | Exported from the dev scene |

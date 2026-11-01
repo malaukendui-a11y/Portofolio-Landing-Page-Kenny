@@ -11,7 +11,7 @@ import { ArrowUpIcon, ArrowUpRightIcon, CopyIcon } from '@/components/ui/icons'
 
 const FOOTER_PORTRAIT = {
   src: '/images/portrait/kenny-footer-color@2x.webp',
-  width: 908,
+  width: 883,
   height: 1800,
 }
 
@@ -52,7 +52,7 @@ export function ReachOut() {
       <div className="relative px-gutter-sm md:px-gutter-md lg:px-gutter">
         <SectionLabel className="mb-8">{t.reachOut.label}</SectionLabel>
       </div>
-      <Ticker text={t.reachOut.ticker} className="relative" />
+      <Ticker text={t.reachOut.ticker} direction="reverse" className="relative" />
 
       {/* Mobile stage: the portrait sits between the ticker and the contact blocks. */}
       <div className="relative h-[42svh] md:hidden">
@@ -67,7 +67,7 @@ export function ReachOut() {
       <div className="relative px-gutter-sm pt-10 pb-10 md:px-gutter-md md:pt-16 lg:px-gutter lg:pb-16">
         <div className="grid gap-12 md:grid-cols-12 md:items-end">
           <div className="md:col-span-6 lg:col-span-5">
-            <h2 id="contact-heading" className="font-display text-h2-sm md:text-h2">
+            <h2 id="contact-heading" data-reveal className="font-display text-h2-sm md:text-h2">
               {t.reachOut.heading}
             </h2>
             <p className="mt-4 max-w-[60ch] text-body-lg-sm text-fg-muted md:text-body-lg">
@@ -144,7 +144,7 @@ export function ReachOut() {
             >
               {t.reachOut.backToTop}
               <span className="inline-flex size-12 items-center justify-center rounded-pill border border-fg text-fg transition-colors duration-fast ease-out group-hover:bg-fg group-hover:text-surface">
-                <ArrowUpIcon />
+                <ArrowUpIcon className="transition-transform duration-fast ease-out group-hover:-translate-y-1" />
               </span>
             </a>
           </div>

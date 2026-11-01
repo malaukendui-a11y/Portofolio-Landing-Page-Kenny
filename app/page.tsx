@@ -7,13 +7,18 @@ import { Projects } from '@/components/sections/Projects'
 import { QAEvidence } from '@/components/sections/QAEvidence'
 import { ReachOut } from '@/components/sections/ReachOut'
 import { Services } from '@/components/sections/Services'
+import { Loader } from '@/components/ui/Loader'
+import { MotionRoot } from '@/components/ui/MotionRoot'
 import { Nav } from '@/components/ui/Nav'
 import { SkipLink } from '@/components/ui/SkipLink'
 
-// Single route, anchored sections in PRD §5 order. M0 = static copy only.
+// Single route, anchored sections in PRD §5 order. MotionRoot adds the M2 motion layer.
 export default function HomePage() {
   return (
     <>
+      {/* First in <body>: the overlay must exist before any content can paint. */}
+      <Loader />
+      <MotionRoot />
       <SkipLink />
       <Nav />
       <main id="main" className="flex-1">

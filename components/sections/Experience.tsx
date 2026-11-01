@@ -32,11 +32,11 @@ export function Experience() {
   return (
     <Section id="experience" surface="dark" labelledBy="experience-heading">
       <SectionLabel className="mb-8">{t.experience.label}</SectionLabel>
-      <h2 id="experience-heading" className="mb-10 font-display text-h2-sm md:text-h2">
+      <h2 id="experience-heading" data-reveal className="mb-10 font-display text-h2-sm md:text-h2">
         {t.experience.heading}
       </h2>
       <Entry entry={t.experience.work} />
-      <h2 className="mt-8 mb-10 font-display text-h2-sm md:text-h2">
+      <h2 data-reveal className="mt-8 mb-10 font-display text-h2-sm md:text-h2">
         {t.experience.educationHeading}
       </h2>
       <Entry entry={t.experience.education} />

@@ -96,6 +96,10 @@
   --spacing-gutter-md: 1.5rem;
   --spacing-gutter-sm: 1.25rem;
   --spacing-measure: 68ch;
+  /* Sticky nav height (py-4 + 48 px pill): stacked cards stick just below it. */
+  --spacing-nav: 5rem;
+  /* DESIGN §4.5: each project card sticks 24 px lower than the one before. */
+  --spacing-stack-offset: 1.5rem;
 
   --radius-*: initial;
   --radius-card: 1.5rem;
@@ -172,6 +176,123 @@
   }
 }
 
+/* Transition durations from the §3.4 tokens. Tailwind v4 has no `--duration-*` theme
+   namespace, so `duration-fast` would otherwise compile to nothing (M1 hovers ran at
+   the 150 ms default). */
+@utility duration-fast {
+  --tw-duration: var(--duration-fast);
+  transition-duration: var(--duration-fast);
+}
+@utility duration-base {
+  --tw-duration: var(--duration-base);
+  transition-duration: var(--duration-base);
+}
+@utility duration-slow {
+  --tw-duration: var(--duration-slow);
+  transition-duration: var(--duration-slow);
+}
+
+/* Name marquee (components/hero/Ticker, DESIGN §3.4 `marquee-speed`): two identical
+   groups, the track moves by one group (-50 %) per loop. Paused via `data-paused`;
+   `data-marquee="reverse"` runs it the other way (Reach Out). No `will-change`: the
+   running animation already promotes the track to its own compositor layer, and
+   `will-change` would keep a ~10 000 px layer alive even while the marquee is paused. */
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@utility marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--duration-marquee-sm) linear infinite;
+  @media (width >= 48rem) {
+    animation-duration: var(--duration-marquee);
+  }
+  [data-marquee='reverse'] > & {
+    animation-direction: reverse;
+  }
+  [data-paused] > & {
+    animation-play-state: paused;
+  }
+  /* Static: one group, its middle copy centred (the M1 resting frame). */
+  @media (prefers-reduced-motion: reduce) {
+    position: relative;
+    left: 50%;
+    translate: -50% 0;
+    animation: none;
+  }
+}
+
+/* One copy of the text, repeated; the trailing padding keeps the seam gap equal. */
+@utility marquee-group {
+  display: flex;
+  gap: 0.25em;
+  padding-inline-end: 0.25em;
+  &[data-marquee-copy] {
+    @media (prefers-reduced-motion: reduce) {
+      display: none;
+    }
+  }
+}
+
+/* Sticky stacked cards (DESIGN §4.4 / §4.5, lib/useStackedCards): from 1024 px and
+   only when motion is allowed; otherwise the cards are a plain list. Card n sticks at
+   nav + n × --stack-offset (0 for Services, 24 px for Projects via `stack-offset`). */
+@utility stack-card {
+  @media (width >= 64rem) and (prefers-reduced-motion: no-preference) {
+    position: sticky;
+    top: calc(var(--spacing-nav) + var(--stack-index, 0) * var(--stack-offset, 0rem));
+    transform-origin: 50% 0;
+  }
+}
+@utility stack-offset {
+  --stack-offset: var(--spacing-stack-offset);
+}
+/* Services cards fill the viewport below the nav while they are stacked. */
+@utility stack-card-full {
+  @media (width >= 64rem) and (prefers-reduced-motion: no-preference) {
+    min-height: calc(100svh - var(--spacing-nav));
+  }
+}
+
+/* Loader overlay (PRD F-12, components/ui/Loader): hidden unless the pre-paint script
+   flagged <html data-loader>. Fixed, so it never shifts layout. The 1.5 s cap is CSS
+   only and always armed: at `--loader-cap` (what is left of 1.5 s after navigation
+   start, set by the same script) the overlay stops taking pointer events and fades out,
+   then hides. The fade animates opacity alone, so the browser runs it on the compositor
+   and the cap holds while the main thread is busy, late or without JS. When JS lifts the
+   overlay sooner, the fade only finishes what is left of it. */
+@keyframes loader-failsafe {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The discrete half, in its own animation: Chrome will not composite an animation that
+   also changes visibility (trace: compositeFailed, checked in loader.spec.ts). Pointer
+   events go at the cap, visibility once the fade is done. */
+@keyframes loader-release {
+  from {
+    pointer-events: none;
+  }
+  to {
+    pointer-events: none;
+    visibility: hidden;
+  }
+}
+
+@utility loader-overlay {
+  display: none;
+  html[data-loader] & {
+    display: flex;
+    animation:
+      loader-failsafe var(--duration-base) var(--ease-expo) var(--loader-cap, 1.5s) forwards,
+      loader-release var(--duration-base) linear var(--loader-cap, 1.5s) forwards;
+  }
+}
+
 /* Outlined service numeral (DESIGN §3.2 `outline-numeral`): 1.5 px stroke, no fill. */
 @utility numeral-outline {
   color: transparent;
@@ -193,8 +314,13 @@
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  /* No CSS smooth scrolling: Lenis is the only smooth path (lib/smoothScroll). Before
+     hydration, without JS and under reduced motion, anchors are instant native jumps —
+     a native smooth scroll in flight when Lenis starts would be cut off halfway. */
+
+  /* Sections focused by in-page navigation (lib/smoothScroll) are not controls. */
+  [data-focus-target]:focus {
+    outline: none;
   }
 
   body {
@@ -225,9 +351,6 @@
 
   /* DESIGN §3.4 reduced motion: instant reveals, no smooth scroll. */
   @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
     *,
     ::before,
     ::after {
