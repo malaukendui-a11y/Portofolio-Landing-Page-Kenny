@@ -22,9 +22,18 @@ async function reached(page: Page, id: string): Promise<boolean> {
 
 /** Waits for the section to be reached and for Lenis to settle before the next action. */
 async function expectAt(page: Page, id: string): Promise<void> {
-  await expect.poll(() => reached(page, id), { timeout: 5_000 }).toBe(true)
+  await expect.poll(() => reached(page, id), { timeout: 5_000, intervals: [100] }).toBe(true)
   await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/)
   await expect(page).toHaveURL(new RegExp(`#${id}$`))
+}
+
+/** `#top` means the page top (above the in-flow sticky header), not the hero's top edge. */
+async function expectAtTop(page: Page): Promise<void> {
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5_000, intervals: [100] })
+    .toBe(0)
+  await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/)
+  await expect(page).toHaveURL(/#top$/)
 }
 
 /** Loads `/` and waits for hydration: MotionRoot has started Lenis. */
@@ -33,25 +42,67 @@ async function gotoWithLenis(page: Page): Promise<void> {
   await expect(page.locator('html')).toHaveClass(LENIS)
 }
 
+const NAV_SECTIONS = [
+  [en.nav.work, 'work'],
+  [en.nav.about, 'about'],
+  [en.nav.contact, 'contact'],
+] as const
+
+/** Clicks a nav link: in the header at 1440, through the menu overlay at 390. */
+async function clickNavLink(page: Page, label: string, mobile: boolean): Promise<void> {
+  if (mobile) {
+    await page.getByRole('button', { name: en.nav.openMenu }).click()
+    await page.locator('#mobile-menu').getByRole('link', { name: label }).click()
+    await expect(page.locator('#mobile-menu')).toBeHidden()
+  } else {
+    await page.locator('header').getByRole('link', { name: label, exact: true }).click()
+  }
+}
+
 test.describe('anchor navigation (Lenis)', () => {
   test('nav links reach their sections and move focus there', async ({ page }, testInfo) => {
     await gotoWithLenis(page)
     const mobile = testInfo.project.name === 'mobile'
-    for (const [label, id] of [
-      [en.nav.work, 'work'],
-      [en.nav.about, 'about'],
-      [en.nav.contact, 'contact'],
-    ] as const) {
-      if (mobile) {
-        await page.getByRole('button', { name: en.nav.openMenu }).click()
-        await page.locator('#mobile-menu').getByRole('link', { name: label }).click()
-        await expect(page.locator('#mobile-menu')).toBeHidden()
-      } else {
-        await page.locator('header').getByRole('link', { name: label, exact: true }).click()
-      }
+    for (const [label, id] of NAV_SECTIONS) {
+      await clickNavLink(page, label, mobile)
       await expectAt(page, id)
       await expect(page.locator(`#${id}`)).toBeFocused()
     }
+  })
+
+  test('every nav anchor, clicked 20 times in a row, arrives every time', async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(300_000)
+    // Count the native safety net in lib/smoothScroll.ts without touching the app: it is
+    // the page's only caller of scrollIntoView, so the count shows how often Lenis needed it.
+    await page.addInitScript(() => {
+      const store = window as unknown as { fallbacks: number }
+      store.fallbacks = 0
+      const intoView = Element.prototype.scrollIntoView
+      Element.prototype.scrollIntoView = function (...args) {
+        store.fallbacks += 1
+        return intoView.apply(this, args)
+      }
+    })
+    await gotoWithLenis(page)
+    const mobile = testInfo.project.name === 'mobile'
+    const rounds = 20
+    for (let round = 0; round < rounds; round += 1) {
+      for (const [label, id] of NAV_SECTIONS) {
+        await clickNavLink(page, label, mobile)
+        await expectAt(page, id)
+      }
+      await page.locator('header').getByRole('link', { name: en.nav.brand, exact: true }).click()
+      await expectAtTop(page)
+    }
+    const fallbacks = await page.evaluate(
+      () => (window as unknown as { fallbacks: number }).fallbacks,
+    )
+    testInfo.annotations.push({ type: 'native-fallbacks', description: String(fallbacks) })
+    console.log(
+      `anchor loop (${testInfo.project.name}): ${rounds * 4} clicks, ${fallbacks} native fallbacks`,
+    )
   })
 
   test('footer links, "See my work" and back-to-top reach their sections', async ({ page }) => {

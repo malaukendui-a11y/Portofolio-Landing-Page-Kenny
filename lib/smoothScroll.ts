@@ -43,6 +43,14 @@ function focusTarget(target: HTMLElement): void {
   target.focus({ preventScroll: true })
 }
 
+/** True once the destination sits at the viewport top, or the page cannot scroll further. */
+function isAt(destination: HTMLElement | 0): boolean {
+  if (destination === 0) return window.scrollY <= 1
+  const top = destination.getBoundingClientRect().top
+  const bottom = document.documentElement.scrollHeight - window.innerHeight
+  return Math.abs(top) <= 1 || (top > 0 && window.scrollY >= bottom - 1)
+}
+
 /**
  * In-page navigation for `#id` links (nav, mobile menu, footer, back-to-top): Lenis
  * eases to the section, the URL gains the hash and focus lands in the section.
@@ -65,4 +73,13 @@ export function scrollToHash(hash: string): void {
   // `#top` (brand, back-to-top) means the page top, above the in-flow sticky header.
   const destination = hash === '#top' ? 0 : target
   lenis.scrollTo(destination, { duration: DUR.slow, easing: gsap.parseEase(EASE.expo) })
+  // Safety net: under heavy load Lenis has been seen to drop the scroll without moving
+  // (cause not found yet). If it is not scrolling by the next frame, jump natively so a
+  // link never does nothing, then sync Lenis to where the page now is (left to its native
+  // scroll handling, it can stay flagged as scrolling).
+  requestAnimationFrame(() => {
+    if (!lenis || lenis.isScrolling === 'smooth' || isAt(destination)) return
+    ;(destination === 0 ? document.documentElement : destination).scrollIntoView()
+    lenis.scrollTo(lenis.actualScroll, { immediate: true })
+  })
 }
