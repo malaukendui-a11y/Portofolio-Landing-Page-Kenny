@@ -1,25 +1,22 @@
 'use client'
 
+import { polaroids } from '@/content/polaroids'
 import { site, whatsappHref } from '@/content/site'
 import { useLang } from '@/lib/i18n'
-import { Portrait } from '@/components/hero/Portrait'
 import { Ticker } from '@/components/hero/Ticker'
 import { Button, ButtonLink } from '@/components/ui/Button'
+import { PolaroidLine } from '@/components/ui/PolaroidLine'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { useToast } from '@/components/ui/Toast'
 import { ArrowUpIcon, ArrowUpRightIcon, CopyIcon } from '@/components/ui/icons'
 
-const FOOTER_PORTRAIT = {
-  src: '/images/portrait/kenny-footer-color@2x.webp',
-  width: 883,
-  height: 1800,
-}
-
 /**
- * Reach Out (DESIGN §4.9) — paper mirror of the hero: "Reach Out —" ticker, the
- * footer portrait, left block with email (copy to clipboard + toast), WhatsApp
- * (prefilled wa.me link), location and the two CTA routes; right block with
- * socials and a circular back-to-top control (PRD F-10, F-13).
+ * Reach Out (DESIGN §4.9) — paper mirror of the hero: "Reach Out —" ticker, left block
+ * with email (copy to clipboard + toast), WhatsApp (prefilled wa.me link), location and
+ * the two CTA routes; right block with the polaroid line, socials and a circular
+ * back-to-top control (PRD F-10, F-13). DOM order is contact, carousel, socials, so the
+ * tab order follows the desktop layout; below md the carousel moves up with CSS `order`
+ * to sit between the ticker and the contact block.
  */
 export function ReachOut() {
   const { t } = useLang()
@@ -29,6 +26,7 @@ export function ReachOut() {
     { href: site.github.url, label: t.hero.socials.github },
     site.linkedin ? { href: site.linkedin, label: t.hero.socials.linkedin } : null,
   ].filter((social) => social !== null)
+  const slides = polaroids.map((photo) => ({ ...photo, alt: t.reachOut.polaroids.alts[photo.id] }))
 
   const copyEmail = async () => {
     try {
@@ -54,19 +52,9 @@ export function ReachOut() {
       </div>
       <Ticker text={t.reachOut.ticker} direction="reverse" className="relative" />
 
-      {/* Mobile stage: the portrait sits between the ticker and the contact blocks. */}
-      <div className="relative h-[42svh] md:hidden">
-        <Portrait
-          {...FOOTER_PORTRAIT}
-          alt={t.reachOut.portraitAlt}
-          sizes="40vw"
-          className="absolute bottom-0 left-1/2 h-[42svh] -translate-x-1/2"
-        />
-      </div>
-
       <div className="relative px-gutter-sm pt-10 pb-10 md:px-gutter-md md:pt-16 lg:px-gutter lg:pb-16">
-        <div className="grid gap-12 md:grid-cols-12 md:items-end">
-          <div className="md:col-span-6 lg:col-span-5">
+        <div className="grid gap-x-12 gap-y-12 md:grid-cols-12 md:items-end md:gap-y-8">
+          <div className="min-w-0 md:col-span-6 md:row-span-2 md:row-start-1 lg:col-span-5">
             <h2 id="contact-heading" data-reveal className="font-display text-h2-sm md:text-h2">
               {t.reachOut.heading}
             </h2>
@@ -119,7 +107,13 @@ export function ReachOut() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-8 md:col-span-6 md:items-end lg:col-span-7">
+          <PolaroidLine
+            slides={slides}
+            labels={t.reachOut.polaroids}
+            className="order-first min-w-0 md:order-none md:col-span-6 md:col-start-7 md:row-start-1 lg:col-span-7 lg:col-start-6"
+          />
+
+          <div className="flex flex-col gap-8 md:col-span-6 md:col-start-7 md:row-start-2 md:items-end lg:col-span-7 lg:col-start-6">
             <div className="md:text-right">
               <p className={rowLabel}>{t.reachOut.socialsLabel}</p>
               <ul className="mt-2 flex flex-wrap gap-6 text-body md:justify-end">
@@ -151,12 +145,6 @@ export function ReachOut() {
         </div>
       </div>
 
-      <Portrait
-        {...FOOTER_PORTRAIT}
-        alt={t.reachOut.portraitAlt}
-        sizes="(min-width: 1024px) 24vw, 35vw"
-        className="absolute bottom-0 left-[58%] hidden h-[72svh] md:block lg:left-[60%]"
-      />
       {toast}
     </section>
   )

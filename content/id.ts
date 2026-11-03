@@ -232,7 +232,23 @@ const id = {
     heading: 'Mari bekerja sama',
     intro:
       'Rekruter: unduh CV dan kirim email. Klien: WhatsApp adalah cara tercepat untuk memulai.',
-    portraitAlt: 'Ananda Kenny menunduk melihat ponselnya, menunggu pesan Anda',
+    polaroids: {
+      alts: {
+        'comprehensive-exam':
+          'Kenny dan seorang teman kuliah berkemeja putih dan berdasi hitam pada hari ujian komprehensifnya di Universitas Gunadarma',
+        graduation: 'Kenny mengenakan toga wisuda bersama orang tuanya',
+        'working-laptop': 'Kenny menulis kode di laptopnya di sebuah kafe pada malam hari',
+        'nusa-penida': 'Kenny di tebing Nusa Penida',
+        touring: 'Kenny bersama sepeda motornya di sebuah titik pandang pegunungan',
+        portrait: 'Swafoto cermin Kenny dengan kemeja batik dan tali lanyard Bank Mandiri',
+      },
+      region: 'Foto-foto Ananda Kenny',
+      previous: 'Foto sebelumnya',
+      next: 'Foto berikutnya',
+      pause: 'Jeda tayangan foto',
+      play: 'Putar tayangan foto',
+      status: 'Foto {current} dari {total}',
+    },
     email: { label: 'Email', copy: 'Salin email', copied: 'Tersalin' },
     whatsapp: {
       label: 'WhatsApp',

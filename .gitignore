@@ -49,3 +49,6 @@ next-env.d.ts
 # large image masters (DESIGN appendix: WebP only in git)
 public/**/*.zip
 public/images/portrait/*.png
+
+# reference material, not source
+/.reference/

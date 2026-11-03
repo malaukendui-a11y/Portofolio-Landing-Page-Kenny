@@ -54,6 +54,46 @@ export async function revealAll(page: Page): Promise<void> {
   )
 }
 
+/**
+ * On a busy main thread an IntersectionObserver delivers several changes in one callback, oldest
+ * first. This reproduces it: callbacks are held until 200 ms pass without a new change. Call
+ * before `goto`.
+ */
+export async function batchIntersectionChanges(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const Real = window.IntersectionObserver
+    window.IntersectionObserver = class extends Real {
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        let held: IntersectionObserverEntry[] = []
+        let timer = 0
+        super((entries, observer) => {
+          held.push(...entries)
+          window.clearTimeout(timer)
+          timer = window.setTimeout(() => {
+            const batch = held
+            held = []
+            callback(batch, observer)
+          }, 200)
+        }, options)
+      }
+    }
+  })
+}
+
+/** Scrolls `selector` off-screen and back within a batch, then waits for it to be delivered. */
+export async function scrollOutAndBack(page: Page, selector: string): Promise<void> {
+  await page.evaluate(async (target) => {
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+    window.scrollTo(0, 0)
+    await frame()
+    await frame()
+    document.querySelector(target)!.scrollIntoView({ block: 'center' })
+    await frame()
+    await frame()
+  }, selector)
+  await page.waitForTimeout(500)
+}
+
 /** True when the page cannot be scrolled sideways (DESIGN §8). */
 export function hasNoHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(

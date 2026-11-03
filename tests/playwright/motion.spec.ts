@@ -1,10 +1,10 @@
 // M2 motion: TC-022 (Lenis + anchor navigation), TC-023 (marquee), TC-024 (reduced-motion
-// path), TC-027 (reveals + SplitText).
+// path), TC-027 (reveals + SplitText). F1: TC-052 (marquee under batched intersection changes).
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
-import { revealAll, selectLang } from './helpers'
+import { batchIntersectionChanges, revealAll, scrollOutAndBack, selectLang } from './helpers'
 
 const statementText = (copy: typeof en) => copy.intro.statement.map((part) => part.text).join('')
 
@@ -203,6 +203,18 @@ test.describe('marquee', () => {
 
     await page.locator('#contact [data-marquee]').scrollIntoViewIfNeeded()
     await expect(page.locator('#contact [data-marquee]')).not.toHaveAttribute('data-paused')
+  })
+
+  test('keeps running when an out-and-back arrives batched', async ({ page }) => {
+    await batchIntersectionChanges(page)
+    await gotoWithLenis(page) // a scroll just before Lenis starts can be undone
+    const marquee = page.locator('#contact [data-marquee]')
+    await marquee.scrollIntoViewIfNeeded()
+    await expect(marquee).not.toHaveAttribute('data-paused')
+    await scrollOutAndBack(page, '#contact [data-marquee]')
+    await expect(marquee).toBeInViewport()
+    await expect(marquee).not.toHaveAttribute('data-paused')
+    await expect(track(page, 'contact')).toHaveCSS('animation-play-state', 'running')
   })
 })
 
