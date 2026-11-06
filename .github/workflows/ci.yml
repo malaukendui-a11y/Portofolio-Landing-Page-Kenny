@@ -41,6 +41,10 @@ jobs:
       - name: Lighthouse CI (desktop)
         run: pnpm exec lhci autorun
 
+      # M3: the desktop gate counts only if every run measured the mounted 3D lens.
+      - name: Lighthouse CI measured the 3D hero
+        run: node scripts/check-lhci-3d.mjs
+
       - name: Lighthouse CI (mobile)
         run: pnpm exec lhci autorun --config=lighthouserc.mobile.cjs
 

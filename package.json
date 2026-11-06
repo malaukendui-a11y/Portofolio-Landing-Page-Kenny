@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "test": "pnpm build && playwright test",
     "analyze": "next analyze",
-    "lhci": "pnpm build && lhci autorun && lhci autorun --config=lighthouserc.mobile.cjs"
+    "lhci": "pnpm build && lhci autorun && node scripts/check-lhci-3d.mjs && lhci autorun --config=lighthouserc.mobile.cjs"
   },
   "dependencies": {
     "@react-three/drei": "10.7.9",
