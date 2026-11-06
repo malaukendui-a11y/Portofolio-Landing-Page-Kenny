@@ -5,14 +5,20 @@ import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber'
 import { memo, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   BackSide,
+  BoxGeometry,
   FrontSide,
+  Group,
   MathUtils,
+  Mesh,
+  PMREMGenerator,
   setConsoleFunction,
   WebGLRenderer,
   WebGLRenderTarget,
+  type Camera,
   type CanvasTexture,
+  type CubeTexture,
   type Material,
-  type Mesh,
+  type Object3D,
   type PerspectiveCamera,
 } from 'three'
 import type { TickerHandle } from '@/components/hero/Ticker'
@@ -121,30 +127,83 @@ export function CameraRig() {
 /** Lets the main thread breathe between the expensive boot steps. */
 const yieldToMain = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
 
-/**
- * Compiles every program the first frames need, off the critical path where the browser can
- * (KHR_parallel_shader_compile): the lens front side for the canvas, and the lens back side and
- * the text for the refraction buffers, which render to a target in linear colour space.
- */
-async function compileScene(state: RootState): Promise<void> {
-  const { gl, scene, camera } = state
-  const lens = scene.getObjectByName('glass-lens') as Mesh | undefined
-  const material = lens?.material as Material | undefined
-  await gl.compileAsync(scene, camera)
-  await yieldToMain()
-  if (!material) return
+/** Compiles `object`'s programs as they will be used when rendering into a target. */
+async function compileForTarget(gl: WebGLRenderer, object: Object3D, camera: Camera) {
   const target = new WebGLRenderTarget(1, 1)
   const previous = gl.getRenderTarget()
   gl.setRenderTarget(target)
+  // The synchronous part (program creation) runs here; the wait for the link does not.
+  const ready = gl.compileAsync(object, camera)
+  gl.setRenderTarget(previous)
+  try {
+    await ready
+  } finally {
+    target.dispose()
+  }
+}
+
+type PmremMaterials = Record<
+  '_cubemapMaterial' | '_ggxMaterial' | '_integrationMaterial',
+  Material | null
+>
+
+/**
+ * The lens's reflections need a PMREM of the environment, which three builds on first use with
+ * three shader programs created and used in the same call, so the main thread waits for their
+ * link (≈ 200 ms measured, M3 DECISIONS). This builds the same programs ahead of time without
+ * drawing: a throwaway PMREMGenerator runs with `render` swapped for `compile`, then the
+ * programs link in parallel (KHR_parallel_shader_compile) while the main thread is free. three
+ * caches programs by source, so the real PMREM reuses them. Reads three's private material
+ * fields: if they change, the warm-up does nothing and the first use simply waits as before.
+ */
+async function warmEnvironment(state: RootState): Promise<void> {
+  const { gl, scene, camera } = state
+  const environment = scene.environment
+  if (!environment) return
+  const generator = new PMREMGenerator(gl)
+  const render = gl.render
+  gl.render = (object, view) => void gl.compile(object, view)
+  try {
+    generator.fromCubemap(environment as CubeTexture).dispose()
+  } finally {
+    gl.render = render
+  }
+  const internal = generator as unknown as PmremMaterials
+  const materials = [internal._cubemapMaterial, internal._ggxMaterial, internal._integrationMaterial]
+  const holder = new Group()
+  const box = new BoxGeometry()
+  for (const material of materials) if (material) holder.add(new Mesh(box, material))
+  try {
+    await compileForTarget(gl, holder, camera)
+  } finally {
+    box.dispose()
+    generator.dispose()
+  }
+}
+
+/**
+ * Prepares every program the first frames need, in separate tasks and, where the browser can
+ * (KHR_parallel_shader_compile), off the main thread: the environment's PMREM, the lens front
+ * side for the canvas, and the lens back side and the text for the refraction buffers, which
+ * render to a target in linear colour space.
+ */
+async function compileScene(state: RootState): Promise<void> {
+  const { gl, scene, camera } = state
+  await yieldToMain()
+  await warmEnvironment(state)
+  await yieldToMain()
+  await gl.compileAsync(scene, camera)
+  await yieldToMain()
+  const lens = scene.getObjectByName('glass-lens') as Mesh | undefined
+  const material = lens?.material as Material | undefined
+  if (!material) return
   material.side = BackSide
   material.needsUpdate = true
   try {
-    await gl.compileAsync(scene, camera)
+    await compileForTarget(gl, scene, camera)
   } finally {
     material.side = FrontSide
     material.needsUpdate = true
-    gl.setRenderTarget(previous)
-    target.dispose()
   }
 }
 
@@ -401,7 +460,9 @@ export default function HeroCanvas(props: HeroCanvasProps) {
           onRestored={props.onRestored}
         />
         <CameraRig />
-        <Lighting />
+        {/* Mounted once the text has laid out: its cube render then runs in its own task
+            instead of inside the first commit of the whole scene. */}
+        {synced && <Lighting />}
         <Suspense fallback={null}>
           <WebGLTicker
             layout={layout}
