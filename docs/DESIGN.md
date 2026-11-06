@@ -183,9 +183,9 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 **Form:** a *lens* — a flattened sphere (`sphereGeometry` scaled 1 : 1 : 0.45) or a rounded superellipsoid. **Not a torus** (that is the reference demo's exact shape).
 
-**Material:** drei `MeshTransmissionMaterial` with starting values: `transmission 1`, `thickness 0.45`, `roughness 0.08`, `ior 1.32`, `chromaticAberration 0.035`, `anisotropy 0.1`, `distortion 0.12`, `distortionScale 0.3`, `temporalDistortion 0.1`, `backside true`, `samples 6`, `resolution 512`, `color #ffffff` with a 2 % terracotta tint (`#fff3ef`). Tune with Leva in development only; remove Leva from production.
+**Material:** drei `MeshTransmissionMaterial` with starting values: `transmission 1`, `thickness 0.45`, `roughness 0.08`, `ior 1.32`, `chromaticAberration 0.035`, `anisotropy 0.1`, `distortion 0.12`, `distortionScale 0.3`, `temporalDistortion 0.1`, `backside true`, `samples 6`, `resolution 512`, `color #ffffff` with a 2 % terracotta tint (`#fff3ef`). Tune with Leva in development only; remove Leva from production. *As built (M3):* with `backside` the tint applies at both surfaces, so the material uses `#fff9f7` per surface and the lens shows `#fff3ef` overall; values live in `lib/three/glass.ts`, tuning in `docs/DECISIONS.md`.
 
-**Lighting:** drei `Environment` with a small custom HDR (≤ 300 KB, warm studio) or preset `city` as a fallback during development; one soft `directionalLight` from top-left for a highlight on the rim.
+**Lighting:** drei `Environment` built from `Lightformer`s, no file and no preset (zero downloads, CLAUDE.md rule 10): a warm key above-left, a neutral fill on the right and a thin rim strip; one soft `directionalLight` from top-left for a highlight on the rim.
 
 **Animation:** drei `Float` (`speed 1.2`, `rotationIntensity 0.4`, `floatIntensity 0.6`); pointer parallax ±0.18 rad eased with `damp`; scroll adds up to +12° rotation on Y and a 40 px drift down over the hero's height.
 
@@ -193,7 +193,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 **Performance rules:** mount only on desktop (≥ 1024 px, `pointer: fine`, WebGL2 available, no reduced-motion); lazy chunk loaded after first paint via `next/dynamic` with `ssr: false`; `dpr` clamped to `[1, 1.5]`; `frameloop` paused when the hero is < 10 % visible; `powerPreference: "high-performance"`; total 3D chunk + assets ≤ 1.2 MB over the wire. If any of these fail, render the static fallback.
 
-**Static fallback:** a pre-rendered WebP of the glass element over the ticker, exported from the dev scene at 2× (`/public/3d/hero-glass-fallback@2x.webp`), used on mobile, reduced-motion and no-WebGL.
+**Static fallback:** a pre-rendered, transparent WebP of the lens alone — its reflections, rim highlights and tint, without letters — exported from the dev scene at 2× (`/public/3d/hero-glass-fallback@2x.webp`) and placed where the 3D lens floats, over the HTML marquee, which keeps moving underneath. Used below 1024 px, on touch screens, under reduced motion, without WebGL and after any 3D failure. A baked copy of the letters would freeze while the real ones move (M3 decision, `docs/DECISIONS.md`).
 
 # 7. Imagery rules
 
@@ -236,7 +236,8 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 | Reach Out polaroids | `public/images/polaroids/polaroid-{01-comprehensive-exam,02-graduation,03-working-laptop,04-nusa-penida,05-touring,06-portrait}.webp` | 1200 × 1200, each under 300 KB; data in `content/polaroids.ts` |
 | Alternates | `kenny-hero-crop-color-soft@2x.webp`, `kenny-hero-crop-bw@2x.webp` | WebP only in git; PNG masters (0.8–1.3 MB each) stay in the owner's source zip, ignored by git |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
-| Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | Exported from the dev scene |
+| Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | 480 × 480 RGBA, lens only (no letters), 27 KB; `node scripts/export-glass-fallback.mjs` against `next dev -p 3100` (difference matte of the dev scene over black and white) |
+| Ticker font (WebGL) | `public/fonts/InterDisplay-Medium-ticker.woff` | 1.8 KB WOFF of Inter Display Medium, only the ticker's glyphs, GPOS `kern` only; subset command in `docs/DECISIONS.md` |
 | OG image | generated at `app/opengraph-image.tsx` | 1200×630 from hero composition |
 | Certificates | `public/images/certs/cert-gunadarma-{designing-software,javascript-fundamentals,desktop-programming}.webp`, `cert-revou-intro-software-engineering.webp` | WebP conversions of the photographed originals; data in `content/certifications.ts` |
 | Monogram | `public/brand/k-monogram.svg` | from `kenny-k-logo.svg`, recoloured to tokens |
