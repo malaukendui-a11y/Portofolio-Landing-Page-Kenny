@@ -191,7 +191,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 **Ticker in WebGL:** drei `Text` with the Inter Display woff, same tracking as the HTML version, duplicated for a seamless loop, moved on `useFrame`. A visually-hidden `<h1>` carries the name in the DOM.
 
-**Performance rules:** mount only on desktop (≥ 1024 px, `pointer: fine`, WebGL2 available, no reduced-motion); lazy chunk loaded after first paint via `next/dynamic` with `ssr: false`; `dpr` clamped to `[1, 1.5]`; `frameloop` paused when the hero is < 10 % visible; `powerPreference: "high-performance"`; total 3D chunk + assets ≤ 1.2 MB over the wire. If any of these fail, render the static fallback.
+**Performance rules:** mount only on desktop (≥ 1024 px, `pointer: fine`, WebGL2 on a real GPU, no reduced-motion, no Save-Data; a software renderer gets the static lens); lazy chunk loaded after first paint via `next/dynamic` with `ssr: false`; `dpr` clamped to `[1, 1.5]`; `frameloop` paused when the hero is < 10 % visible; `powerPreference: "high-performance"`; total 3D chunk + assets ≤ 1.2 MB over the wire. If any of these fail, render the static fallback.
 
 **Static fallback:** a pre-rendered, transparent WebP of the lens alone — its reflections, rim highlights and tint, without letters — exported from the dev scene at 2× (`/public/3d/hero-glass-fallback@2x.webp`) and placed where the 3D lens floats, over the HTML marquee, which keeps moving underneath. Used below 1024 px, on touch screens, under reduced motion, without WebGL and after any 3D failure. A baked copy of the letters would freeze while the real ones move (M3 decision, `docs/DECISIONS.md`).
 
