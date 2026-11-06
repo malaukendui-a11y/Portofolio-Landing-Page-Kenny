@@ -28,3 +28,35 @@ export function onLoaderExit(listener: () => void): () => void {
 export function emitLoaderExit(): void {
   exitListeners.forEach((listener) => listener())
 }
+
+/**
+ * Calls `listener` once the overlay has left the screen: `<html data-loader>` is removed by
+ * the slide's end or by the CSS cap's fade (which never emits `onLoaderExit`), or was never set
+ * this session. A safety net fires 3 s after navigation start (the 1.5 s cap, the 1 s slide and
+ * a margin), so nothing waits forever on a cancelled fade. Returns the cancel function.
+ */
+export function afterLoader(listener: () => void): () => void {
+  const html = document.documentElement
+  if (!html.hasAttribute('data-loader')) {
+    listener()
+    return () => {}
+  }
+  let done = false
+  const finish = () => {
+    if (done) return
+    done = true
+    observer.disconnect()
+    clearTimeout(net)
+    listener()
+  }
+  const observer = new MutationObserver(() => {
+    if (!html.hasAttribute('data-loader')) finish()
+  })
+  observer.observe(html, { attributes: true, attributeFilter: ['data-loader'] })
+  const net = setTimeout(finish, Math.max(0, LOADER_MAX_MS + 1500 - performance.now()))
+  return () => {
+    done = true
+    observer.disconnect()
+    clearTimeout(net)
+  }
+}

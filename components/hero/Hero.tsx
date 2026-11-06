@@ -8,8 +8,9 @@ import { DUR, EASE, gsap, STAGGER, TRAVEL } from '@/lib/motion'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { GithubIcon, LinkedinIcon, MessageCircleIcon } from '@/components/ui/icons'
 import { AvailabilityBadge } from './AvailabilityBadge'
+import { HeroGlass } from './HeroGlass'
 import { Portrait } from './Portrait'
-import { Ticker } from './Ticker'
+import { Ticker, type TickerHandle } from './Ticker'
 
 const HERO_PORTRAIT = {
   src: '/images/portrait/kenny-hero-crop-color@2x.webp',
@@ -19,8 +20,9 @@ const HERO_PORTRAIT = {
 
 /**
  * Hero (DESIGN §4.2). Layers back to front: paper surface with the radial glow, the
- * name marquee, the bottom-anchored portrait, then the UI (availability, socials,
- * roles, the //INTRO cue). No WebGL yet (M3).
+ * name marquee, the 3D layer (HeroGlass: the WebGL marquee and glass lens on a capable
+ * desktop, the static lens everywhere else), the bottom-anchored portrait, then the UI
+ * (availability, socials, roles, the //INTRO cue).
  *
  * Entrance (once, only on the session's first visit): as the loader lifts, the
  * portrait rises 40 px and fades in, then the badge, socials and roles stagger in.
@@ -30,6 +32,9 @@ const HERO_PORTRAIT = {
 export function Hero() {
   const { t } = useLang()
   const heroRef = useRef<HTMLElement>(null)
+  const glowRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const tickerRef = useRef<TickerHandle>(null)
 
   useLayoutEffect(
     () =>
@@ -86,7 +91,7 @@ export function Hero() {
       <h1 id="hero-name" className="sr-only">
         {t.hero.name}
       </h1>
-      <div aria-hidden="true" className="hero-glow absolute inset-0" />
+      <div ref={glowRef} aria-hidden="true" className="hero-glow absolute inset-0" />
 
       <div
         data-hero-stagger
@@ -95,9 +100,14 @@ export function Hero() {
         <AvailabilityBadge label={t.hero.availability} />
       </div>
 
-      {/* Stage: ticker behind, portrait in front, desktop corner UI over both. */}
-      <div className="relative min-h-[58svh] md:min-h-[calc(100svh-10rem)]">
-        <Ticker text={t.hero.name} className="absolute inset-x-0 top-[28%] md:top-[30%]" />
+      {/* Stage: ticker behind, then the 3D layer, portrait in front, desktop corner UI over all. */}
+      <div ref={stageRef} className="relative min-h-[58svh] md:min-h-[calc(100svh-10rem)]">
+        <Ticker
+          ref={tickerRef}
+          text={t.hero.name}
+          className="absolute inset-x-0 top-[28%] md:top-[30%]"
+        />
+        <HeroGlass ticker={tickerRef} hero={heroRef} stage={stageRef} glow={glowRef} />
         <Portrait
           id="hero-portrait"
           {...HERO_PORTRAIT}

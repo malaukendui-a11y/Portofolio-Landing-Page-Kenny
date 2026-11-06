@@ -1,6 +1,7 @@
 // TC-018: initial JS budget (CLAUDE.md rule 3) — every script the production build sends
-// for `/` on load, summed as encoded (gzip) bytes, must stay within 250 KB. The lazy 3D
-// chunk (M3) will be excluded here by name.
+// for `/` on load, summed as encoded (gzip) bytes, must stay within 250 KB. The fixture keeps
+// the 3D layer off here, so its lazy chunk is never requested; three.spec.ts checks, with the
+// 3D on, that no 3D code is among the scripts loaded before `load` (TC-055).
 import { expect, test } from './fixtures'
 
 const BUDGET_BYTES = 250 * 1024
