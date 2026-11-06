@@ -40,8 +40,11 @@ jobs:
       - name: Playwright smoke + axe
         run: pnpm exec playwright test
 
+      # Headful Chrome under Xvfb: new-headless Chrome takes its pointer from the machine's input
+      # devices, and the runner has none, so the 3D gate (fine pointer) would keep the lens off.
+      # Xvfb's virtual pointer is a mouse.
       - name: Lighthouse CI (desktop)
-        run: pnpm exec lhci autorun
+        run: xvfb-run --auto-servernum pnpm exec lhci autorun --collect.headful
 
       # M3: the desktop gate counts only if every run measured the mounted 3D lens.
       - name: Lighthouse CI measured the 3D hero
