@@ -14,8 +14,12 @@ module.exports = {
         // The lens mounts after load, the loader and an idle callback (about 2–4 s on a fresh
         // session): keep observing long enough that every run includes it.
         pauseAfterLoadMs: 6000,
-        // Lets a GPU-less CI runner render WebGL in software; with a GPU it changes nothing.
-        chromeFlags: '--enable-unsafe-swiftshader',
+        // A desktop mouse's pointer and hover (the values Playwright passes): on a runner with no
+        // mouse (CI), headless Chrome reports no fine pointer and the capability gate keeps the 3D
+        // off (seen as `three:fallback:pointer`). SwiftShader lets a GPU-less runner render WebGL
+        // in software; with a GPU it changes nothing.
+        chromeFlags:
+          '--enable-unsafe-swiftshader --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4',
       },
     },
     assert: {
