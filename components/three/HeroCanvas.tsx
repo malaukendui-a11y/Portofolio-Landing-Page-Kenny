@@ -169,7 +169,11 @@ async function warmEnvironment(state: RootState): Promise<void> {
     gl.render = render
   }
   const internal = generator as unknown as PmremMaterials
-  const materials = [internal._cubemapMaterial, internal._ggxMaterial, internal._integrationMaterial]
+  const materials = [
+    internal._cubemapMaterial,
+    internal._ggxMaterial,
+    internal._integrationMaterial,
+  ]
   const holder = new Group()
   const box = new BoxGeometry()
   for (const material of materials) if (material) holder.add(new Mesh(box, material))
