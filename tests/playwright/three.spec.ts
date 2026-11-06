@@ -275,6 +275,48 @@ test('TC-059 no WebGL2: the static lens, the HTML marquee, a clean console', asy
   expect(log.errors).toEqual([])
 })
 
+test.describe('WebGL without a GPU', () => {
+  // The renderer name of the CI runner and of headless Chromium.
+  test.use({
+    webglRenderer:
+      'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)',
+  })
+
+  test('TC-074 a software renderer keeps the static lens and loads no 3D', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'a desktop that would otherwise mount the 3D')
+    await instrument(page)
+    const scripts: number[] = []
+    page.on('request', (request) => {
+      if (request.resourceType() === 'script') scripts.push(Date.now())
+    })
+    const log = watchConsole(page)
+    await page.goto('/')
+    const loadedAt = Date.now()
+    await expect(page.locator(LAYER)).toHaveAttribute('data-three', 'fallback', {
+      timeout: 10_000,
+    })
+    await page.waitForTimeout(1_000)
+    await expectStaticLens(page)
+    await expectHtmlTickerRunning(page)
+    expect(await states(page)).toEqual(['loading', 'fallback'])
+    expect(
+      scripts.filter((at) => at > loadedAt),
+      'no 3D chunk',
+    ).toEqual([])
+    expect(
+      await page.evaluate(() =>
+        performance
+          .getEntriesByType('mark')
+          .some((mark) => mark.name === 'three:fallback:software'),
+      ),
+    ).toBe(true)
+    expect(log.pageErrors).toEqual([])
+    expect(log.errors).toEqual([])
+  })
+})
+
 test('TC-068 the ticker font covers the marquee unit in both languages', async ({
   browserName,
 }, testInfo) => {

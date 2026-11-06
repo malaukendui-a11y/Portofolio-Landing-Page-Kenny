@@ -2,7 +2,9 @@
  * Capability gate for the 3D hero (DESIGN §6 "Performance rules", PRD F-04, CLAUDE.md rule 4).
  * `three` is true only when every condition holds: a viewport of at least 1024 px, a fine
  * pointer, no reduced-motion preference, no Save-Data request, and a WebGL2 context that can
- * be created. Same external-store pattern as `useReducedMotion`; the server snapshot is
+ * be created on a real GPU. A software renderer (SwiftShader, llvmpipe, Microsoft Basic Render)
+ * draws the glass scene on the CPU, each frame blocking the page for 150–200 ms (measured on the
+ * CI runner), so those visitors get the static lens. Same external-store pattern as `useReducedMotion`; the server snapshot is
  * `{ three: false }`, so the server render and hydration never take the 3D path.
  *
  * The WebGL2 probe creates (and then loses) a real context, which blocks the main thread for a
@@ -31,7 +33,12 @@ const OFF: Capabilities = Object.freeze({ three: false, eligible: false })
 const PENDING: Capabilities = Object.freeze({ three: false, eligible: true })
 const ON: Capabilities = Object.freeze({ three: true, eligible: true })
 
-let webgl2: 'unknown' | boolean = 'unknown'
+/** Renderer names that mean WebGL runs on the CPU. */
+const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|basic render driver|software/i
+
+type Probe = 'unknown' | 'gpu' | 'missing' | 'software'
+
+let webgl2: Probe = 'unknown'
 const probeListeners = new Set<() => void>()
 
 function connection(): Connection | undefined {
@@ -46,27 +53,42 @@ function cheapConditions(): boolean {
 }
 
 /**
- * Creates a WebGL2 context once per page, then releases it with `WEBGL_lose_context`. The
- * result is cached and every `useCapabilities()` reader is told.
+ * The renderer behind a context. Chrome masks `RENDERER` ("WebKit WebGL") and names it through
+ * `WEBGL_debug_renderer_info`; Firefox and Safari answer `RENDERER` directly (Firefox warns when
+ * the extension is requested), so the extension is asked only when the plain answer is masked.
+ */
+function rendererName(context: WebGL2RenderingContext): string {
+  const plain = String(context.getParameter(context.RENDERER) ?? '')
+  if (plain && plain !== 'WebKit WebGL') return plain
+  const info = context.getExtension('WEBGL_debug_renderer_info')
+  return info ? String(context.getParameter(info.UNMASKED_RENDERER_WEBGL) ?? '') : plain
+}
+
+/**
+ * Creates a WebGL2 context once per page, reads which renderer backs it, then releases it with
+ * `WEBGL_lose_context`. True only for a real GPU. The result is cached and every
+ * `useCapabilities()` reader is told.
  */
 export function probeWebGL2(): boolean {
-  if (webgl2 !== 'unknown') return webgl2
-  let available = false
+  if (webgl2 !== 'unknown') return webgl2 === 'gpu'
+  let result: Probe = 'missing'
   try {
     const context = document.createElement('canvas').getContext('webgl2')
-    available = context !== null
-    context?.getExtension('WEBGL_lose_context')?.loseContext()
+    if (context) {
+      result = SOFTWARE_RENDERER.test(rendererName(context)) ? 'software' : 'gpu'
+      context.getExtension('WEBGL_lose_context')?.loseContext()
+    }
   } catch {
-    available = false
+    result = 'missing'
   }
-  webgl2 = available
+  webgl2 = result
   probeListeners.forEach((listener) => listener())
-  return available
+  return result === 'gpu'
 }
 
 function snapshot(): Capabilities {
-  if (!cheapConditions() || webgl2 === false) return OFF
-  return webgl2 === true ? ON : PENDING
+  if (!cheapConditions() || webgl2 === 'missing' || webgl2 === 'software') return OFF
+  return webgl2 === 'gpu' ? ON : PENDING
 }
 
 function subscribe(onChange: () => void): () => void {
@@ -89,7 +111,8 @@ export function blockedBy(): string | null {
   const index = QUERIES.findIndex((query) => !window.matchMedia(query).matches)
   if (index >= 0) return names[index]
   if (connection()?.saveData === true) return 'save-data'
-  if (webgl2 === false) return 'webgl2'
+  if (webgl2 === 'missing') return 'webgl2'
+  if (webgl2 === 'software') return 'software'
   return null
 }
 
