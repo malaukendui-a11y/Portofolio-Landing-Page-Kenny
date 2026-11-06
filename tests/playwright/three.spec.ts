@@ -347,7 +347,9 @@ test.describe('3D hero', () => {
     })
     const distance = Math.abs(phase.webgl - phase.html) % phase.group
     expect(Math.min(distance, phase.group - distance), JSON.stringify(phase)).toBeLessThanOrEqual(2)
-    expect(Math.abs(phase.unitDelta), 'WebGL vs HTML glyph advance').toBeLessThanOrEqual(2)
+    // Last glyph of a unit, WebGL vs HTML: 0.01 px on Windows, 3.2 px on Linux CI (platform glyph
+    // positioning); Inter's `cpsp` spacing, which this guards against, puts it at 7.1 px.
+    expect(Math.abs(phase.unitDelta), 'WebGL vs HTML glyph advance').toBeLessThanOrEqual(5)
 
     const metrics = await page.evaluate(() => {
       const store = window as unknown as { __shift: number; __longest: number }
@@ -490,7 +492,11 @@ test.describe('3D hero', () => {
       )
       return (await page.screenshot({ clip: geometry.band })).toString('base64')
     }
-    /** Share of band pixels outside the lens whose colours differ by more than 96 / 255. */
+    /**
+     * Shifts the first capture by every offset up to 3 px in x and y and returns the offset where
+     * the two match best, with the share of band pixels outside the lens that still differ by
+     * more than 96 / 255 there (`residual`) and at no shift (`direct`).
+     */
     const compare = (a: string, b: string) =>
       page.evaluate(
         async ({ a, b, lens, band }) => {
@@ -507,24 +513,38 @@ test.describe('3D hero', () => {
           }
           const one = await load(a)
           const two = await load(b)
-          let compared = 0
-          let different = 0
-          for (let y = 0; y < one.height; y++) {
-            for (let x = 0; x < one.width; x++) {
-              const dx = x + band.x - lens.x
-              const dy = y + band.y - lens.y
-              if (dx * dx + dy * dy < lens.r * lens.r) continue
-              const i = (y * one.width + x) * 4
-              const delta = Math.max(
-                Math.abs(one.data[i] - two.data[i]),
-                Math.abs(one.data[i + 1] - two.data[i + 1]),
-                Math.abs(one.data[i + 2] - two.data[i + 2]),
-              )
-              compared += 1
-              if (delta > 96) different += 1
+          const { width, height } = one
+          const R = 3
+          const ratioAt = (sx: number, sy: number) => {
+            let compared = 0
+            let different = 0
+            for (let y = R; y < height - R; y++) {
+              for (let x = R; x < width - R; x++) {
+                const lx = x + band.x - lens.x
+                const ly = y + band.y - lens.y
+                if (lx * lx + ly * ly < lens.r * lens.r) continue
+                const i = (y * width + x) * 4
+                const j = ((y + sy) * width + (x + sx)) * 4
+                const delta = Math.max(
+                  Math.abs(one.data[j] - two.data[i]),
+                  Math.abs(one.data[j + 1] - two.data[i + 1]),
+                  Math.abs(one.data[j + 2] - two.data[i + 2]),
+                )
+                compared += 1
+                if (delta > 96) different += 1
+              }
+            }
+            return different / compared
+          }
+          let best = { dx: 0, dy: 0, residual: ratioAt(0, 0) }
+          const direct = best.residual
+          for (let dy = -R; dy <= R; dy++) {
+            for (let dx = -R; dx <= R; dx++) {
+              const residual = ratioAt(dx, dy)
+              if (residual < best.residual) best = { dx, dy, residual }
             }
           }
-          return different / compared
+          return { ...best, direct }
         },
         { a, b, lens: geometry.lens, band: geometry.band },
       )
@@ -534,13 +554,25 @@ test.describe('3D hero', () => {
     const webgl = await shoot(false)
     const aligned = await compare(html, webgl)
     const control = await compare(shifted, webgl)
+    const percent = (value: number) => `${(value * 100).toFixed(3)} %`
     test.info().annotations.push({
       type: 'alignment',
-      description: `differing px: ${(aligned * 100).toFixed(3)} % in phase, ${(control * 100).toFixed(3)} % with the HTML 2 px off`,
+      description:
+        `in phase: best offset (${aligned.dx}, ${aligned.dy}) px, residual ${percent(aligned.residual)}, ` +
+        `${percent(aligned.direct)} at no offset; HTML 2 px off: best offset (${control.dx}, ${control.dy}) px`,
     })
-    // Threshold in docs/DECISIONS.md (M3 alignment test).
-    expect(aligned, 'WebGL and HTML marquee in phase').toBeLessThan(0.005)
-    expect(control, 'negative control: a 2 px shift is caught').toBeGreaterThan(0.005)
+    // Limits in docs/DECISIONS.md (M3 alignment test): the renderings line up within a pixel
+    // and match there (glyph positions differ a little by platform: 0.000 % on Windows, about
+    // 1 % on Linux), and a 2 px offset is found as one.
+    expect(Math.abs(aligned.dx), 'WebGL and HTML marquee in phase (x)').toBeLessThanOrEqual(1)
+    expect(
+      Math.abs(aligned.dy),
+      'WebGL and HTML marquee on the same baseline (y)',
+    ).toBeLessThanOrEqual(1)
+    expect(aligned.residual, 'same glyphs, size and spacing').toBeLessThan(0.025)
+    expect(Math.abs(control.dx), 'negative control: a 2 px shift is found').toBeGreaterThanOrEqual(
+      2,
+    )
   })
 
   test('TC-058 pauses off-screen and in a hidden tab, resumes on return @3d', async ({
