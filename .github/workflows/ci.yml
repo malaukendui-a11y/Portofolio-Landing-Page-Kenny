@@ -13,7 +13,9 @@ jobs:
   verify:
     name: Lint · build · test · Lighthouse
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # M3: the 3D tests and the longer Lighthouse window add ~6 min; one run spent 11.5 min
+    # installing Chromium's system packages alone.
+    timeout-minutes: 35
     env:
       CI: true
     steps:
