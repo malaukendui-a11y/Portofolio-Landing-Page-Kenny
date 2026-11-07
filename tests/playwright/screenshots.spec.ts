@@ -63,6 +63,21 @@ async function midStack(page: Page, section: string, index: number, fraction: nu
   await page.waitForTimeout(400)
 }
 
+// TC-071 (M3): the hero with the WebGL marquee and the glass lens, once the lens has faded in.
+// No `animations: 'disabled'`: it would call play() on the suspended HTML marquee, detaching it
+// from animation-play-state for good. It does not freeze WebGL anyway.
+test('1440: hero with the 3D lens @3d', async ({ page, webgl2 }) => {
+  test.slow()
+  test.skip(!webgl2.available && !process.env.CI, 'this browser has no WebGL2')
+  await page.goto('/')
+  await expect(page.locator('[data-three]')).toHaveAttribute('data-three', 'ready', {
+    timeout: 30_000,
+  })
+  await expect(page.locator('#top [data-marquee]')).toHaveAttribute('data-suspended', '')
+  await page.waitForTimeout(1_000) // the lens fade (dur-base)
+  await page.screenshot({ path: shot('desktop-motion-hero-3d') })
+})
+
 test.describe('motion frames', () => {
   test.use({ showLoader: true })
 

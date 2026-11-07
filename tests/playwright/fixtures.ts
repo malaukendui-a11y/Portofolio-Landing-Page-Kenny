@@ -1,13 +1,72 @@
 // Shared test fixture. The loader (PRD F-12) shows once per session; every page here
 // starts as a returning visit unless a test opts in with `test.use({ showLoader: true })`,
 // so the overlay never sits in front of what another test is checking.
+//
+// The 3D hero (M3) is off unless a test opts in with `test.use({ three: true })`: the page then
+// sees a Save-Data request, one of the capability gate's real conditions, and shows the static
+// lens. Specs written before M3 check the HTML marquee and run beside timing-sensitive tests;
+// the 3D layer is covered by three.spec.ts and the `@3d` tests in the `desktop-3d` project.
+//
+// With the 3D on, the page names its WebGL renderer as `webglRenderer` (a GPU by default):
+// headless Chromium renders WebGL on SwiftShader, which the capability gate treats as a
+// machine without a GPU, so the 3D tests would otherwise only ever see the static lens.
 import { test as base } from '@playwright/test'
 import { LOADER_SESSION_KEY } from '../../lib/loader'
 
-export const test = base.extend<{ showLoader: boolean }>({
+/** Makes the page report `navigator.connection.saveData === true` (keeps the 3D layer off). */
+export function saveDataScript(): void {
+  try {
+    const Info = (window as unknown as { NetworkInformation?: { prototype: object } })
+      .NetworkInformation
+    if (Info)
+      Object.defineProperty(Info.prototype, 'saveData', { configurable: true, get: () => true })
+  } catch {
+    // No Network Information API: nothing to fake.
+  }
+}
+
+/** Answers `name` for the unmasked WebGL renderer (`UNMASKED_RENDERER_WEBGL`, 0x9246). */
+function rendererScript(name: string): void {
+  for (const Context of [WebGLRenderingContext, WebGL2RenderingContext]) {
+    const getParameter = Context.prototype.getParameter
+    Context.prototype.getParameter = function (this: WebGLRenderingContext, parameter: number) {
+      return parameter === 0x9246 ? name : getParameter.call(this, parameter)
+    } as typeof getParameter
+  }
+}
+
+/** A hardware renderer name, for tests that need the 3D layer to mount. */
+export const GPU_RENDERER = 'ANGLE (Test GPU, Direct3D11 vs_5_0 ps_5_0, D3D11)'
+
+export type WebGL2Support = { available: boolean; renderer: string | null }
+
+export const test = base.extend<
+  { showLoader: boolean; three: boolean; webglRenderer: string },
+  { webgl2: WebGL2Support }
+>({
   showLoader: [false, { option: true }],
+  three: [false, { option: true }],
+  webglRenderer: [GPU_RENDERER, { option: true }],
+  // Probed once per worker on a blank page, and reported, so every run shows whether the 3D
+  // tests rendered on SwiftShader or a GPU.
+  webgl2: [
+    async ({ browser }, run) => {
+      const page = await browser.newPage()
+      const support = await page.evaluate(() => {
+        const gl = document.createElement('canvas').getContext('webgl2')
+        const info = gl?.getExtension('WEBGL_debug_renderer_info')
+        return {
+          available: gl !== null,
+          renderer: gl && info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : null,
+        }
+      })
+      await page.close()
+      await run(support)
+    },
+    { scope: 'worker' },
+  ],
   // The fixture callback is named `run`, not `use`: ESLint reads `use(...)` as a React hook.
-  page: async ({ page, showLoader }, run) => {
+  page: async ({ page, showLoader, three, webglRenderer }, run) => {
     if (!showLoader) {
       await page.addInitScript((key) => {
         try {
@@ -17,6 +76,8 @@ export const test = base.extend<{ showLoader: boolean }>({
         }
       }, LOADER_SESSION_KEY)
     }
+    if (!three) await page.addInitScript(saveDataScript)
+    else await page.addInitScript(rendererScript, webglRenderer)
     await run(page)
   },
 })

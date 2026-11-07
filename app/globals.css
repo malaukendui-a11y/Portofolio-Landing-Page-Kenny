@@ -160,19 +160,54 @@
 
 /* Hero / Reach Out glow (DESIGN §4.2 layer 1): soft white behind the portrait
    (60 % at centre, 0 at 520 px) plus a faint accent glow over the left third,
-   where the glass element will float in M3. Portrait sits at 56 % on desktop,
-   centred on mobile. */
+   where the glass lens floats (M3). Portrait sits at 56 % on desktop, centred on
+   mobile. The numbers live in custom properties because the 3D lens redraws this
+   surface for its refraction (components/three/backdrop.ts). */
 @utility hero-glow {
   --portrait-x: 50%;
+  --glow-white: rgba(255, 255, 255, 0.6);
+  --glow-white-y: 100%;
+  --glow-white-r: 520px;
+  --glow-accent-x: 18%;
+  --glow-accent-y: 42%;
+  --glow-accent-r: 360px;
   background-image:
     radial-gradient(
-      circle at var(--portrait-x) 100%,
-      rgba(255, 255, 255, 0.6) 0,
-      transparent 520px
+      circle at var(--portrait-x) var(--glow-white-y),
+      var(--glow-white) 0,
+      transparent var(--glow-white-r)
     ),
-    radial-gradient(circle at 18% 42%, var(--color-accent-glow) 0, transparent 360px);
+    radial-gradient(
+      circle at var(--glow-accent-x) var(--glow-accent-y),
+      var(--color-accent-glow) 0,
+      transparent var(--glow-accent-r)
+    );
   @media (width >= 48rem) {
     --portrait-x: 56%;
+  }
+}
+
+/* Static glass lens (components/hero/GlassFallback, DESIGN §6): centred on the ticker
+   line at the lens position, sized in ems of the ticker. Hidden where the 3D lens can
+   run (a capable desktop) unless the 3D layer reports `fallback`; `display: none`
+   keeps the lazy image from being fetched there. */
+@utility glass-fallback {
+  position: absolute;
+  top: 50%;
+  left: var(--lens-x);
+  width: calc(var(--lens-d) * var(--lens-k, 1));
+  max-width: none;
+  height: auto;
+  translate: -50% -50%;
+  pointer-events: none;
+  @media (width >= 64rem) and (width < 90rem) {
+    --lens-k: var(--lens-k-mid);
+  }
+  @media (width >= 64rem) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    display: none;
+    [data-three='fallback'] & {
+      display: block;
+    }
   }
 }
 
@@ -318,6 +353,12 @@
    them, so nothing stacks in the corner before JS runs. Layered so the `className` utilities
    (grid placement, order) win over these rules and these win over preflight's `img`. */
 @layer components {
+  /* The hero's WebGL copy is showing the name (M3, components/hero/Ticker `suspend`): the
+     HTML marquee stays laid out, because the 3D layer measures it, but is not painted. */
+  [data-marquee][data-suspended] {
+    visibility: hidden;
+  }
+
   .pl-root {
     position: relative;
     width: 100%;

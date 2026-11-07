@@ -5,14 +5,16 @@
 import type { Page } from '@playwright/test'
 import { LOADER_MAX_MS, LOADER_SESSION_KEY } from '../../lib/loader'
 import { DUR } from '../../lib/motion'
-import { expect, test } from './fixtures'
+import { expect, saveDataScript, test } from './fixtures'
 
 test.use({ showLoader: true })
 
 // A fresh browser's first page load waits ~1.5 s for its first frame (Playwright cold
 // start, not the page). Warm the worker's browser so the timing tests measure the page.
+// The warm-up page bypasses the fixture, so it keeps the 3D layer off itself.
 test.beforeAll(async ({ browser }, workerInfo) => {
   const warm = await browser.newPage({ baseURL: workerInfo.project.use.baseURL })
+  await warm.addInitScript(saveDataScript)
   await warm.goto('/')
   await warm.close()
 })
