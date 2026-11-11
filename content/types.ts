@@ -54,6 +54,11 @@ export interface Copy {
   meta: {
     title: string
     description: string
+    /**
+     * OpenGraph card (PRD F-14): `label` is printed on it as `//  LABEL`; `alt` becomes
+     * app/opengraph-image.alt.txt. Exported once, in EN, by scripts/export-og.mjs.
+     */
+    og: { label: string; alt: string }
   }
   nav: {
     brand: string
