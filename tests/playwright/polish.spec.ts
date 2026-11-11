@@ -66,6 +66,7 @@ test('the title and description follow the language, also after a reload', async
 
 // TC-075
 test('sitemap.xml lists the canonical URL with a build-time lastmod', async ({ request }) => {
+  const testStart = Date.now()
   const response = await request.get('/sitemap.xml')
   expect(response.status()).toBe(200)
   expect(response.headers()['content-type']).toContain('xml')
@@ -76,7 +77,13 @@ test('sitemap.xml lists the canonical URL with a build-time lastmod', async ({ r
   expect(lastmod, 'sitemap has a lastmod').toBeTruthy()
   const time = Date.parse(lastmod!)
   expect(Number.isNaN(time), `lastmod "${lastmod}" parses`).toBe(false)
-  expect(time).toBeLessThanOrEqual(Date.now())
+  // Build time, not request time: earlier than this test and the same on the next request.
+  expect(time).toBeLessThan(testStart)
+  await new Promise((resolve) => setTimeout(resolve, 20))
+  const again = (await (await request.get('/sitemap.xml')).text()).match(
+    /<lastmod>([^<]+)<\/lastmod>/,
+  )?.[1]
+  expect(again).toBe(lastmod)
 })
 
 // TC-076
@@ -182,7 +189,13 @@ test('the OpenGraph image is a 1200 × 630 PNG shared by the Twitter card', asyn
 test.describe('404 page', () => {
   const missing = '/this-page-does-not-exist'
 
-  test('answers 404 with the site look, in English and Indonesian', async ({ page }) => {
+  test('answers 404 with the site look, in English and Indonesian', async ({ page, request }) => {
+    // The server title is the 404's own (what link previews and no-JS clients see); the client
+    // would hide a missing one by setting the same title after hydration.
+    expect(await (await request.get(missing)).text()).toContain(
+      `<title>${en.notFound.title}</title>`,
+    )
+
     const response = await page.goto(missing)
     expect(response?.status()).toBe(404)
     const heading = page.getByRole('heading', { level: 1 })
