@@ -5,7 +5,7 @@ const en = {
   meta: {
     title: 'Ananda Kenny — Software Engineer with a QA foundation',
     description:
-      'Portfolio of Ananda Kenny, a software engineer and QA & web developer in East Jakarta, Indonesia. Web products built with Next.js and tested like a user would.',
+      'Portfolio of Ananda Kenny, a software engineer and QA & web developer in East Jakarta, Indonesia. Next.js web products, tested like a user would.',
   },
   nav: {
     brand: '© Ananda Kenny',
