@@ -173,8 +173,8 @@ const en = {
     heading: 'Experience',
     educationHeading: 'Education',
     work: {
-      period: '1 Month',
-      title: 'QA Engineer — Project Kopra by Mandiri',
+      period: 'Aug 2026',
+      title: 'Quality Assurance — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
       description: 'QA on Kopra by Mandiri, a wholesale digital super-platform.',
@@ -185,7 +185,7 @@ const en = {
       ],
     },
     education: {
-      period: '4 Years',
+      period: '',
       title: 'Bachelor of Information Systems (S.Kom)',
       org: 'Universitas Gunadarma — Faculty of Computer Science & Information Technology',
       location: 'Depok',
