@@ -6,9 +6,63 @@ import en from '../../content/en'
 import id from '../../content/id'
 import { site } from '../../content/site'
 import { siteUrl } from '../../lib/seo'
+import { selectLang } from './helpers'
 
 /** Next writes the root URL without its trailing slash; compare URLs in normalised form. */
 const normalise = (url: string | null) => (url === null ? null : new URL(url).href)
+
+/** Every `<meta name="description">` carries `description` (React may append a second one). */
+async function expectDescription(page: Page, description: string) {
+  await expect
+    .poll(() =>
+      page
+        .locator('meta[name="description"]')
+        .evaluateAll((metas) => [...new Set(metas.map((meta) => meta.getAttribute('content')))]),
+    )
+    .toEqual([description])
+}
+
+// TC-079
+test('the title and description follow the language, also after a reload', async ({
+  page,
+  request,
+}) => {
+  // The server renders English: that is what crawlers and link previews read.
+  expect(await (await request.get('/')).text()).toContain(`<title>${en.meta.title}</title>`)
+
+  await page.goto('/')
+  await expect(page).toHaveTitle(en.meta.title)
+  await expect(page.locator('title')).toHaveCount(1)
+  await expectDescription(page, en.meta.description)
+
+  await selectLang(page, 'ID')
+  await expect(page).toHaveTitle(id.meta.title)
+  await expectDescription(page, id.meta.description)
+
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+  await expect(page).toHaveTitle(id.meta.title)
+  await expectDescription(page, id.meta.description)
+
+  // When Next's metadata boundary commits after LangHtmlSync ran, React puts the server's title
+  // back and appends an English description; LangHtmlSync must switch both again.
+  await page.evaluate(
+    ({ title, description }) => {
+      document.querySelector('title')!.textContent = title
+      const meta = document.createElement('meta')
+      meta.name = 'description'
+      meta.content = description
+      document.head.append(meta)
+    },
+    { title: en.meta.title, description: en.meta.description },
+  )
+  await expect(page).toHaveTitle(id.meta.title)
+  await expectDescription(page, id.meta.description)
+
+  await selectLang(page, 'EN')
+  await expect(page).toHaveTitle(en.meta.title)
+  await expectDescription(page, en.meta.description)
+})
 
 // TC-075
 test('sitemap.xml lists the canonical URL with a build-time lastmod', async ({ request }) => {

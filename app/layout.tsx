@@ -2,16 +2,16 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import en from '@/content/en'
 import { site } from '@/content/site'
-import { LangHtmlSync } from '@/components/ui/LangHtmlSync'
 import { LOADER_PREPAINT_SCRIPT } from '@/lib/loader'
 import { PERSON_JSON_LD, siteUrl } from '@/lib/seo'
 import { fontClassNames } from './fonts'
 import 'lenis/dist/lenis.css'
 import './globals.css'
 
-// Server-rendered metadata is English (crawlers see this); LangHtmlSync switches the title and
-// description on the client (PRD F-14). The OpenGraph image is app/opengraph-image.png; Next fills
-// og:title/description from title/description and the Twitter card from openGraph.
+// Server-rendered metadata is English (crawlers see this); LangHtmlSync, mounted by each page,
+// switches the title and description on the client (PRD F-14). The OpenGraph image is
+// app/opengraph-image.png; Next fills og:title/description from title/description and the
+// Twitter card from openGraph.
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: en.meta.title,
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    // The pre-paint script and LangHtmlSync set attributes on <html> before hydration.
+    // The pre-paint script sets data-loader on <html> before hydration; LangHtmlSync sets lang.
     <html lang="en" className={`${fontClassNames} h-full`} suppressHydrationWarning>
       <head>
         {/* Loader flag (PRD F-12) before first paint; the CSP (M5) must allow its hash. */}
@@ -37,10 +37,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         {/* JSON-LD Person (PRD §8 SEO): a data block, never executed; hash noted for the M5 CSP. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON_JSON_LD }} />
       </head>
-      <body className="flex min-h-full flex-col">
-        <LangHtmlSync />
-        {children}
-      </body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   )
 }
