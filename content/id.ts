@@ -276,6 +276,13 @@ const id = {
     builtWith: 'Dibangun dengan Next.js, GSAP & React Three Fiber',
     languageNote: 'Tersedia dalam bahasa Inggris dan Indonesia.',
   },
+  notFound: {
+    label: '404',
+    title: 'Halaman tidak ditemukan — Ananda Kenny',
+    heading: 'Halaman ini tidak ada',
+    body: 'Tautannya mungkin sudah lama atau salah ketik. Semua yang lain ada di halaman utama.',
+    cta: 'Kembali ke halaman utama',
+  },
 } satisfies Copy
 
 export default id

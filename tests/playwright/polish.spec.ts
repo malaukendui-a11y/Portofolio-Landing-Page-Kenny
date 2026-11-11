@@ -178,6 +178,54 @@ test('the OpenGraph image is a 1200 × 630 PNG shared by the Twitter card', asyn
   expect(await metaContent(page, 'twitter:image')).toBe(image)
 })
 
+// TC-078: the 404 page (PRD F-15).
+test.describe('404 page', () => {
+  const missing = '/this-page-does-not-exist'
+
+  test('answers 404 with the site look, in English and Indonesian', async ({ page }) => {
+    const response = await page.goto(missing)
+    expect(response?.status()).toBe(404)
+    const heading = page.getByRole('heading', { level: 1 })
+    await expect(heading).toHaveText(en.notFound.heading)
+    await expect(page.getByText(en.notFound.body)).toBeVisible()
+    await expect(page.getByRole('link', { name: en.notFound.cta })).toHaveAttribute('href', '/')
+    await expect(page).toHaveTitle(en.notFound.title)
+    await expect(page.locator('title')).toHaveCount(1)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0)
+    // The nav leads to the home page's sections, not to anchors on this page.
+    expect(
+      await page
+        .locator('header nav a')
+        .evaluateAll((links) => links.map((a) => a.getAttribute('href'))),
+    ).toEqual(['/', '/#work', '/#about', '/#contact'])
+
+    await selectLang(page, 'ID')
+    await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    await expect(heading).toHaveText(id.notFound.heading)
+    await expect(page.getByText(id.notFound.body)).toBeVisible()
+    await expect(page.getByRole('link', { name: id.notFound.cta })).toBeVisible()
+    await expect(page).toHaveTitle(id.notFound.title)
+  })
+
+  test('works from the keyboard and leads back to the top of the home page', async ({ page }) => {
+    await page.goto(missing)
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('link', { name: en.nav.skipToContent })).toBeFocused()
+    const home = page.getByRole('link', { name: en.notFound.cta })
+    for (let presses = 0; presses < 12; presses++) {
+      if (await home.evaluate((link) => link === document.activeElement)) break
+      await page.keyboard.press('Tab')
+    }
+    await expect(home).toBeFocused()
+    expect(await home.evaluate((link) => link.matches(':focus-visible'))).toBe(true)
+    await page.keyboard.press('Enter')
+    await page.waitForURL((url) => url.pathname === '/' && url.hash === '')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.hero.name)
+    expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  })
+})
+
 // TC-084
 test('the OpenGraph export route does not exist in production', async ({ request }) => {
   expect((await request.get('/dev/og-export')).status()).toBe(404)

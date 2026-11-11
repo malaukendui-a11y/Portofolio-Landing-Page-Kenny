@@ -163,4 +163,12 @@ export interface Copy {
     builtWith: string
     languageNote: string
   }
+  /** 404 page (PRD F-15). `title` is the document title; `label` follows the `//` marker. */
+  notFound: {
+    label: string
+    title: string
+    heading: string
+    body: string
+    cta: string
+  }
 }

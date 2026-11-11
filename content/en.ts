@@ -275,6 +275,13 @@ const en = {
     builtWith: 'Built with Next.js, GSAP & React Three Fiber',
     languageNote: 'Available in English and Bahasa Indonesia.',
   },
+  notFound: {
+    label: '404',
+    title: 'Page not found — Ananda Kenny',
+    heading: 'This page doesn’t exist',
+    body: 'The link may be old or mistyped. Everything else is on the home page.',
+    cta: 'Back to the home page',
+  },
 } satisfies Copy
 
 export default en

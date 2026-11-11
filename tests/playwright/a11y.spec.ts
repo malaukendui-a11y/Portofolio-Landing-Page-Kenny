@@ -26,6 +26,31 @@ for (const lang of ['en', 'id'] as const) {
   })
 }
 
+// TC-085: the 404 page (PRD F-15), both languages.
+for (const lang of ['en', 'id'] as const) {
+  test(`the 404 page has no serious or critical accessibility violations (${lang})`, async ({
+    page,
+  }) => {
+    const response = await page.goto('/this-page-does-not-exist')
+    expect(response?.status()).toBe(404)
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    await revealAll(page) // nothing reveals here; it waits out the toggle's colour transition
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+      .analyze()
+    const blocking = results.violations.filter(
+      (violation) => violation.impact === 'serious' || violation.impact === 'critical',
+    )
+    expect(
+      blocking.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`),
+      'serious/critical axe violations',
+    ).toEqual([])
+  })
+}
+
 // TC-070: the same scan with the 3D layer mounted (desktop-3d project): the canvas and the
 // static lens are aria-hidden, nothing new takes focus, the <h1> still names the hero.
 test('has no serious or critical accessibility violations with the 3D hero (en) @3d', async ({
