@@ -226,6 +226,20 @@ test.describe('404 page', () => {
   })
 })
 
+// TC-082: an unconfirmed period or description renders no empty paragraph (PRD §12.6).
+test('the Experience timeline has no empty paragraphs', async ({ page }) => {
+  await page.goto('/')
+  const timeline = page.locator('#experience')
+  const empty = await timeline
+    .locator('p')
+    .evaluateAll((paragraphs) => paragraphs.filter((p) => !p.textContent?.trim()).length)
+  expect(empty).toBe(0)
+  for (const entry of [en.experience.work, en.experience.education]) {
+    if (entry.period) await expect(timeline.getByText(entry.period, { exact: true })).toBeAttached()
+  }
+  await expect(timeline.getByRole('heading', { name: en.experience.work.title })).toBeAttached()
+})
+
 // TC-084
 test('the OpenGraph export route does not exist in production', async ({ request }) => {
   expect((await request.get('/dev/og-export')).status()).toBe(404)

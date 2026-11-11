@@ -5,12 +5,15 @@ import { useLang } from '@/lib/i18n'
 import { Section } from '@/components/ui/Section'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 
-/** One timeline entry: mono period column, hairline spine with a marker, content. */
+/**
+ * One timeline entry: mono period column, hairline spine with a marker, content. An empty period
+ * or description (not yet confirmed, PRD §12.6) renders nothing; the content stays in column 2.
+ */
 function Entry({ entry }: { entry: TimelineEntry }) {
   return (
     <article className="grid md:grid-cols-[12rem_1fr] lg:grid-cols-[16rem_1fr]">
-      <p className="font-mono text-meta text-fg-muted md:pt-1">{entry.period}</p>
-      <div className="relative border-l border-hairline pt-1 pb-12 pl-8 before:absolute before:top-2.5 before:-left-[0.3125rem] before:size-2.5 before:rounded-pill before:bg-accent-fg before:content-['']">
+      {entry.period && <p className="font-mono text-meta text-fg-muted md:pt-1">{entry.period}</p>}
+      <div className="relative border-l border-hairline pt-1 pb-12 pl-8 md:col-start-2 before:absolute before:top-2.5 before:-left-[0.3125rem] before:size-2.5 before:rounded-pill before:bg-accent-fg before:content-['']">
         <h3 className="font-display text-h3-sm md:text-h3">{entry.title}</h3>
         <p className="mt-1 text-body text-fg-muted">
           {entry.org} · {entry.location}

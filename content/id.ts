@@ -173,8 +173,8 @@ const id = {
     heading: 'Pengalaman',
     educationHeading: 'Pendidikan',
     work: {
-      period: '',
-      title: 'Quality Assurance — Project Kopra by Mandiri',
+      period: '1 Bulan',
+      title: 'QA Engineer — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
       description: 'QA di Kopra by Mandiri, super-platform digital wholesale.',
@@ -185,7 +185,7 @@ const id = {
       ],
     },
     education: {
-      period: '',
+      period: '4 Tahun',
       title: 'Sarjana Sistem Informasi (S.Kom)',
       org: 'Universitas Gunadarma — Fakultas Ilmu Komputer & Teknologi Informasi',
       location: 'Depok',
