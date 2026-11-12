@@ -158,6 +158,17 @@ test('the PintuKos lightbox shows the four boards with captions in both language
           .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
       )
       .toBe(true)
+    // A long caption wraps within the image's width and never squeezes the counter.
+    const fit = await dialog.locator('figure').evaluate((figure) => {
+      const image = figure.querySelector('img')!.getBoundingClientRect()
+      const caption = figure.querySelector('figcaption')!
+      const count = caption.lastElementChild as HTMLElement
+      return {
+        captionWithinImage: caption.getBoundingClientRect().width <= image.width + 1,
+        counterOneLine: count.offsetHeight <= parseFloat(getComputedStyle(count).lineHeight) + 1,
+      }
+    })
+    expect(fit).toEqual({ captionWithinImage: true, counterOneLine: true })
     // Wraps from the last board to the first.
     await page.keyboard.press('ArrowRight')
     await expect(dialog).toContainText(counter(1))

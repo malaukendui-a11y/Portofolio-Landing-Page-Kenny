@@ -95,13 +95,15 @@ function Lightbox({
               sizes="90vw"
               className="h-auto max-h-[85vh] w-auto max-w-[90vw] rounded-lightbox object-contain shadow-lightbox"
             />
-            <figcaption className="mt-4 flex w-full items-center justify-between gap-6 font-mono text-meta-sm md:text-meta">
+            {/* w-0 + min-w-full: a long caption wraps at the image's width instead of widening
+                the figure past it. */}
+            <figcaption className="mt-4 flex w-0 min-w-full items-start justify-between gap-6 font-mono text-meta-sm md:text-meta">
               {/* Without a caption the alt is shown; the image already announces it. */}
               <span aria-hidden={item.caption === undefined || undefined}>
                 {item.caption ?? item.alt}
               </span>
               {total > 1 && (
-                <span className="text-muted-on-dark">
+                <span className="shrink-0 whitespace-nowrap text-muted-on-dark">
                   {t.lightbox.counter
                     .replace('{current}', String(state.index + 1))
                     .replace('{total}', String(total))}
