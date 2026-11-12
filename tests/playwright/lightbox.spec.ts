@@ -1,7 +1,11 @@
-// TC-007: lightbox keyboard flow (PRD F-08) on the certificates.
+// TC-007: lightbox keyboard flow (PRD F-08) on the certificates. TC-095 (M4b batch 2): the QA
+// evidence tiles open their lightbox with captions.
 import { expect, test } from './fixtures'
 import { certifications } from '../../content/certifications'
 import en from '../../content/en'
+import id from '../../content/id'
+import { qaArtifacts } from '../../content/qa'
+import { selectLang } from './helpers'
 
 test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and restores focus', async ({
   page,
@@ -55,4 +59,64 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
   await expect(dialog).toBeHidden()
   await expect.poll(bodyOverflow).toBe('')
   await expect(trigger).toBeFocused()
+})
+
+// TC-095 (M4b batch 2, PRD §12.7, DESIGN §4.6): the QA evidence tiles. Three screenshots from
+// PintuKos in order, each tile named by its image's alt (the title); the second opens the lightbox
+// on the E2E report with its caption, which differs from the alt and so stays announced.
+// Lookups inside the dialog are scoped to it: the caption is also printed under its tile.
+test('QA evidence tiles open the lightbox with their captions, in both languages', async ({
+  page,
+}) => {
+  const files = [/pintukos-ci-run/, /pintukos-e2e-report/, /pintukos-uat-sheet/]
+  expect(qaArtifacts.map((artifact) => artifact.id)).toEqual(['ci-run', 'e2e-report', 'uat-sheet'])
+  await page.goto('/')
+  for (const copy of [en, id]) {
+    if (copy === id) {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const titles = qaArtifacts.map((artifact) => copy.qa.artifacts[artifact.id].title)
+    const qa = page.locator('#qa')
+    await expect(qa.locator('li')).toHaveCount(3)
+    // A button's children are presentational, so the images are found by CSS, not by role.
+    const images = qa.locator('button img')
+    await expect(images).toHaveCount(3)
+    for (let n = 0; n < 3; n += 1) {
+      await expect(images.nth(n)).toHaveAttribute('src', files[n])
+      await expect(images.nth(n)).toHaveAttribute('alt', titles[n])
+      await expect(qa.getByRole('button', { name: titles[n], exact: true })).toHaveCount(1)
+      await expect(qa.getByRole('heading', { name: titles[n], exact: true })).toBeVisible()
+    }
+
+    const second = qa.getByRole('button', { name: titles[1], exact: true })
+    await second.scrollIntoViewIfNeeded()
+    await second.click()
+    const dialog = page.getByRole('dialog', { name: copy.lightbox.label })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('button', { name: copy.lightbox.close })).toBeFocused()
+
+    const counter = (n: number) =>
+      copy.lightbox.counter.replace('{current}', String(n)).replace('{total}', '3')
+    const caption = dialog.locator('figcaption > span').first()
+    for (const [n, index] of [
+      [2, 1],
+      [3, 2],
+      [1, 0],
+    ] as const) {
+      if (n !== 2) await page.keyboard.press('ArrowRight')
+      const artifact = qaArtifacts[index]
+      await expect(dialog).toContainText(counter(n))
+      await expect(dialog.getByRole('img')).toHaveAttribute('src', files[index])
+      await expect(dialog.getByRole('img')).toHaveAttribute('alt', titles[index])
+      // Shown once the image has loaded, and not aria-hidden: it differs from the alt.
+      await expect(caption).toBeVisible()
+      await expect(caption).toHaveText(copy.qa.artifacts[artifact.id].caption)
+      await expect(caption).not.toHaveAttribute('aria-hidden')
+    }
+
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await expect(second).toBeFocused()
+  }
 })

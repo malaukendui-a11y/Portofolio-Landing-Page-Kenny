@@ -8,9 +8,10 @@ import { Section } from '@/components/ui/Section'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 
 /**
- * QA Evidence (DESIGN §4.6) — paper surface. Left: the Bank Mandiri statement.
- * Right: a 3-up grid of document previews opening the lightbox, rendered only
- * once `content/qa.ts` has artifacts (none yet — PRD §12.7), no placeholders.
+ * QA Evidence (DESIGN §4.6) — paper surface. Left: the Bank Mandiri statement and where the
+ * evidence comes from. Right: a 3-up grid of the PintuKos evidence screenshots (PRD §12.7, M4b
+ * batch 2) at their natural aspect; a tile's name is its image's alt (the title), and the
+ * lightbox shows its caption. Rendered only while `content/qa.ts` has artifacts, no placeholders.
  */
 export function QAEvidence() {
   const { t } = useLang()
@@ -51,11 +52,15 @@ export function QAEvidence() {
                       width={artifact.image.width}
                       height={artifact.image.height}
                       alt={copy.title}
-                      sizes="(min-width: 1024px) 20vw, (min-width: 640px) 30vw, 100vw"
+                      // A tile is about 17vw wide from 1024 px (240 px at 1440), 30vw from 640 px
+                      // and the full column below.
+                      sizes="(min-width: 1024px) 17vw, (min-width: 640px) 30vw, calc(100vw - 40px)"
                       className="h-auto w-full"
                     />
                   </button>
-                  <h3 className="mt-4 font-display text-h3-sm md:text-h3">{copy.title}</h3>
+                  <h3 className="mt-4 font-display text-h3-sm text-balance md:text-h3">
+                    {copy.title}
+                  </h3>
                   <p className="mt-1 font-mono text-meta-sm text-fg-muted md:text-meta">
                     {copy.caption}
                   </p>
