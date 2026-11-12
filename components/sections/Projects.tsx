@@ -16,8 +16,9 @@ import { ArrowUpRightIcon, FileTextIcon } from '@/components/ui/icons'
 /**
  * Projects (DESIGN §4.5, PRD §6): sticky stacked cards from 1024 px, each 24 px lower
  * than the last (useStackedCards); a plain list below that and under reduced motion.
- * Card grid 7/5 from 1280 px and 6/6 from 1024 px: cover image left (only when the project has
- * images — no placeholder; it opens the lightbox with all of them), meta right: mono year,
+ * Card grid 7/5 from 1280 px and 5/7 from 1024 px (so a two-CTA row fits one line in either
+ * language there): cover image left (only when the project has images — no placeholder; it opens
+ * the lightbox with all of them), meta right: mono year,
  * status badge, title, description, role, stack rows (two ruled columns from 1024 px), CTA row.
  * A stuck card must fit below its sticky top, or its bottom never shows (motion.spec TC-092).
  * CTAs come only from ctasFor; lightbox-backed ones render as real buttons.
@@ -58,7 +59,7 @@ export function Projects() {
               className="stack-card stack-offset grid gap-8 rounded-card border border-hairline bg-ink-800 p-6 md:p-10 lg:grid-cols-12 lg:gap-10"
             >
               {hasImages && (
-                <div className="lg:col-span-6 xl:col-span-7">
+                <div className="lg:col-span-5 xl:col-span-7">
                   <button
                     type="button"
                     onClick={() => open(gallery, 0)}
@@ -70,7 +71,7 @@ export function Projects() {
                       width={cover.width}
                       height={cover.height}
                       alt={cover.alt[lang]}
-                      sizes="(min-width: 1024px) 55vw, 100vw"
+                      sizes="(min-width: 1280px) 55vw, (min-width: 1024px) 35vw, 100vw"
                       onLoad={refreshScrollTriggers}
                       className="h-auto w-full"
                     />
@@ -78,7 +79,7 @@ export function Projects() {
                 </div>
               )}
 
-              <div className={hasImages ? 'lg:col-span-6 xl:col-span-5' : 'lg:col-span-12'}>
+              <div className={hasImages ? 'lg:col-span-7 xl:col-span-5' : 'lg:col-span-12'}>
                 <div className="flex flex-wrap items-center gap-4">
                   <span className="font-mono text-meta text-fg-muted">({project.year})</span>
                   <StatusBadge status={project.status} label={t.projects.status[project.status]} />
