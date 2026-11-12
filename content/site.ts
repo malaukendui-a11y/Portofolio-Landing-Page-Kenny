@@ -28,8 +28,11 @@ export const site = {
   },
   /** PRD §12.5 — pending. */
   linkedin: null as string | null,
-  /** PRD §12.4 — pending. Versioned filename under /public/cv. */
-  cvUrl: null as string | null,
+  /**
+   * PRD §12.4 (M4b): the English CV under /public/cv, named by month (`kenny-cv-YYYY-MM-en.pdf`);
+   * a new version gets a new file name. The CV controls render only while this is set.
+   */
+  cvUrl: '/cv/kenny-cv-2026-11-en.pdf' as string | null,
   /** `countryCode` is ISO 3166-1 alpha-2, for structured data (JSON-LD `addressCountry`). */
   location: { city: 'East Jakarta', country: 'Indonesia', countryCode: 'ID' },
   /** PRD F-11: a single flag drives the "Open to work" badge. `since` = YYYY-MM. */

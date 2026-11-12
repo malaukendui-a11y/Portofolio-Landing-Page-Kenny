@@ -3,7 +3,7 @@
  * titles and captions live in content/en.ts and content/id.ts under
  * `qa.artifacts`, keyed by QaArtifactId.
  *
- * Empty until the owner provides the Trading Compass documents (PRD §12.7);
+ * Empty until the owner provides the PintuKos documents (PRD §12.7, M4b batch 2);
  * the section hides the artifact grid while this list is empty.
  */
 

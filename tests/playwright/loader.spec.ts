@@ -99,12 +99,20 @@ async function recordPortraitOpacity(page: Page): Promise<void> {
   })
 }
 
-/** Holds the hero portrait's response so the loader has to wait for it. */
-async function delayPortrait(page: Page, ms: number): Promise<void> {
-  await page.route(/kenny-hero-crop-color/, async (route) => {
+/**
+ * Holds the hero portrait's response so the loader has to wait for it. Matched by folder,
+ * not by file name (the hero is the only image under /images/portrait, as in three.spec.ts),
+ * so a renamed portrait cannot silently stop the hold. Returns how many requests were held:
+ * each test checks it, so the hold is proven to have happened.
+ */
+async function delayPortrait(page: Page, ms: number): Promise<() => number> {
+  let held = 0
+  await page.route(/\/_next\/image\?url=%2Fimages%2Fportrait%2F/, async (route) => {
+    held += 1
     await new Promise((resolve) => setTimeout(resolve, ms))
     await route.continue()
   })
+  return () => held
 }
 
 test('first visit shows the loader, which leaves on its own and never returns this session', async ({
@@ -158,7 +166,7 @@ test('first visit shows the loader, which leaves on its own and never returns th
 })
 
 test('a key press skips the hold', async ({ page }) => {
-  await delayPortrait(page, 4_000)
+  const held = await delayPortrait(page, 4_000)
   await recordLeaving(page)
   await page.goto('/', { waitUntil: 'commit' })
   const tookOver = await takeoverAt(page)
@@ -169,10 +177,11 @@ test('a key press skips the hold', async ({ page }) => {
   await page.keyboard.press('Shift')
   // The exit starts on the key, long before the portrait (held 4 s) or the 1.5 s cap.
   expect(await leftAt(page)).toBeLessThan(LOADER_MAX_MS)
+  expect(held(), 'the hero portrait request was held').toBeGreaterThan(0)
 })
 
 test('the hold never exceeds 1.5 s, even while the portrait is still loading', async ({ page }) => {
-  await delayPortrait(page, 4_000)
+  const held = await delayPortrait(page, 4_000)
   await recordLeaving(page)
   await page.goto('/', { waitUntil: 'commit' })
   if ((await takeoverAt(page)) > 0) {
@@ -188,6 +197,7 @@ test('the hold never exceeds 1.5 s, even while the portrait is still loading', a
   // the tolerance covers a first frame delayed by the whole suite running in parallel
   // (docs/DECISIONS.md, loader cap).
   expect(left).toBeLessThan(LOADER_MAX_MS + 500)
+  expect(held(), 'the hero portrait request was held').toBeGreaterThan(0)
 })
 
 test('without any JS, the CSS cap alone lifts the overlay at 1.5 s', async ({ page }) => {
@@ -233,7 +243,7 @@ test("the cap's fade runs on the compositor, independent of the main thread", as
   browser,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'compositing does not depend on the viewport')
-  await delayPortrait(page, 4_000)
+  const held = await delayPortrait(page, 4_000)
   await browser.startTracing(page, {
     categories: ['blink.animations', 'devtools.timeline', 'disabled-by-default-devtools.timeline'],
   })
@@ -257,6 +267,7 @@ test("the cap's fade runs on the compositor, independent of the main thread", as
   expect(compositeFailures(release).length).toBeGreaterThan(0)
   // … while the opacity fade never reports a failure.
   expect(compositeFailures(fade)).toEqual([])
+  expect(held(), 'the hero portrait request was held').toBeGreaterThan(0)
 })
 
 test('the hero enters as the loader lifts and settles with no leftover styles', async ({

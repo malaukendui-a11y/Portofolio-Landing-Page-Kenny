@@ -1,24 +1,58 @@
 // M1 layout checks: TC-008 (hero portrait loaded), TC-009 (no horizontal overflow),
 // TC-010 (mobile menu open/close), TC-011 (nav backdrop after scroll),
-// TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV hidden).
+// TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV).
+import { readFileSync } from 'node:fs'
+import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
+import id from '../../content/id'
 import { site } from '../../content/site'
-import { hasNoHorizontalOverflow } from './helpers'
+import { hasNoHorizontalOverflow, selectLang } from './helpers'
 
-test('hero portrait is loaded with priority', async ({ page }) => {
+const HERO_FILE = 'public/images/portrait/kenny-hero-formal@2x.webp'
+
+test('hero portrait is the formal cutout, loaded with priority', async ({ page, request }) => {
   await page.goto('/')
   const portrait = page.locator('#top').getByRole('img', { name: en.hero.portraitAlt })
   await expect(portrait).toBeVisible()
+  await expect(portrait).toHaveAttribute('id', 'hero-portrait')
+  await expect(portrait).toHaveAttribute('src', /kenny-hero-formal/)
+  // The declared size is the file's own (next/image reserves the box from it).
+  await expect(portrait).toHaveAttribute('width', '1070')
+  await expect(portrait).toHaveAttribute('height', '1600')
   await expect
     .poll(() => portrait.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
     .toBe(true)
+  // next/image serves a smaller candidate (naturalWidth reports it), with the file's aspect.
+  const aspect = await portrait.evaluate(
+    (img: HTMLImageElement) => img.naturalWidth / img.naturalHeight,
+  )
+  expect(Math.abs(aspect - 1070 / 1600)).toBeLessThan(0.005)
   // `priority`: eager (no lazy attribute) and preloaded from <head>.
   await expect(portrait).not.toHaveAttribute('loading', 'lazy')
   await expect(page.locator('link[rel="preload"][as="image"]').first()).toHaveAttribute(
     'imagesrcset',
-    /kenny-hero-crop-color/,
+    /kenny-hero-formal/,
   )
+  // The crop variants it replaces are gone from the build.
+  for (const variant of ['color', 'color-soft', 'bw']) {
+    const url = `/images/portrait/kenny-hero-crop-${variant}@2x.webp`
+    expect((await request.get(url)).status(), url).toBe(404)
+  }
+
+  await selectLang(page, 'ID')
+  await expect(page.locator('#hero-portrait')).toHaveAttribute('alt', id.hero.portraitAlt)
+})
+
+test('the hero portrait file is a 1070 × 1600 WebP with alpha', () => {
+  test.skip(test.info().project.name !== 'desktop', 'a file check, once')
+  const bytes = readFileSync(HERO_FILE)
+  expect(bytes.toString('latin1', 0, 4)).toBe('RIFF')
+  expect(bytes.toString('latin1', 8, 12)).toBe('WEBP')
+  // Extended format: the canvas size sits in the VP8X chunk (24-bit, minus one), alpha flag 0x10.
+  expect(bytes.toString('latin1', 12, 16)).toBe('VP8X')
+  expect([1 + bytes.readUIntLE(24, 3), 1 + bytes.readUIntLE(27, 3)]).toEqual([1070, 1600])
+  expect(bytes[20] & 0x10, 'alpha flag').toBe(0x10)
 })
 
 test('no horizontal overflow at the top or the bottom of the page', async ({ page }) => {
@@ -88,9 +122,46 @@ test.describe('contact actions', () => {
   })
 })
 
-test('Download CV renders only when site.cvUrl is set', async ({ page }) => {
+// TC-014 (PRD F-09): the nav (desktop), the menu (mobile) and Intro link the PDF for download,
+// in both languages, and the build serves it as a PDF.
+test('Download CV links the PDF from the nav, the menu and Intro', async ({
+  page,
+  request,
+}, testInfo) => {
+  expect(site.cvUrl).toMatch(/^\/cv\/.+\.pdf$/)
+  const cv = site.cvUrl!
+  const expectCv = async (link: Locator) => {
+    await expect(link).toBeVisible()
+    await expect(link).toHaveAttribute('href', cv)
+    await expect(link).toHaveAttribute('download', '')
+  }
+
   await page.goto('/')
-  const links = page.getByRole('link', { name: en.nav.downloadCv })
-  if (site.cvUrl) await expect(links.first()).toBeVisible()
-  else await expect(links).toHaveCount(0)
+  for (const copy of [en, id]) {
+    if (copy === id) {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const nav = page.locator('header').getByRole('link', { name: copy.nav.downloadCv })
+    if (testInfo.project.name === 'mobile') {
+      // Below md the header has only the hamburger; the CV button lives in the menu.
+      await expect(nav).toHaveCount(0)
+      await page.getByRole('button', { name: copy.nav.openMenu }).click()
+      await expectCv(page.locator('#mobile-menu').getByRole('link', { name: copy.nav.downloadCv }))
+      await page.keyboard.press('Escape')
+      await expect(page.locator('#mobile-menu')).toBeHidden()
+    } else {
+      await expectCv(nav)
+    }
+    const intro = page.locator('#about').getByRole('link', { name: copy.intro.downloadCv })
+    await intro.scrollIntoViewIfNeeded()
+    await expectCv(intro)
+  }
+
+  const response = await request.get(cv)
+  expect(response.status()).toBe(200)
+  expect(response.headers()['content-type']).toBe('application/pdf')
+  const body = await response.body()
+  expect(body.subarray(0, 5).toString('latin1')).toBe('%PDF-')
+  expect(body.length, 'CV ≤ 500 KB').toBeLessThanOrEqual(500 * 1024)
 })

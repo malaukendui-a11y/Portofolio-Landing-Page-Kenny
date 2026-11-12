@@ -1,6 +1,6 @@
 // M2 motion: TC-022 (Lenis + anchor navigation), TC-023 (marquee), TC-024 (reduced-motion
 // path), TC-027 (reveals + SplitText). F1: TC-052 (marquee under batched intersection changes).
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
@@ -395,6 +395,12 @@ test.describe('stacked cards', () => {
             rect.right <= window.innerWidth,
         }
       })
+    // Since M4b the cards between have no controls, so Shift+Tab from the last card lands on
+    // PintuKos' "Preview", in the first card, under all the others.
+    const pintukos = page.locator('#work article').filter({
+      has: page.getByRole('heading', { name: en.projects.items.pintukos.title, exact: true }),
+    })
+    const preview = pintukos.getByRole('button', { name: en.projects.cta.preview, exact: true })
     for (const viewport of [
       { width: 1440, height: 900 },
       { width: 1366, height: 768 },
@@ -406,10 +412,80 @@ test.describe('stacked cards', () => {
       await expect(lastControl).toBeFocused()
       await page.keyboard.press('Shift+Tab')
       await expect(lastControl).not.toBeFocused()
+      await expect(preview).toBeFocused()
       await expect
         .poll(focusState, { message: `${viewport.width}x${viewport.height}` })
         .toEqual({ topmost: true, inViewport: true })
+
+      // Forward, from a fresh load: card 1 is 60 % of the way up, over the bottom of the stuck
+      // PintuKos card, so its cover is clear and its "Preview" is covered. Tab from the cover
+      // must bring "Preview" out whole.
+      await gotoWithLenis(page)
+      await bringNextCard(page, 'work', 0, 0.6)
+      const cover = pintukos.getByRole('button', {
+        name: en.projects.openScreenshots.replace('{title}', en.projects.items.pintukos.title),
+      })
+      const hitAtCentre = (control: Locator) =>
+        control.evaluate((element) => {
+          const rect = element.getBoundingClientRect()
+          const hit = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2,
+          )
+          return hit === null ? 'off-screen' : element.contains(hit) ? 'clear' : 'covered'
+        })
+      await expect
+        .poll(async () => [await hitAtCentre(cover), await hitAtCentre(preview)], {
+          message: `forward precondition ${viewport.width}x${viewport.height}`,
+        })
+        .toEqual(['clear', 'covered'])
+      await cover.focus()
+      await page.keyboard.press('Tab')
+      await expect(preview).toBeFocused()
+      await expect
+        .poll(focusState, { message: `forward ${viewport.width}x${viewport.height}` })
+        .toEqual({ topmost: true, inViewport: true })
     }
+  })
+
+  // TC-092: a stuck card taller than the space below its sticky top never shows its bottom
+  // (stack rows, the CTA row) while the cards stack, and focus there would stay obscured
+  // (WCAG 2.2 SC 2.4.11). Every project card must fit, in both languages.
+  test('every project card fits below its sticky top', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+    await page.goto('/')
+    const margins: string[] = []
+    for (const lang of ['en', 'id'] as const) {
+      if (lang === 'id') {
+        await selectLang(page, 'ID')
+        await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+      }
+      for (const viewport of [
+        { width: 1440, height: 900 },
+        { width: 1366, height: 768 },
+        { width: 1280, height: 800 },
+        { width: 1024, height: 768 },
+      ]) {
+        await page.setViewportSize(viewport)
+        await page.evaluate(() => document.fonts.ready)
+        const cards = page.locator('#work article')
+        await expect(cards.first()).toHaveCSS('position', 'sticky')
+        // px of each card below the fold while it is stuck (top = its sticky offset).
+        const overflow = await cards.evaluateAll((articles: HTMLElement[]) =>
+          articles.map((card) =>
+            Math.ceil(parseFloat(getComputedStyle(card).top) + card.offsetHeight - innerHeight),
+          ),
+        )
+        const label = `${lang} ${viewport.width}×${viewport.height}`
+        margins.push(`${label}: ${-Math.max(...overflow)} px to spare`)
+        expect(
+          overflow.filter((px) => px > 0),
+          `${label}: px below the fold per card ${overflow}`,
+        ).toEqual([])
+      }
+    }
+    testInfo.annotations.push({ type: 'card-fit', description: margins.join('; ') })
+    console.log(`card fit: ${margins.join('; ')}`)
   })
 
   test('below 1024 px the cards are a plain list', async ({ page }, testInfo) => {

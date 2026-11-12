@@ -31,6 +31,8 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
     en.lightbox.counter.replace('{current}', String(n)).replace('{total}', String(total))
   await expect(dialog).toContainText(counter(1))
   await expect(dialog.getByRole('img')).toHaveAttribute('src', /cert-revou/)
+  // A certificate's caption (its title) differs from its alt, so screen readers hear it too.
+  await expect(dialog.locator('figcaption > span').first()).not.toHaveAttribute('aria-hidden')
 
   await page.keyboard.press('ArrowRight')
   await expect(dialog).toContainText(counter(2))

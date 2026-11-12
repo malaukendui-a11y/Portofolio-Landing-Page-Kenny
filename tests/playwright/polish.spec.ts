@@ -206,12 +206,13 @@ test.describe('404 page', () => {
     await expect(page.locator('title')).toHaveCount(1)
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(0)
-    // The nav leads to the home page's sections, not to anchors on this page.
+    // The nav leads to the home page's sections, not to anchors on this page. The CV link is
+    // root-relative already (it is in the DOM at both sizes, shown from md up).
     expect(
       await page
         .locator('header nav a')
         .evaluateAll((links) => links.map((a) => a.getAttribute('href'))),
-    ).toEqual(['/', '/#work', '/#about', '/#contact'])
+    ).toEqual(['/', '/#work', '/#about', '/#contact', site.cvUrl])
 
     await selectLang(page, 'ID')
     await expect(page.locator('html')).toHaveAttribute('lang', 'id')
@@ -239,18 +240,28 @@ test.describe('404 page', () => {
   })
 })
 
-// TC-082: an unconfirmed period or description renders no empty paragraph (PRD §12.6).
-test('the Experience timeline has no empty paragraphs', async ({ page }) => {
+// TC-082: an empty period or description renders no empty paragraph; the owner's periods
+// (PRD §12.6, M4b) show in both languages. The education description is still empty, so the
+// empty-paragraph rule keeps running on live data.
+test('the Experience timeline shows both periods and has no empty paragraphs', async ({ page }) => {
+  expect(en.experience.education.period).toBe('2021 — Jan 2026')
+  expect(id.experience.education.period).toBe('2021 — Jan 2026')
   await page.goto('/')
   const timeline = page.locator('#experience')
-  const empty = await timeline
-    .locator('p')
-    .evaluateAll((paragraphs) => paragraphs.filter((p) => !p.textContent?.trim()).length)
-  expect(empty).toBe(0)
-  for (const entry of [en.experience.work, en.experience.education]) {
-    if (entry.period) await expect(timeline.getByText(entry.period, { exact: true })).toBeAttached()
+  for (const copy of [en, id]) {
+    if (copy === id) {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const empty = await timeline
+      .locator('p')
+      .evaluateAll((paragraphs) => paragraphs.filter((p) => !p.textContent?.trim()).length)
+    expect(empty).toBe(0)
+    for (const entry of [copy.experience.work, copy.experience.education]) {
+      await expect(timeline.getByText(entry.period, { exact: true })).toBeVisible()
+      await expect(timeline.getByRole('heading', { name: entry.title })).toBeVisible()
+    }
   }
-  await expect(timeline.getByRole('heading', { name: en.experience.work.title })).toBeAttached()
 })
 
 // TC-084

@@ -29,7 +29,7 @@ const id = {
     availability: 'Terbuka untuk bekerja',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Perkenalan',
-    portraitAlt: 'Ananda Kenny, potret dengan kemeja hitam, menatap kamera',
+    portraitAlt: 'Ananda Kenny mengenakan jas gelap dan dasi, menatap kamera',
   },
   intro: {
     label: 'Perkenalan',
@@ -117,8 +117,8 @@ const id = {
       pintukos: {
         title: 'PintuKos',
         description:
-          'Manajemen keuangan untuk kos dan kontrakan: pantau kamar, penghuni, pembayaran, dan arus kas bulanan di satu tempat.',
-        role: 'Full-stack developer, produk',
+          'Aplikasi keuangan untuk kos dan kontrakan keluarga (dipakai internal): tagihan otomatis, pembayaran dengan bukti foto, penagihan via WhatsApp, laporan PDF/Excel, tutup buku, dan log audit.',
+        role: 'Product owner, QA & developer (berbantuan AI)',
       },
       'trading-compass': {
         title: 'Trading Compass',
@@ -135,7 +135,7 @@ const id = {
       'kos-kontrakan-landing': {
         title: 'Kos & Kontrakan Kenny — landing page',
         description:
-          'Konsep landing page untuk usaha kos dan kontrakan, dirumuskan dalam PRD dan dokumen desain.',
+          'Landing page promosi dan pemesanan untuk kos dan kontrakan keluarga: konversi prospek lewat WhatsApp, cetak biru fitur bertahap (MVP, tumbuh, skala), dan riset kompetitor. PRD dan desain selesai; pembangunan sedang berjalan.',
         role: 'Strategi produk & bisnis',
       },
       'crypto-research': {
@@ -152,19 +152,19 @@ const id = {
     statement:
       'Di Bank Mandiri saya menguji Project Kopra, super-platform digital wholesale, melalui siklus pengujian manual dan UAT.',
     paragraph:
-      'Artefak Project Kopra bersifat rahasia, jadi dokumen di sini berasal dari produk saya sendiri: test plan, test case, dan laporan bug yang dihasilkan saat membawa Trading Compass melewati tahap QA.',
+      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, pengujian end-to-end Playwright dengan audit axe, pengujian SQL, dan UAT 85 langkah.',
     artifacts: {
       'test-plan': {
         title: 'Test plan',
-        caption: 'Trading Compass · lingkup, risiko, kriteria masuk dan keluar',
+        caption: 'PintuKos · lingkup, risiko, kriteria masuk dan keluar',
       },
       'test-cases': {
         title: 'Test case',
-        caption: 'Trading Compass · kasus tingkat skenario dan langkah',
+        caption: 'PintuKos · kasus tingkat skenario dan langkah',
       },
       'bug-report': {
         title: 'Laporan bug',
-        caption: 'Trading Compass · severity, langkah reproduksi, re-test',
+        caption: 'PintuKos · severity, langkah reproduksi, re-test',
       },
     },
   },
@@ -185,7 +185,7 @@ const id = {
       ],
     },
     education: {
-      period: '',
+      period: '2021 — Jan 2026',
       title: 'Sarjana Sistem Informasi (S.Kom)',
       org: 'Universitas Gunadarma — Fakultas Ilmu Komputer & Teknologi Informasi',
       location: 'Depok',

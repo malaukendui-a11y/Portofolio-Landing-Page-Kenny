@@ -13,8 +13,8 @@ import { Portrait } from './Portrait'
 import { Ticker, type TickerHandle } from './Ticker'
 
 const HERO_PORTRAIT = {
-  src: '/images/portrait/kenny-hero-crop-color@2x.webp',
-  width: 1045,
+  src: '/images/portrait/kenny-hero-formal@2x.webp',
+  width: 1070,
   height: 1600,
 }
 

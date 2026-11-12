@@ -2,6 +2,8 @@
 // Every reveal is played first: axe skips content still at opacity 0.
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './fixtures'
+import en from '../../content/en'
+import id from '../../content/id'
 import { revealAll, selectLang } from './helpers'
 
 for (const lang of ['en', 'id'] as const) {
@@ -14,6 +16,46 @@ for (const lang of ['en', 'id'] as const) {
     }
     await revealAll(page)
     const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+      .analyze()
+    const blocking = results.violations.filter(
+      (violation) => violation.impact === 'serious' || violation.impact === 'critical',
+    )
+    expect(
+      blocking.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`),
+      'serious/critical axe violations',
+    ).toEqual([])
+  })
+}
+
+// TC-091 (M4b): the project lightbox open on the PintuKos boards, both languages. Scoped to the
+// open dialog: the page behind it is inert and is covered by the full-page scans above.
+for (const lang of ['en', 'id'] as const) {
+  test(`the project lightbox has no serious or critical accessibility violations (${lang})`, async ({
+    page,
+  }) => {
+    const copy = lang === 'en' ? en : id
+    await page.goto('/')
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const cover = page.getByRole('button', {
+      name: copy.projects.openScreenshots.replace('{title}', copy.projects.items.pintukos.title),
+    })
+    await cover.scrollIntoViewIfNeeded()
+    await cover.click()
+    const dialog = page.getByRole('dialog', { name: copy.lightbox.label })
+    await expect(dialog).toBeVisible()
+    await expect
+      .poll(() =>
+        dialog
+          .getByRole('img')
+          .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+      )
+      .toBe(true)
+    const results = await new AxeBuilder({ page })
+      .include('dialog[open]')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
       .analyze()
     const blocking = results.violations.filter(

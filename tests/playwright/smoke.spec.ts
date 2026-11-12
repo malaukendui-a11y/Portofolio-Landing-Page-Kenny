@@ -34,10 +34,15 @@ test('project cards follow the status → CTA rules', async ({ page }) => {
   await page.goto('/')
   const work = page.locator('#work')
   await expect(work.getByRole('heading', { name: en.projects.items.pintukos.title })).toBeVisible()
-  // No project is live yet, so no "Live demo" anywhere.
+  // No project has a public liveUrl, so no "Live demo" anywhere; PintuKos is live as a private
+  // deployment and previews its images instead (the only "Preview").
   await expect(work.getByRole('link', { name: en.projects.cta.liveDemo })).toHaveCount(0)
-  // Only Trading Compass has a public repo.
-  await expect(work.getByRole('link', { name: en.projects.cta.github })).toHaveCount(1)
+  await expect(
+    work.getByRole('button', { name: en.projects.cta.preview, exact: true }),
+  ).toHaveCount(1)
+  // No repo is shown since M4b (PintuKos private in beta; Trading Compass hidden until its
+  // README is real), so no GitHub link.
+  await expect(work.getByRole('link', { name: en.projects.cta.github, exact: true })).toHaveCount(0)
   // The thesis has a PDF, so the research card links to it (TC-015).
   const paper = work.getByRole('link', { name: en.projects.cta.readPaper })
   await expect(paper).toHaveCount(1)
