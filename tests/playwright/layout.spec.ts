@@ -185,7 +185,7 @@ test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', as
     await expectCv(intro)
 
     // Reach Out: the recruiter route (Email me, Download CV), then WhatsApp, which stays last so
-    // Tab from it reaches the carousel (polaroid.spec TC-035, TC-039, TC-050).
+    // Tab from it reaches the carousel (polaroid.spec TC-035, TC-039).
     const contact = page.locator('#contact')
     const reachCv = contact.getByRole('link', { name: copy.reachOut.ctas.cv, exact: true })
     await reachCv.scrollIntoViewIfNeeded()

@@ -152,6 +152,8 @@ for (const lang of ['en', 'id'] as const) {
     await expect
       .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
       .toBe(true)
+    // The caption stays invisible until next/image's onLoad (after decode), a moment later.
+    await expect(page.locator('dialog[open] figcaption > span').first()).toBeVisible()
     await page.screenshot({ path: shot(`${testInfo.project.name}-lightbox-pintukos-${lang}`) })
   })
 }
@@ -245,6 +247,8 @@ for (const lang of ['en', 'id'] as const) {
     await expect
       .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
       .toBe(true)
+    // The caption stays invisible until next/image's onLoad (after decode), a moment later.
+    await expect(page.locator('dialog[open] figcaption > span').first()).toBeVisible()
     await page.screenshot({ path: shot(`${testInfo.project.name}-lightbox-qa-${lang}`) })
   })
 }
