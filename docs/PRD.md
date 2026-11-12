@@ -104,17 +104,17 @@ Every project card carries exactly one status. CTAs are derived from status and 
 
 A card without a public repo **must not** show a GitHub button. A card without a live URL **must not** show a "Live demo" button. Status is data (`content/projects.ts`), so flipping PintuKos to *Live* next week is a one-line change and a redeploy.
 
-## 6.2 Project inventory (as of 25 Oct 2026)
+## 6.2 Project inventory (as of 25 Oct 2026; rows 1, 2 and 4 updated for M4b, 13 Nov 2026 — `content/projects.ts` holds the live data)
 
 | # | Product name | Role | Status | Live URL | GitHub | Notes |
 |---|---|---|---|---|---|---|
-| 1 | **PintuKos** — financial management for boarding houses & rentals | Full-stack developer, product | **In Development → Live soon** (hosting imminent) | TBD | `malaukendui-a11y/Pengelola-Keuangan-Kos-Kontrakan-Kenny` — **currently private (404 when logged out)** | Decide: make public (after secret scan) or omit GitHub button |
-| 2 | **Trading Compass** (formerly Trading Journal X1) — trading discipline journal | Full-stack developer, QA | **In QA** (hosting next week) | TBD | `malaukendui-a11y/Trading-Journal-X1` — public | README is still the Vite template boilerplate and the repo has no description; fix before launch |
+| 1 | **PintuKos** — finance app for the family's boarding houses & rentals | Product owner, QA & developer (AI-assisted) | **Live** as a private family deployment behind a login (M4b) | none public | `malaukendui-a11y/Pengelola-Keuangan-Kos-Kontrakan-Kenny` — **private while in beta** | No GitHub button; "Preview" opens four design renders with sample data (§6.1 "Live (no public URL)") |
+| 2 | **Trading Compass** (formerly Trading Journal X1) — trading discipline journal | Full-stack developer, QA | **In QA** (paused) | TBD | `malaukendui-a11y/Trading-Journal-X1` — public, but not linked | README is still the Vite template boilerplate and the repo has no description: no GitHub button until it is real (M4b) |
 | 3 | **Malau Pase community & genealogy website** (Tarombo) | Project Manager | **In Design** (UI/UX stage) | — | `malaukendui-a11y/malau-website` — **currently private (404)** | Show design previews + PM artifacts; no GitHub button until public |
-| 4 | **Kos & Kontrakan Kenny — landing page** | Product & business strategy | **Planned** (PRD + DESIGN.md) | — | — | Show as a concept card; optional "Read the plan" |
+| 4 | **Kos & Kontrakan Kenny — landing page** | Product & business strategy | **In Development** (PRD and design done; Vite, React, TypeScript, Tailwind CSS) (M4b) | — | — | No CTA until it has images or a URL |
 | 5 | **Research:** Big Data Analysis to Detect Cryptocurrency Price Movement Patterns and Trends (Altcoin market) | Author (bachelor thesis) | **Completed** | PDF (1.76 MB) | — | The only finished artifact; keep as a fifth card labelled *Research* |
 
-Each card shows: status badge, year, title, one-sentence description, role, 3–6 stack tags, 2–4 screenshots (WebP, lazy, lightbox), CTAs per §6.1.
+Each card shows: status badge, year, title, a short description (one or two sentences; the card must fit below its sticky top, DESIGN §4.5), role, 3–6 stack tags, 2–4 screenshots (WebP, lazy, lightbox), CTAs per §6.1.
 
 # 7. Functional requirements
 

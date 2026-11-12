@@ -34,7 +34,7 @@ Section order and rhythm; hero concept (ticker + layered portrait); `//` label s
 | Reference | Ours | Why |
 |---|---|---|
 | Accent orange-red `#F05038` | **Terracotta family** (`accent-400/500/600` below) | Brand continuity with Kenny's existing identity; avoids template recognition |
-| White ticker on a photo background | **Near-black ticker on warm paper** (`paper-100`), no photo background | Kenny's portrait is colour on a plain surface; black shirt needs a light ground |
+| White ticker on a photo background | **Near-black ticker on warm paper** (`paper-100`), no photo background | Kenny's portrait is colour on a plain surface; dark clothing (a dark suit since M4b) needs a light ground |
 | Flat 2-layer depth (photo / text / cutout) | **Three layers + one 3D glass element** that refracts the ticker | The hybrid-3D signature of this build |
 | Testimonials section | **QA Evidence** section | Honest content; QA is the differentiator |
 | Services for a designer | **What I Do**: QA & Testing / Web Development / Product & Project Management | Kenny's actual offer |
@@ -140,7 +140,7 @@ Mobile: cards stack normally (no sticky), numeral hidden, list unchanged.
 
 ## 4.5 Projects (dark, stacked cards)
 
-Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 6/6 from 1024 to 1279 px for a card with images): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, one short description, role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules. A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092).
+Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 6/6 from 1024 to 1279 px for a card with images): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, a short description (one or two sentences), role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules. A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092).
 
 Research card uses the same anatomy with a PDF icon and "Read the paper (PDF)".
 
