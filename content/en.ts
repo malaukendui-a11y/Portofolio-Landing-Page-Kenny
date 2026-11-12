@@ -117,8 +117,8 @@ const en = {
       pintukos: {
         title: 'PintuKos',
         description:
-          'Financial management for boarding houses and rentals: track rooms, tenants, payments and monthly cash flow in one place.',
-        role: 'Full-stack developer, product',
+          'Finance app for the family’s boarding houses and rentals (private deployment): automatic invoices, payments with photo proof, WhatsApp billing, PDF/Excel reports, book closing and an audit log.',
+        role: 'Product owner, QA & developer (AI-assisted)',
       },
       'trading-compass': {
         title: 'Trading Compass',
@@ -135,7 +135,7 @@ const en = {
       'kos-kontrakan-landing': {
         title: 'Kos & Kontrakan Kenny — landing page',
         description:
-          'Landing page concept for a boarding house and rental business, specified in a PRD and design document.',
+          'Promotion and booking landing page for the family’s boarding houses and rentals: WhatsApp lead conversion, a phased feature blueprint (MVP, growth, scale) and competitive research. PRD and design are done; the build is in progress.',
         role: 'Product & business strategy',
       },
       'crypto-research': {

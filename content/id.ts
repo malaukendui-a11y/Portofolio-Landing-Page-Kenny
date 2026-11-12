@@ -117,8 +117,8 @@ const id = {
       pintukos: {
         title: 'PintuKos',
         description:
-          'Manajemen keuangan untuk kos dan kontrakan: pantau kamar, penghuni, pembayaran, dan arus kas bulanan di satu tempat.',
-        role: 'Full-stack developer, produk',
+          'Aplikasi keuangan untuk kos dan kontrakan keluarga (dipakai internal): tagihan otomatis, pembayaran dengan bukti foto, penagihan via WhatsApp, laporan PDF/Excel, tutup buku, dan log audit.',
+        role: 'Product owner, QA & developer (berbantuan AI)',
       },
       'trading-compass': {
         title: 'Trading Compass',
@@ -135,7 +135,7 @@ const id = {
       'kos-kontrakan-landing': {
         title: 'Kos & Kontrakan Kenny — landing page',
         description:
-          'Konsep landing page untuk usaha kos dan kontrakan, dirumuskan dalam PRD dan dokumen desain.',
+          'Landing page promosi dan pemesanan untuk kos dan kontrakan keluarga: konversi prospek lewat WhatsApp, cetak biru fitur bertahap (MVP, tumbuh, skala), dan riset kompetitor. PRD dan desain selesai; pembangunan sedang berjalan.',
         role: 'Strategi produk & bisnis',
       },
       'crypto-research': {

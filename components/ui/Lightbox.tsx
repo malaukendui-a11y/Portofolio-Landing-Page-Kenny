@@ -96,7 +96,10 @@ function Lightbox({
               className="h-auto max-h-[85vh] w-auto max-w-[90vw] rounded-lightbox object-contain shadow-lightbox"
             />
             <figcaption className="mt-4 flex w-full items-center justify-between gap-6 font-mono text-meta-sm md:text-meta">
-              <span>{item.caption ?? item.alt}</span>
+              {/* Without a caption the alt is shown; the image already announces it. */}
+              <span aria-hidden={item.caption === undefined || undefined}>
+                {item.caption ?? item.alt}
+              </span>
               {total > 1 && (
                 <span className="text-muted-on-dark">
                   {t.lightbox.counter

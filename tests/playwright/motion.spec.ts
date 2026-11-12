@@ -395,6 +395,12 @@ test.describe('stacked cards', () => {
             rect.right <= window.innerWidth,
         }
       })
+    // Since M4b the cards between have no controls, so Shift+Tab from the last card lands on
+    // PintuKos' "Preview", in the first card, under all the others.
+    const pintukos = page.locator('#work article').filter({
+      has: page.getByRole('heading', { name: en.projects.items.pintukos.title, exact: true }),
+    })
+    const preview = pintukos.getByRole('button', { name: en.projects.cta.preview, exact: true })
     for (const viewport of [
       { width: 1440, height: 900 },
       { width: 1366, height: 768 },
@@ -406,8 +412,20 @@ test.describe('stacked cards', () => {
       await expect(lastControl).toBeFocused()
       await page.keyboard.press('Shift+Tab')
       await expect(lastControl).not.toBeFocused()
+      await expect(preview).toBeFocused()
       await expect
         .poll(focusState, { message: `${viewport.width}x${viewport.height}` })
+        .toEqual({ topmost: true, inViewport: true })
+
+      // Forward: Tab from the cover to "Preview" in the same card shows it whole.
+      const cover = pintukos.getByRole('button', {
+        name: en.projects.openScreenshots.replace('{title}', en.projects.items.pintukos.title),
+      })
+      await cover.focus()
+      await page.keyboard.press('Tab')
+      await expect(preview).toBeFocused()
+      await expect
+        .poll(focusState, { message: `forward ${viewport.width}x${viewport.height}` })
         .toEqual({ topmost: true, inViewport: true })
     }
   })

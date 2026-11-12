@@ -28,13 +28,14 @@ export function Projects() {
   const stackRef = useRef<HTMLDivElement>(null)
   useStackedCards(stackRef)
 
-  const galleryFor = (project: Project, title: string): LightboxItem[] =>
+  // No `caption`: the lightbox shows each image's own alt (which also says when an image is a
+  // design render), so captions differ per image and follow the language.
+  const galleryFor = (project: Project): LightboxItem[] =>
     project.images.map((image) => ({
       src: image.src,
       width: image.width,
       height: image.height,
       alt: image.alt[lang],
-      caption: title,
     }))
 
   return (
@@ -47,7 +48,7 @@ export function Projects() {
         {projects.map((project, index) => {
           const copy = t.projects.items[project.id]
           const ctas = ctasFor(project)
-          const gallery = galleryFor(project, copy.title)
+          const gallery = galleryFor(project)
           const cover = project.images[0]
           const hasImages = cover !== undefined
           return (
