@@ -27,7 +27,7 @@ pnpm lhci           # lighthouse ci against the local production build
 ## 4. Repository layout
 
 ```
-app/                layout.tsx, page.tsx, not-found.tsx, opengraph-image.tsx, globals.css
+app/                layout.tsx, page.tsx, not-found.tsx, opengraph-image.png, globals.css
 components/hero/    Hero, Ticker (HTML), Portrait, AvailabilityBadge
 components/three/   HeroCanvas (dynamic, ssr:false), GlassLens, WebGLTicker
 components/sections/ Intro, Services, Projects, QAEvidence, Experience, Certifications, ReachOut, Footer

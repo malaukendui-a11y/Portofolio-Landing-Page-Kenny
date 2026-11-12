@@ -95,7 +95,8 @@ Every project card carries exactly one status. CTAs are derived from status and 
 
 | Status | Meaning | Primary CTA | Secondary CTA |
 |---|---|---|---|
-| **Live** | Deployed and public | "Live demo" (external) | "GitHub" if the repo is public |
+| **Live** | Deployed and public (`liveUrl` set) | "Live demo" (external) | "GitHub" if the repo is public |
+| **Live** (no public URL) | Deployed for a private audience behind a login; `liveUrl` is null (M4b: PintuKos) | "Preview" (opens screenshot lightbox) if it has images, otherwise none | "GitHub" if the repo is public |
 | **In QA** | Feature-complete, being tested | "Preview" (opens screenshot lightbox) | "GitHub" if public |
 | **In Development** | Being built | "Preview" | "GitHub" if public |
 | **In Design** | UI/UX stage, no code yet | "Preview designs" | — |
@@ -123,7 +124,7 @@ Each card shows: status badge, year, title, one-sentence description, role, 3–
 | F-02 | Bilingual copy: English default, Indonesian via toggle; choice persisted in `localStorage`; `<html lang>` updated; all copy lives in `content/en.ts` and `content/id.ts` — no hard-coded strings in components | Must |
 | F-03 | Hero name ticker (infinite marquee) rendered in WebGL (drei `Text`) when the 3D element is active, with an HTML ticker fallback otherwise; a visually-hidden `<h1>` always exists for SEO/a11y | Must |
 | F-04 | 3D glass element (see `DESIGN.md` §6): lazy-loaded after first paint, desktop only (≥ 1024 px and pointer: fine), paused when off-screen, replaced by a static pre-rendered PNG/WebP on mobile, on `prefers-reduced-motion`, and when WebGL is unavailable | Must |
-| F-05 | Portrait cutouts: hero uses `kenny-hero-crop-color@2x.webp` (PNG fallback); Reach Out uses `kenny-footer-color@2x.webp`; delivered via `next/image` with explicit dimensions | Must |
+| F-05 | Portrait cutout: the hero uses `kenny-hero-formal@2x.webp` (1070 × 1600, WebP with alpha; M4b); Reach Out shows the polaroid line instead of a portrait (DECISIONS 2026-11-02); delivered via `next/image` with explicit dimensions | Must |
 | F-06 | Stacked / sticky card scrolling for Services and Projects (GSAP ScrollTrigger); previous card dims and scales as the next arrives; degrades to a plain vertical list under reduced motion | Must |
 | F-07 | Project cards built from `content/projects.ts` with the status/CTA rules of §6.1 | Must |
 | F-08 | Screenshot and certificate lightbox (keyboard: Esc closes, arrows navigate; focus trapped; scroll locked) | Must |
@@ -188,7 +189,7 @@ Build order is strict: **M1 before M2 before M3**. The 3D element is the last th
 |---|---|---|
 | No project is live at launch | Weaker proof for clients | Status model (§6.1); the portfolio itself is the live demo; flip statuses as projects ship; thesis PDF as a finished artifact |
 | Two of three repos are private; public repo README is boilerplate | A recruiter who clicks GitHub sees nothing or a template README — worse than no link | Before M4: either make repos public after a secret scan (Supabase keys, `.env`) and write real READMEs, or omit the GitHub button via the status rules |
-| QA evidence from Bank Mandiri is confidential | Legal/professional risk | Never publish Kopra artifacts. Use Kenny's own products: the Trading Compass QA phase produces a real test plan, test cases and bug reports that can be shown |
+| QA evidence from Bank Mandiri is confidential | Legal/professional risk | Never publish Kopra artifacts. Use Kenny's own products: PintuKos's testing (unit and Playwright E2E tests with axe audits, SQL checks, UAT) produces a real test plan, test cases and bug reports that can be shown (the source moved from Trading Compass in M4b) |
 | 3D element hurts performance on low-end laptops | Metric failure, bad first impression | Lazy load, DPR clamp, `samples` ≤ 6, pause off-screen, static fallback; budgets enforced in CI; M3 is last and can be cut without touching the rest |
 | Source photos are AI-processed 900×1600 exports; upscaled ×4 | Slight "painted" texture at Retina 100%; sunlight flecks in hair | Acceptable at display size; re-run the pipeline if a better photo is taken later |
 | English copy quality | Overseas clients judge language | Draft in EN first, owner reviews; keep sentences short; ID is a translation of final EN |
@@ -197,14 +198,14 @@ Build order is strict: **M1 before M2 before M3**. The 3D element is the last th
 
 # 12. Content inputs still needed from the owner
 
-1. **Screenshots**: 2–4 per project (PintuKos, Trading Compass from local/staging; Malau design screens; Kos & Kontrakan concept if any). 1600 px wide minimum, PNG; the build pipeline converts to WebP.
-2. **Stack and one-line description** for PintuKos and the Malau website (Trading Compass: React + Vite + Supabase from the repo).
-3. **Repository decision** for the two private repos (make public + README, or no GitHub button).
-4. **CV PDF** (English, ATS version) for the "Download CV" button.
-5. **LinkedIn URL** and preferred display name on LinkedIn.
-6. **Bank Mandiri dates** (month/year start–end) and the exact programme/internship title for the timeline.
-7. **QA artifacts** from Trading Compass: test plan, 5–10 test cases, 2–3 bug reports (sanitised screenshots or PDF).
-8. **Domain**: confirm `anandakenny.com` (or similar) purchase, or launch on `*.vercel.app` first.
+1. **Screenshots**: 2–4 per project (PintuKos, Trading Compass from local/staging; Malau design screens; Kos & Kontrakan concept if any). 1600 px wide minimum, PNG; the build pipeline converts to WebP. — **Partial (M4b, 2026-11-13):** PintuKos has four 1600 × 900 design boards (WebP, design renders with sample data); Trading Compass, Malau and Kos & Kontrakan have none yet (batch 2).
+2. **Stack and one-line description** for PintuKos and the Malau website (Trading Compass: React + Vite + Supabase from the repo). — **Partial (M4b):** PintuKos stack and description done, Kos & Kontrakan stack and description too; the Malau stack is still pending.
+3. **Repository decision** for the two private repos (make public + README, or no GitHub button). — **Done (M4b):** no repo is linked. PintuKos stays private while in beta, Malau stays private, and Trading Compass's public repo shows no GitHub button until its README is real.
+4. **CV PDF** (English, ATS version) for the "Download CV" button. — **Done (M4b):** `public/cv/kenny-cv-2026-11-en.pdf`.
+5. **LinkedIn URL** and preferred display name on LinkedIn. — **Pending.**
+6. **Bank Mandiri dates** (month/year start–end) and the exact programme/internship title for the timeline. — **Done (M4b):** work `Aug 2026` / `Agu 2026` with the title from DECISIONS 2026-11-12; education `2021 — Jan 2026`.
+7. **QA artifacts** from PintuKos (Trading Compass until M4b): test plan, 5–10 test cases, 2–3 bug reports (sanitised screenshots or PDF). — **Pending** (M4b batch 2).
+8. **Domain**: confirm `anandakenny.com` (or similar) purchase, or launch on `*.vercel.app` first. — **Pending.**
 
 # 13. Decisions log (summary)
 

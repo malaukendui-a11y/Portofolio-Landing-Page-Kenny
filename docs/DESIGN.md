@@ -120,7 +120,7 @@ Layer order, back to front:
 
 1. `paper-100` surface with a soft radial white glow centred behind the portrait (≈ 60 % opacity at centre, 0 at 520 px) and a faint `accent-glow` behind the glass element.
 2. **WebGL canvas** (desktop only): name ticker as drei `Text` in Inter Display, colour `ink-900`, size matching `display-ticker`, scrolling right-to-left; the **glass element** floating over the left third, refracting the letters as they pass. (HTML ticker fallback when the canvas is not active.)
-3. **Portrait cutout** `kenny-hero-crop-color@2x.webp`, height ≈ 86 % of viewport, horizontally centred at 56 % of the width, anchored to the bottom edge; the soft alpha fade at its bottom edge is part of the asset.
+3. **Portrait cutout** `kenny-hero-formal@2x.webp` (1070 × 1600, the formal portrait since M4b), height ≈ 86 % of viewport, horizontally centred at 56 % of the width, anchored to the bottom edge; the soft alpha fade at its bottom edge is part of the asset.
 4. UI: bottom-left social list (LinkedIn, GitHub, WhatsApp — `body`, with an `—` dash prefix); bottom-right two roles (`h2` size 32 px / 600, right-aligned: *Software Engineer* / *QA & Web Developer*); top-right under nav: availability pill `● Open to work · Oct 2026` (mono, success dot).
 5. Bottom-left corner: `//  INTRO` label as the scroll cue, matching the reference's transition into the next section.
 
@@ -140,13 +140,13 @@ Mobile: cards stack normally (no sticky), numeral hidden, list unchanged.
 
 ## 4.5 Projects (dark, stacked cards)
 
-Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5): left — screenshot carousel (2–4 images, 16 px radius, click opens lightbox); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, one-sentence description, role line (mono), tag list with hairline dividers, CTA row per the PRD rules.
+Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 6/6 from 1024 to 1279 px for a card with images): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, one short description, role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules. A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092).
 
 Research card uses the same anatomy with a PDF icon and "Read the paper (PDF)".
 
 ## 4.6 QA Evidence (paper)
 
-A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDENCE`. Left column: a short statement about the Bank Mandiri experience (no confidential detail). Right column: a 3-up grid of document previews — Test Plan, Test Cases, Bug Report — from Trading Compass, each opening the lightbox. Captions in mono.
+A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDENCE`. Left column: a short statement about the Bank Mandiri experience (no confidential detail). Right column: a 3-up grid of document previews — Test Plan, Test Cases, Bug Report — from PintuKos (Trading Compass until M4b), each opening the lightbox. Captions in mono.
 
 ## 4.7 Experience & Education (dark)
 
@@ -197,8 +197,8 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 # 7. Imagery rules
 
-- Portraits: colour originals, `color-soft` variant (−30 % saturation) is the approved alternative if the full-colour version clashes with the paper surface in M1 review. Never mix treatments between hero and Reach Out.
-- Project screenshots: real UI only, 16:10 crops, no device mockups, no fake data that looks like real users; light drop of 1 px `ink-700` border on dark.
+- Portraits: the hero uses the colour original only (`kenny-hero-formal@2x.webp` since M4b); no alternate treatments are kept. Reach Out shows the polaroid line, not a portrait (§4.9).
+- Project screenshots: real UI only, 16:10 crops, no device mockups, no fake data that looks like real users; light drop of 1 px `ink-700` border on dark. **Owner exception (M4b):** design renders are allowed when every image's alt text, and so its lightbox caption, says so ("design render, sample data"). The PintuKos boards are 16:9 renders with phone frames and sample data, because the live app holds real tenants' data behind a login (`docs/DECISIONS.md` 2026-11-13).
 - Certificates: photographed originals, straightened, no filters.
 - No stock photos, no illustrations, no icons other than a minimal line set (Lucide) at 1.5 px stroke.
 
@@ -232,9 +232,10 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 
 | Asset | File | Notes |
 |---|---|---|
-| Hero portrait | `public/images/portrait/kenny-hero-crop-color@2x.webp` | 1045 × 1600 (v2 cutout); soft fade at bottom |
+| Hero portrait | `public/images/portrait/kenny-hero-formal@2x.webp` | 1070 × 1600 RGBA WebP (144 KB), the formal portrait (M4b), the only tracked portrait; the bottom fade is baked in (the side edges stay opaque at shoulder height, checklist C-01) |
 | Reach Out polaroids | `public/images/polaroids/polaroid-{01-comprehensive-exam,02-graduation,03-working-laptop,04-nusa-penida,05-touring,06-portrait}.webp` | 1200 × 1200, each under 300 KB; data in `content/polaroids.ts` |
-| Alternates | `kenny-hero-crop-color-soft@2x.webp`, `kenny-hero-crop-bw@2x.webp` | WebP only in git; PNG masters (0.8–1.3 MB each) stay in the owner's source zip, ignored by git |
+| Project images | `public/images/projects/pintukos-{01-overview,02-payment-flow,03-owner-tools,04-design-system}.webp` | 1600 × 900 (16:9) WebP, 51–89 KB each; design renders with sample data and Indonesian on-board text (exception to §7); data and bilingual alts in `content/projects.ts` (M4b) |
+| CV | `public/cv/kenny-cv-2026-11-en.pdf` | 62 KB English PDF, `site.cvUrl`; named by month, so a new version gets a new file name (M4b) |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | 480 × 480 RGBA, lens only (no letters), 27 KB; `node scripts/export-glass-fallback.mjs` against `next dev -p 3100` (difference matte of the dev scene over black and white) |
 | Ticker font (WebGL) | `public/fonts/InterDisplay-Medium-ticker.woff` | 1.8 KB WOFF of Inter Display Medium, only the ticker's glyphs, GPOS `kern` only; subset command in `docs/DECISIONS.md` |
