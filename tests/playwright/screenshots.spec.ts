@@ -3,6 +3,8 @@
 // at 1440 (hero after the entrance, Services and Projects mid-stack).
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
+import en from '../../content/en'
+import id from '../../content/id'
 import { revealAll, selectLang } from './helpers'
 
 // Full-page capture under combined mobile emulation (isMobile + DPR 2.6) drops the
@@ -107,5 +109,74 @@ test.describe('motion frames', () => {
     await page.screenshot({ path: shot('desktop-motion-services') })
     await midStack(page, 'work', 2, 0.6)
     await page.screenshot({ path: shot('desktop-motion-work') })
+
+    // M4b: the PintuKos card stuck whole, the next card just below the fold (TC-092), at 1440
+    // and on a 1366 × 768 laptop; then the next card halfway over it.
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 1366, height: 768 },
+    ]) {
+      await page.setViewportSize(viewport)
+      // midStack measures card 1 in flow: start from the section top, before anything sticks.
+      await page.evaluate(() => document.getElementById('work')!.scrollIntoView())
+      await page.waitForTimeout(400)
+      await midStack(page, 'work', 0, 0)
+      await page.screenshot({ path: shot(`desktop-motion-work-pintukos-${viewport.width}`) })
+    }
+    await midStack(page, 'work', 0, 0.6)
+    await page.screenshot({ path: shot('desktop-motion-work-pintukos-covered') })
+  })
+})
+
+// M4b (TC-016): the PintuKos lightbox at 1440 and 390, in EN and ID.
+for (const lang of ['en', 'id'] as const) {
+  test(`PintuKos lightbox (${lang})`, async ({ page }, testInfo) => {
+    const copy = lang === 'en' ? en : id
+    await page.goto('/')
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const cover = page.getByRole('button', {
+      name: copy.projects.openScreenshots.replace('{title}', copy.projects.items.pintukos.title),
+    })
+    await cover.scrollIntoViewIfNeeded()
+    await cover.click()
+    const image = page.getByRole('dialog', { name: copy.lightbox.label }).getByRole('img')
+    await expect
+      .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+      .toBe(true)
+    await page.screenshot({ path: shot(`${testInfo.project.name}-lightbox-pintukos-${lang}`) })
+  })
+}
+
+// M4b (owner checklist C-01): the formal portrait's shoulders, where the file's side edges are
+// opaque (rows ~954–1016 of 1600), magnified 2× against the paper and the glow.
+test.describe('hero shoulders', () => {
+  test.use({ deviceScaleFactor: 2 })
+
+  test('hero portrait shoulder crop', async ({ page }, testInfo) => {
+    await page.goto('/')
+    const portrait = page.locator('#hero-portrait')
+    await expect
+      .poll(() =>
+        portrait.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+      )
+      .toBe(true)
+    await page.evaluate(() => document.fonts.ready)
+    const box = (await portrait.boundingBox())!
+    const pad = 48
+    const x = Math.max(0, box.x - pad)
+    const clip = {
+      x,
+      y: box.y + box.height * 0.55,
+      width: Math.min(box.x + box.width + pad, page.viewportSize()!.width) - x,
+      height: box.height * 0.14,
+    }
+    await page.screenshot({
+      path: shot(`${testInfo.project.name}-hero-shoulders`),
+      clip,
+      animations: 'disabled',
+    })
   })
 })
