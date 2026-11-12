@@ -152,19 +152,19 @@ const en = {
     statement:
       'At Bank Mandiri I tested Project Kopra, a wholesale digital super-platform, through manual and UAT cycles.',
     paragraph:
-      'Project artifacts from Kopra are confidential, so the documents here come from my own products: the test plan, test cases and bug reports produced while taking Trading Compass through QA.',
+      'Kopra artifacts are confidential, so the evidence here comes from my own product, PintuKos: 2,000+ unit tests, Playwright end-to-end tests with axe audits, SQL checks and an 85-step UAT.',
     artifacts: {
       'test-plan': {
         title: 'Test plan',
-        caption: 'Trading Compass · scope, risks, entry and exit criteria',
+        caption: 'PintuKos · scope, risks, entry and exit criteria',
       },
       'test-cases': {
         title: 'Test cases',
-        caption: 'Trading Compass · scenario- and step-level cases',
+        caption: 'PintuKos · scenario- and step-level cases',
       },
       'bug-report': {
         title: 'Bug report',
-        caption: 'Trading Compass · severity, steps to reproduce, re-test',
+        caption: 'PintuKos · severity, steps to reproduce, re-test',
       },
     },
   },
@@ -185,7 +185,7 @@ const en = {
       ],
     },
     education: {
-      period: '',
+      period: '2021 — Jan 2026',
       title: 'Bachelor of Information Systems (S.Kom)',
       org: 'Universitas Gunadarma — Faculty of Computer Science & Information Technology',
       location: 'Depok',

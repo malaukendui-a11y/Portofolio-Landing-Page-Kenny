@@ -240,18 +240,28 @@ test.describe('404 page', () => {
   })
 })
 
-// TC-082: an unconfirmed period or description renders no empty paragraph (PRD §12.6).
-test('the Experience timeline has no empty paragraphs', async ({ page }) => {
+// TC-082: an empty period or description renders no empty paragraph; the owner's periods
+// (PRD §12.6, M4b) show in both languages. The education description is still empty, so the
+// empty-paragraph rule keeps running on live data.
+test('the Experience timeline shows both periods and has no empty paragraphs', async ({ page }) => {
+  expect(en.experience.education.period).toBe('2021 — Jan 2026')
+  expect(id.experience.education.period).toBe('2021 — Jan 2026')
   await page.goto('/')
   const timeline = page.locator('#experience')
-  const empty = await timeline
-    .locator('p')
-    .evaluateAll((paragraphs) => paragraphs.filter((p) => !p.textContent?.trim()).length)
-  expect(empty).toBe(0)
-  for (const entry of [en.experience.work, en.experience.education]) {
-    if (entry.period) await expect(timeline.getByText(entry.period, { exact: true })).toBeAttached()
+  for (const copy of [en, id]) {
+    if (copy === id) {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const empty = await timeline
+      .locator('p')
+      .evaluateAll((paragraphs) => paragraphs.filter((p) => !p.textContent?.trim()).length)
+    expect(empty).toBe(0)
+    for (const entry of [copy.experience.work, copy.experience.education]) {
+      await expect(timeline.getByText(entry.period, { exact: true })).toBeVisible()
+      await expect(timeline.getByRole('heading', { name: entry.title })).toBeVisible()
+    }
   }
-  await expect(timeline.getByRole('heading', { name: en.experience.work.title })).toBeAttached()
 })
 
 // TC-084
