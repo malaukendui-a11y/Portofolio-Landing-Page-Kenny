@@ -110,7 +110,11 @@ export interface ProjectCta {
   primary: boolean
 }
 
-/** Derives the CTA row for a card. Never hard-code buttons in components. */
+/**
+ * Derives the CTA row for a card. Never hard-code buttons in components.
+ * A `live` project without a public `liveUrl` (a private deployment, PRD §6.1 "Live (no public
+ * URL)") previews its images in the lightbox instead, like `in-qa`.
+ */
 export function ctasFor(project: Project): ProjectCta[] {
   const ctas: ProjectCta[] = []
   const hasImages = project.images.length > 0
@@ -118,6 +122,7 @@ export function ctasFor(project: Project): ProjectCta[] {
   switch (project.status) {
     case 'live':
       if (project.liveUrl) ctas.push({ kind: 'liveDemo', href: project.liveUrl, primary: true })
+      else if (hasImages) ctas.push({ kind: 'preview', primary: true })
       break
     case 'in-qa':
     case 'in-development':
