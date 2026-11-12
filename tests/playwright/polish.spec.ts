@@ -206,12 +206,13 @@ test.describe('404 page', () => {
     await expect(page.locator('title')).toHaveCount(1)
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(0)
-    // The nav leads to the home page's sections, not to anchors on this page.
+    // The nav leads to the home page's sections, not to anchors on this page. The CV link is
+    // root-relative already (it is in the DOM at both sizes, shown from md up).
     expect(
       await page
         .locator('header nav a')
         .evaluateAll((links) => links.map((a) => a.getAttribute('href'))),
-    ).toEqual(['/', '/#work', '/#about', '/#contact'])
+    ).toEqual(['/', '/#work', '/#about', '/#contact', site.cvUrl])
 
     await selectLang(page, 'ID')
     await expect(page.locator('html')).toHaveAttribute('lang', 'id')

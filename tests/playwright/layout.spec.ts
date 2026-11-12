@@ -2,6 +2,7 @@
 // TC-010 (mobile menu open/close), TC-011 (nav backdrop after scroll),
 // TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV).
 import { readFileSync } from 'node:fs'
+import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
@@ -121,9 +122,46 @@ test.describe('contact actions', () => {
   })
 })
 
-test('Download CV renders only when site.cvUrl is set', async ({ page }) => {
+// TC-014 (PRD F-09): the nav (desktop), the menu (mobile) and Intro link the PDF for download,
+// in both languages, and the build serves it as a PDF.
+test('Download CV links the PDF from the nav, the menu and Intro', async ({
+  page,
+  request,
+}, testInfo) => {
+  expect(site.cvUrl).toMatch(/^\/cv\/.+\.pdf$/)
+  const cv = site.cvUrl!
+  const expectCv = async (link: Locator) => {
+    await expect(link).toBeVisible()
+    await expect(link).toHaveAttribute('href', cv)
+    await expect(link).toHaveAttribute('download', '')
+  }
+
   await page.goto('/')
-  const links = page.getByRole('link', { name: en.nav.downloadCv })
-  if (site.cvUrl) await expect(links.first()).toBeVisible()
-  else await expect(links).toHaveCount(0)
+  for (const copy of [en, id]) {
+    if (copy === id) {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const nav = page.locator('header').getByRole('link', { name: copy.nav.downloadCv })
+    if (testInfo.project.name === 'mobile') {
+      // Below md the header has only the hamburger; the CV button lives in the menu.
+      await expect(nav).toHaveCount(0)
+      await page.getByRole('button', { name: copy.nav.openMenu }).click()
+      await expectCv(page.locator('#mobile-menu').getByRole('link', { name: copy.nav.downloadCv }))
+      await page.keyboard.press('Escape')
+      await expect(page.locator('#mobile-menu')).toBeHidden()
+    } else {
+      await expectCv(nav)
+    }
+    const intro = page.locator('#about').getByRole('link', { name: copy.intro.downloadCv })
+    await intro.scrollIntoViewIfNeeded()
+    await expectCv(intro)
+  }
+
+  const response = await request.get(cv)
+  expect(response.status()).toBe(200)
+  expect(response.headers()['content-type']).toBe('application/pdf')
+  const body = await response.body()
+  expect(body.subarray(0, 5).toString('latin1')).toBe('%PDF-')
+  expect(body.length, 'CV ≤ 500 KB').toBeLessThanOrEqual(500 * 1024)
 })
