@@ -5,7 +5,11 @@ const en = {
   meta: {
     title: 'Ananda Kenny — Software Engineer with a QA foundation',
     description:
-      'Portfolio of Ananda Kenny, a software engineer and QA & web developer in East Jakarta, Indonesia. Web products built with Next.js and tested like a user would.',
+      'Portfolio of Ananda Kenny, a software engineer and QA & web developer in East Jakarta, Indonesia. Next.js web products, tested like a user would.',
+    og: {
+      label: 'Portfolio',
+      alt: 'Portfolio card: “Ananda Kenny” in large type on warm paper, with the roles Software Engineer and QA & Web Developer',
+    },
   },
   nav: {
     brand: '© Ananda Kenny',
@@ -169,7 +173,7 @@ const en = {
     heading: 'Experience',
     educationHeading: 'Education',
     work: {
-      period: '',
+      period: 'Aug 2026',
       title: 'Quality Assurance — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
@@ -270,6 +274,13 @@ const en = {
     copyright: '© {year} Ananda Kenny',
     builtWith: 'Built with Next.js, GSAP & React Three Fiber',
     languageNote: 'Available in English and Bahasa Indonesia.',
+  },
+  notFound: {
+    label: '404',
+    title: 'Page not found — Ananda Kenny',
+    heading: 'This page doesn’t exist',
+    body: 'The link may be old or mistyped. Everything else is on the home page.',
+    cta: 'Back to the home page',
   },
 } satisfies Copy
 

@@ -7,6 +7,7 @@ import { Projects } from '@/components/sections/Projects'
 import { QAEvidence } from '@/components/sections/QAEvidence'
 import { ReachOut } from '@/components/sections/ReachOut'
 import { Services } from '@/components/sections/Services'
+import { LangHtmlSync } from '@/components/ui/LangHtmlSync'
 import { Loader } from '@/components/ui/Loader'
 import { MotionRoot } from '@/components/ui/MotionRoot'
 import { Nav } from '@/components/ui/Nav'
@@ -18,6 +19,7 @@ export default function HomePage() {
     <>
       {/* First in <body>: the overlay must exist before any content can paint. */}
       <Loader />
+      <LangHtmlSync />
       <MotionRoot />
       <SkipLink />
       <Nav />

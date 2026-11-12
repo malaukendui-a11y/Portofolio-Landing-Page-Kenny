@@ -49,6 +49,18 @@ for (const lang of ['en', 'id'] as const) {
   })
 }
 
+// TC-086 (M4a): the 404 page for the owner's review, at 1440 and 390.
+test('404 page screenshot', async ({ page }, testInfo) => {
+  await page.goto('/this-page-does-not-exist')
+  await page.evaluate(() => document.fonts.ready)
+  await page.screenshot({
+    path: shot(`${testInfo.project.name}-404`),
+    fullPage: true,
+    scale: 'css',
+    animations: 'disabled',
+  })
+})
+
 /** Scrolls so card n+1 is `fraction` of the way from the viewport bottom to its sticky top. */
 async function midStack(page: Page, section: string, index: number, fraction: number) {
   await page.evaluate(

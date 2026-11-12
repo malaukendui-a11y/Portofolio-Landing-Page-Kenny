@@ -60,6 +60,7 @@ tests/              playwright/
 - Before claiming a milestone is done: run `pnpm build`, `pnpm test`, `pnpm lhci`; paste the numbers in the PR/summary; list what was *not* verified.
 - Keep `docs/QA-PLAN.md` current: every feature adds a test case (ID, steps, expected, device/browser). The owner executes manual/UAT passes from it.
 - Prefer a Vercel preview URL for every milestone so the owner can review on real devices.
+- Any PR touching `components/hero/*`, `components/three/*` or `lib/three/*` must include `pnpm lhci` numbers measured on a machine with a GPU; CI has none and measures the static-lens page.
 
 ## 7. Definition of done (per milestone)
 

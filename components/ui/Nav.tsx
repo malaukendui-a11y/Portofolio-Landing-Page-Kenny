@@ -16,13 +16,17 @@ import { MenuIcon, XIcon } from './icons'
  * the page has scrolled past the 80 px sentinel (IntersectionObserver, no scroll
  * listener). Mobile: brand + hamburger opening a full-screen ink-900 <dialog> with
  * the same links, the language toggle and the CV button (hidden while cvUrl is null).
+ *
+ * `base` is set on pages other than the home page (the 404): links then point at the home page's
+ * sections (`/#work`), the brand at `/`, and the menu lets the browser navigate instead of
+ * scrolling in place. On the home page the bare `#…` links go through MotionRoot's anchor handler.
  */
-export function Nav() {
+export function Nav({ base = '' }: { base?: string }) {
   const { t } = useLang()
   const links = [
-    { href: '#work', label: t.nav.work },
-    { href: '#about', label: t.nav.about },
-    { href: '#contact', label: t.nav.contact },
+    { href: `${base}#work`, label: t.nav.work },
+    { href: `${base}#about`, label: t.nav.about },
+    { href: `${base}#contact`, label: t.nav.contact },
   ]
 
   // Scroll backdrop
@@ -66,6 +70,12 @@ export function Nav() {
   }, [focus])
 
   const onMenuLinkClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    // Another page: let the browser navigate, but close the dialog first so a back navigation
+    // that restores this page from the cache does not find the menu open and the page locked.
+    if (base) {
+      menuRef.current?.close()
+      return
+    }
     event.preventDefault()
     pendingHash.current = href
     menuRef.current?.close()
@@ -83,7 +93,7 @@ export function Nav() {
           aria-label={t.nav.menu}
           className="grid grid-cols-[1fr_auto] items-center gap-4 md:grid-cols-[1fr_auto_1fr]"
         >
-          <a href="#top" className="text-body-lg text-fg">
+          <a href={base || '#top'} className="text-body-lg text-fg">
             {t.nav.brand}
           </a>
           <ul className="hidden items-center gap-8 md:flex">

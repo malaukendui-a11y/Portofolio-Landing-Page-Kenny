@@ -8,6 +8,13 @@ import type { Lang } from './types'
 export const site = {
   name: 'Ananda Kenny Esqiel Bisaratua',
   brand: 'Ananda Kenny',
+  /**
+   * Production URL until the custom domain (PRD §12.8). `NEXT_PUBLIC_SITE_URL` overrides it at
+   * build time (lib/seo.ts), so M5 switches domains without a code change.
+   */
+  url: 'https://portofolio-landing-page-kenny.vercel.app',
+  /** OpenGraph locales (`og:locale` / `og:locale:alternate`) per language. */
+  ogLocale: { en: 'en_ID', id: 'id_ID' } satisfies Record<Lang, string>,
   defaultLang: 'en' as Lang,
   email: 'malaukendui@gmail.com',
   whatsapp: {
@@ -23,7 +30,8 @@ export const site = {
   linkedin: null as string | null,
   /** PRD §12.4 — pending. Versioned filename under /public/cv. */
   cvUrl: null as string | null,
-  location: { city: 'East Jakarta', country: 'Indonesia' },
+  /** `countryCode` is ISO 3166-1 alpha-2, for structured data (JSON-LD `addressCountry`). */
+  location: { city: 'East Jakarta', country: 'Indonesia', countryCode: 'ID' },
   /** PRD F-11: a single flag drives the "Open to work" badge. `since` = YYYY-MM. */
   availability: { open: true, since: '2026-10' },
   /** Used for the footer copyright. */

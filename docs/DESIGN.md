@@ -238,6 +238,6 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | 480 × 480 RGBA, lens only (no letters), 27 KB; `node scripts/export-glass-fallback.mjs` against `next dev -p 3100` (difference matte of the dev scene over black and white) |
 | Ticker font (WebGL) | `public/fonts/InterDisplay-Medium-ticker.woff` | 1.8 KB WOFF of Inter Display Medium, only the ticker's glyphs, GPOS `kern` only; subset command in `docs/DECISIONS.md` |
-| OG image | generated at `app/opengraph-image.tsx` | 1200×630 from hero composition |
+| OG image | `app/opengraph-image.png` + `app/opengraph-image.alt.txt` | 1200 × 630 static PNG (≤ 300 KB) in the hero's language, no photo, no URL; `node scripts/export-og.mjs` captures the dev-only `/dev/og-export` against `next dev -p 3100` (M4a, `docs/DECISIONS.md`) |
 | Certificates | `public/images/certs/cert-gunadarma-{designing-software,javascript-fundamentals,desktop-programming}.webp`, `cert-revou-intro-software-engineering.webp` | WebP conversions of the photographed originals; data in `content/certifications.ts` |
 | Monogram | `public/brand/k-monogram.svg` | from `kenny-k-logo.svg`, recoloured to tokens |
