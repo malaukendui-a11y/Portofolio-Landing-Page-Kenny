@@ -107,6 +107,7 @@ const id = {
     },
     cta: {
       liveDemo: 'Demo langsung',
+      liveDemoPrivate: 'Buka aplikasi · hanya undangan',
       github: 'GitHub',
       preview: 'Pratinjau',
       previewDesigns: 'Pratinjau desain',

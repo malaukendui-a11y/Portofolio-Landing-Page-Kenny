@@ -107,6 +107,7 @@ const en = {
     },
     cta: {
       liveDemo: 'Live demo',
+      liveDemoPrivate: 'Open app · invite only',
       github: 'GitHub',
       preview: 'Preview',
       previewDesigns: 'Preview designs',

@@ -117,7 +117,9 @@ export function Projects() {
                             <FileTextIcon />
                           ) : null}
                           {t.projects.cta[cta.kind]}
-                          {cta.kind === 'liveDemo' || cta.kind === 'github' ? (
+                          {cta.kind === 'liveDemo' ||
+                          cta.kind === 'liveDemoPrivate' ||
+                          cta.kind === 'github' ? (
                             <ArrowUpRightIcon />
                           ) : null}
                         </ButtonLink>

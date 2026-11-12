@@ -26,6 +26,12 @@ export interface Project {
   status: ProjectStatus
   year: string
   liveUrl: string | null
+  /**
+   * 'private': the app at `liveUrl` needs an invite (a login), so its CTA says so and the preview
+   * stays beside it (PRD §6.1 "Live (invite only)", M4b batch 2). Unset: the app is public.
+   * Only read for a `live` project with a `liveUrl`.
+   */
+  access?: 'private'
   repoUrl: string | null
   /**
    * True only for a repo verified public and ready to show (PRD §11). A public repo can stay
@@ -47,10 +53,12 @@ export const projects: readonly Project[] = [
   {
     id: 'pintukos',
     kind: 'product',
-    // Live as a private family deployment behind a login: no public URL to link (PRD §6.1).
+    // Live as a private family deployment behind a login; the app is linked with an invite-only
+    // label (PRD §6.1 "Live (invite only)", owner decision in M4b batch 2).
     status: 'live',
     year: '2026',
-    liveUrl: null,
+    liveUrl: 'https://app.pintukos.my.id/',
+    access: 'private',
     repoUrl: 'https://github.com/malaukendui-a11y/Pengelola-Keuangan-Kos-Kontrakan-Kenny',
     // Owner decision: private while in beta.
     repoPublic: false,
@@ -149,7 +157,13 @@ export const projects: readonly Project[] = [
 ]
 
 export type CtaKind =
-  'liveDemo' | 'github' | 'preview' | 'previewDesigns' | 'readPlan' | 'readPaper'
+  | 'liveDemo'
+  | 'liveDemoPrivate'
+  | 'github'
+  | 'preview'
+  | 'previewDesigns'
+  | 'readPlan'
+  | 'readPaper'
 
 export interface ProjectCta {
   kind: CtaKind
@@ -160,8 +174,10 @@ export interface ProjectCta {
 
 /**
  * Derives the CTA row for a card. Never hard-code buttons in components.
- * A `live` project without a public `liveUrl` (a private deployment, PRD §6.1 "Live (no public
- * URL)") previews its images in the lightbox instead, like `in-qa`.
+ * A `live` project with a `liveUrl` links it: "Live demo" when the app is public; the invite-only
+ * label when `access` is 'private' (PRD §6.1 "Live (invite only)"), followed by its preview,
+ * since most visitors cannot log in. A `live` project without a `liveUrl` (PRD §6.1 "Live (no
+ * public URL)") previews its images in the lightbox instead, like `in-qa`.
  */
 export function ctasFor(project: Project): ProjectCta[] {
   const ctas: ProjectCta[] = []
@@ -169,8 +185,14 @@ export function ctasFor(project: Project): ProjectCta[] {
 
   switch (project.status) {
     case 'live':
-      if (project.liveUrl) ctas.push({ kind: 'liveDemo', href: project.liveUrl, primary: true })
-      else if (hasImages) ctas.push({ kind: 'preview', primary: true })
+      if (project.liveUrl && project.access === 'private') {
+        ctas.push({ kind: 'liveDemoPrivate', href: project.liveUrl, primary: true })
+        if (hasImages) ctas.push({ kind: 'preview', primary: false })
+      } else if (project.liveUrl) {
+        ctas.push({ kind: 'liveDemo', href: project.liveUrl, primary: true })
+      } else if (hasImages) {
+        ctas.push({ kind: 'preview', primary: true })
+      }
       break
     case 'in-qa':
     case 'in-development':
