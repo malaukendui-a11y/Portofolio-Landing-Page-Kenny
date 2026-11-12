@@ -56,6 +56,32 @@ test('the hero portrait file is a 1070 × 1600 WebP with alpha', () => {
   expect(bytes[20] & 0x10, 'alpha flag').toBe(0x10)
 })
 
+// TC-008, M4b batch 2 (checklist C-01): the re-exported portrait fades in above the shoulder tips,
+// so no straight edge shows at shoulder height. The outermost three columns' alpha over rows
+// 900–1100 peaks at 6 (the batch-1 file: 210). Read from the static file, decoded by the browser.
+test('the hero portrait has no opaque side edge at shoulder height', async ({ page }) => {
+  test.skip(test.info().project.name !== 'desktop', 'a file check, once')
+  await page.goto('/')
+  const peak = await page.evaluate(async () => {
+    const img = new Image()
+    img.src = '/images/portrait/kenny-hero-formal@2x.webp'
+    await img.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const context = canvas.getContext('2d')!
+    context.drawImage(img, 0, 0)
+    let max = 0
+    for (const x of [0, 1, 2, canvas.width - 3, canvas.width - 2, canvas.width - 1]) {
+      const { data } = context.getImageData(x, 900, 1, 201)
+      for (let i = 3; i < data.length; i += 4) max = Math.max(max, data[i])
+    }
+    return { max, width: canvas.width, height: canvas.height }
+  })
+  expect([peak.width, peak.height]).toEqual([1070, 1600])
+  expect(peak.max, 'side-edge alpha at shoulder height').toBeLessThanOrEqual(8)
+})
+
 test('no horizontal overflow at the top or the bottom of the page', async ({ page }) => {
   await page.goto('/')
   expect(await hasNoHorizontalOverflow(page)).toBe(true)

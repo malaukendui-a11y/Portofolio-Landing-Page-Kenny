@@ -1,6 +1,7 @@
 // TC-016: screenshots for the owner's review (CLAUDE.md §7), written to
-// test-results/screenshots/: full pages per viewport and language, plus M2 motion frames
-// at 1440 (hero after the entrance, Services and Projects mid-stack).
+// test-results/screenshots/: full pages per viewport and language, M2 motion frames at 1440
+// (hero after the entrance, Services and Projects mid-stack), and the M4b captures (the PintuKos
+// card stuck and covered, the project and QA lightboxes, the QA section, the hero's shoulders).
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
@@ -155,8 +156,9 @@ for (const lang of ['en', 'id'] as const) {
   })
 }
 
-// M4b (owner checklist C-01): the formal portrait's shoulders, where the file's side edges are
-// opaque (rows ~954–1016 of 1600), magnified 2× against the paper and the glow.
+// M4b (owner checklist C-01): the formal portrait's shoulders (rows ~950–1060 of 1600), magnified 2×
+// against the paper and the glow. Since batch 2 the file's side edges fade in above the shoulder
+// tips (outermost columns' alpha ≤ 6, was 210; layout.spec guards it).
 test.describe('hero shoulders', () => {
   test.use({ deviceScaleFactor: 2 })
 
@@ -184,4 +186,92 @@ test.describe('hero shoulders', () => {
       animations: 'disabled',
     })
   })
+})
+
+/** Waits until every image inside `selector` has loaded (lazy ones are switched to eager). */
+async function imagesLoaded(page: Page, selector: string) {
+  await page.evaluate((sel) => {
+    for (const img of Array.from(document.querySelectorAll<HTMLImageElement>(`${sel} img`))) {
+      img.loading = 'eager'
+    }
+  }, selector)
+  await expect
+    .poll(
+      () =>
+        page.evaluate((sel) => {
+          const images = Array.from(document.querySelectorAll<HTMLImageElement>(`${sel} img`))
+          return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0)
+        }, selector),
+      { timeout: 20_000 },
+    )
+    .toBe(true)
+}
+
+// M4b batch 2 (TC-016): the QA evidence section and its lightbox on the E2E report, at 1440 and
+// 390, in EN and ID.
+for (const lang of ['en', 'id'] as const) {
+  test(`QA evidence section and lightbox (${lang})`, async ({ page }, testInfo) => {
+    const copy = lang === 'en' ? en : id
+    await page.goto('/')
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const qa = page.locator('#qa')
+    await qa.scrollIntoViewIfNeeded()
+    await imagesLoaded(page, '#qa')
+    await expect
+      .poll(() =>
+        qa.evaluate((section) =>
+          Array.from(section.querySelectorAll('[data-reveal]')).every(
+            (element) => getComputedStyle(element).opacity === '1',
+          ),
+        ),
+      )
+      .toBe(true)
+    // An element capture scrolls under the sticky header, which would be painted mid-section.
+    await qa.screenshot({
+      path: shot(`${testInfo.project.name}-qa-${lang}`),
+      animations: 'disabled',
+      style: 'header { visibility: hidden !important; }',
+    })
+
+    const tile = qa.getByRole('button', {
+      name: copy.qa.artifacts['e2e-report'].title,
+      exact: true,
+    })
+    await tile.click()
+    const image = page.getByRole('dialog', { name: copy.lightbox.label }).getByRole('img')
+    await expect
+      .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+      .toBe(true)
+    await page.screenshot({ path: shot(`${testInfo.project.name}-lightbox-qa-${lang}`) })
+  })
+}
+
+// M4b batch 2 (TC-016, TC-092): in ID the PintuKos CTA row is widest ("Buka aplikasi · hanya
+// undangan" + "Pratinjau"): the card just stuck at its sticky top on a 1280 × 800 window (the row
+// wraps there) and on 1024 × 768 (5/7 split, one row).
+test('ID: the PintuKos card stuck at 1280 and 1024', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+  await page.goto('/')
+  await selectLang(page, 'ID')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+  for (const viewport of [
+    { width: 1280, height: 800 },
+    { width: 1024, height: 768 },
+  ]) {
+    await page.setViewportSize(viewport)
+    // Measure in flow: from the section top, before anything sticks.
+    await page.evaluate(() => document.getElementById('work')!.scrollIntoView())
+    await page.waitForTimeout(400)
+    await imagesLoaded(page, '#work article:first-of-type')
+    await page.evaluate(() => {
+      const card = document.querySelector<HTMLElement>('#work article')!
+      const stickyTop = parseFloat(getComputedStyle(card).top)
+      window.scrollTo(0, window.scrollY + card.getBoundingClientRect().top - stickyTop)
+    })
+    await page.waitForTimeout(400)
+    await page.screenshot({ path: shot(`desktop-motion-work-pintukos-id-${viewport.width}`) })
+  }
 })
