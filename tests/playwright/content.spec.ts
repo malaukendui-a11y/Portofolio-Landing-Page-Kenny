@@ -150,6 +150,11 @@ test('the PintuKos lightbox shows the four boards with captions in both language
       await expect(dialog.locator('figcaption')).toContainText(
         lang === 'en' ? 'design render, sample data' : 'render desain, data contoh',
       )
+      // The caption repeats the alt, so screen readers get it once, from the image.
+      await expect(dialog.locator('figcaption > span').first()).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      )
     }
     await expect
       .poll(() =>
@@ -189,4 +194,59 @@ test('the PintuKos lightbox shows the four boards with captions in both language
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
   await expect(preview).toBeFocused()
+})
+
+/** The lightbox caption's text span and its geometry against the image and the viewport. */
+function captionState(page: Page) {
+  return page.locator('dialog[open] figure').evaluate((figure) => {
+    const image = figure.querySelector('img')!.getBoundingClientRect()
+    const caption = figure.querySelector('figcaption')!
+    const text = caption.firstElementChild as HTMLElement
+    return {
+      visible: getComputedStyle(text).visibility === 'visible',
+      bottom: Math.ceil(caption.getBoundingClientRect().bottom),
+      imageBottom: Math.ceil(image.bottom),
+      innerHeight,
+    }
+  })
+}
+
+// TC-090, the edges: a board still loading shows no caption text (it would wrap in a narrow
+// column, then jump); on a short laptop window the two-line caption stays on screen under a
+// height-bound board (the image leaves it room).
+test('the lightbox caption waits for its board and stays on screen on a short window', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'height-bound boards only happen on wide windows')
+  await page.setViewportSize({ width: 1280, height: 600 })
+  // Hold board 02 (never shown before the lightbox steps to it) until released.
+  let release: () => void = () => {}
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route(/\/_next\/image\?url=%2Fimages%2Fprojects%2Fpintukos-02/, async (route) => {
+    await held
+    await route.continue()
+  })
+  await page.goto('/')
+  const cover = page.getByRole('button', {
+    name: en.projects.openScreenshots.replace('{title}', en.projects.items.pintukos.title),
+  })
+  await cover.scrollIntoViewIfNeeded()
+  await cover.click()
+  const dialog = page.getByRole('dialog', { name: en.lightbox.label })
+  await expect.poll(async () => (await captionState(page)).visible).toBe(true)
+  for (let n = 1; n <= 4; n += 1) {
+    if (n > 1) await page.keyboard.press('ArrowRight')
+    if (n === 2) {
+      // Board 02 is held: its caption text is hidden while it loads, then shows.
+      await expect(dialog.getByRole('img')).toHaveAttribute('src', /pintukos-02/)
+      expect((await captionState(page)).visible).toBe(false)
+      release()
+    }
+    await expect.poll(async () => (await captionState(page)).visible).toBe(true)
+    const state = await captionState(page)
+    expect(state.bottom, `board ${n}: caption bottom ≤ viewport`).toBeLessThanOrEqual(
+      state.innerHeight,
+    )
+    expect(state.bottom).toBeGreaterThan(state.imageBottom)
+  }
 })

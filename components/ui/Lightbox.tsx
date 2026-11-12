@@ -53,6 +53,9 @@ function Lightbox({
 
   const total = state?.items.length ?? 0
   const item = state ? state.items[state.index] : null
+  // Until an image has loaded its box has no size, so a caption that wraps at the image's
+  // width would wrap in a narrow column and then jump: keep the text hidden until then.
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
 
   const step = (delta: number) => {
     if (!state || total < 2) return
@@ -93,13 +96,20 @@ function Lightbox({
               height={item.height}
               alt={item.alt}
               sizes="90vw"
-              className="h-auto max-h-[85vh] w-auto max-w-[90vw] rounded-lightbox object-contain shadow-lightbox"
+              onLoad={() => setLoadedSrc(item.src)}
+              onError={() => setLoadedSrc(item.src)}
+              // 4rem below the image is kept for a caption of up to two lines, so on a short
+              // laptop window the caption stays on screen under a height-bound image.
+              className="h-auto max-h-[calc(85vh_-_4rem)] w-auto max-w-[90vw] rounded-lightbox object-contain shadow-lightbox"
             />
             {/* w-0 + min-w-full: a long caption wraps at the image's width instead of widening
                 the figure past it. */}
             <figcaption className="mt-4 flex w-0 min-w-full items-start justify-between gap-6 font-mono text-meta-sm md:text-meta">
               {/* Without a caption the alt is shown; the image already announces it. */}
-              <span aria-hidden={item.caption === undefined || undefined}>
+              <span
+                aria-hidden={item.caption === undefined || undefined}
+                className={loadedSrc === item.src ? undefined : 'invisible'}
+              >
                 {item.caption ?? item.alt}
               </span>
               {total > 1 && (
