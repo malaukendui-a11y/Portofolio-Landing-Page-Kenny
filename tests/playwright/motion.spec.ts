@@ -412,6 +412,46 @@ test.describe('stacked cards', () => {
     }
   })
 
+  // TC-092: a stuck card taller than the space below its sticky top never shows its bottom
+  // (stack rows, the CTA row) while the cards stack, and focus there would stay obscured
+  // (WCAG 2.2 SC 2.4.11). Every project card must fit, in both languages.
+  test('every project card fits below its sticky top', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+    await page.goto('/')
+    const margins: string[] = []
+    for (const lang of ['en', 'id'] as const) {
+      if (lang === 'id') {
+        await selectLang(page, 'ID')
+        await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+      }
+      for (const viewport of [
+        { width: 1440, height: 900 },
+        { width: 1366, height: 768 },
+        { width: 1280, height: 800 },
+        { width: 1024, height: 768 },
+      ]) {
+        await page.setViewportSize(viewport)
+        await page.evaluate(() => document.fonts.ready)
+        const cards = page.locator('#work article')
+        await expect(cards.first()).toHaveCSS('position', 'sticky')
+        // px of each card below the fold while it is stuck (top = its sticky offset).
+        const overflow = await cards.evaluateAll((articles: HTMLElement[]) =>
+          articles.map((card) =>
+            Math.ceil(parseFloat(getComputedStyle(card).top) + card.offsetHeight - innerHeight),
+          ),
+        )
+        const label = `${lang} ${viewport.width}×${viewport.height}`
+        margins.push(`${label}: ${-Math.max(...overflow)} px to spare`)
+        expect(
+          overflow.filter((px) => px > 0),
+          `${label}: px below the fold per card ${overflow}`,
+        ).toEqual([])
+      }
+    }
+    testInfo.annotations.push({ type: 'card-fit', description: margins.join('; ') })
+    console.log(`card fit: ${margins.join('; ')}`)
+  })
+
   test('below 1024 px the cards are a plain list', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'the 390 px layout')
     await page.goto('/')

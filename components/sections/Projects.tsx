@@ -16,8 +16,10 @@ import { ArrowUpRightIcon, FileTextIcon } from '@/components/ui/icons'
 /**
  * Projects (DESIGN §4.5, PRD §6): sticky stacked cards from 1024 px, each 24 px lower
  * than the last (useStackedCards); a plain list below that and under reduced motion.
- * Card grid 7/5: screenshots left (only when the project has images — no placeholder),
- * meta right: mono year, status badge, title, description, role, stack rows, CTA row.
+ * Card grid 7/5 from 1280 px and 6/6 from 1024 px: cover image left (only when the project has
+ * images — no placeholder; it opens the lightbox with all of them), meta right: mono year,
+ * status badge, title, description, role, stack rows (two ruled columns from 1024 px), CTA row.
+ * A stuck card must fit below its sticky top, or its bottom never shows (motion.spec TC-092).
  * CTAs come only from ctasFor; lightbox-backed ones render as real buttons.
  */
 export function Projects() {
@@ -55,7 +57,7 @@ export function Projects() {
               className="stack-card stack-offset grid gap-8 rounded-card border border-hairline bg-ink-800 p-6 md:p-10 lg:grid-cols-12 lg:gap-10"
             >
               {hasImages && (
-                <div className="lg:col-span-7">
+                <div className="lg:col-span-6 xl:col-span-7">
                   <button
                     type="button"
                     onClick={() => open(gallery, 0)}
@@ -75,7 +77,7 @@ export function Projects() {
                 </div>
               )}
 
-              <div className={hasImages ? 'lg:col-span-5' : 'lg:col-span-12'}>
+              <div className={hasImages ? 'lg:col-span-6 xl:col-span-5' : 'lg:col-span-12'}>
                 <div className="flex flex-wrap items-center gap-4">
                   <span className="font-mono text-meta text-fg-muted">({project.year})</span>
                   <StatusBadge status={project.status} label={t.projects.status[project.status]} />
@@ -91,10 +93,10 @@ export function Projects() {
                 {project.stack.length > 0 && (
                   <ul
                     aria-label={t.projects.stackLabel}
-                    className="mt-6 max-w-measure border-t border-hairline font-mono text-label"
+                    className="mt-6 max-w-measure border-t border-hairline font-mono text-label lg:columns-2 lg:gap-x-10"
                   >
                     {project.stack.map((tag) => (
-                      <li key={tag} className="border-b border-hairline py-3">
+                      <li key={tag} className="break-inside-avoid border-b border-hairline py-3">
                         {tag}
                       </li>
                     ))}
