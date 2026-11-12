@@ -110,17 +110,22 @@ test.describe('motion frames', () => {
     await midStack(page, 'work', 2, 0.6)
     await page.screenshot({ path: shot('desktop-motion-work') })
 
-    // M4b: the PintuKos card stuck whole, the next card just below the fold (TC-092), at 1440
-    // and on a 1366 × 768 laptop; then the next card halfway over it.
+    // M4b: the PintuKos card at its sticky top (just stuck, nothing over it yet; TC-092), at
+    // 1440 and on a 1366 × 768 laptop; then the next card halfway over it.
     for (const viewport of [
       { width: 1440, height: 900 },
       { width: 1366, height: 768 },
     ]) {
       await page.setViewportSize(viewport)
-      // midStack measures card 1 in flow: start from the section top, before anything sticks.
+      // Measure in flow: from the section top, before anything sticks.
       await page.evaluate(() => document.getElementById('work')!.scrollIntoView())
       await page.waitForTimeout(400)
-      await midStack(page, 'work', 0, 0)
+      await page.evaluate(() => {
+        const card = document.querySelector<HTMLElement>('#work article')!
+        const stickyTop = parseFloat(getComputedStyle(card).top)
+        window.scrollTo(0, window.scrollY + card.getBoundingClientRect().top - stickyTop)
+      })
+      await page.waitForTimeout(400)
       await page.screenshot({ path: shot(`desktop-motion-work-pintukos-${viewport.width}`) })
     }
     await midStack(page, 'work', 0, 0.6)

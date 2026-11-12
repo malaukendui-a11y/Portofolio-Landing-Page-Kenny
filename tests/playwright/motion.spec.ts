@@ -1,6 +1,6 @@
 // M2 motion: TC-022 (Lenis + anchor navigation), TC-023 (marquee), TC-024 (reduced-motion
 // path), TC-027 (reveals + SplitText). F1: TC-052 (marquee under batched intersection changes).
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
@@ -417,10 +417,28 @@ test.describe('stacked cards', () => {
         .poll(focusState, { message: `${viewport.width}x${viewport.height}` })
         .toEqual({ topmost: true, inViewport: true })
 
-      // Forward: Tab from the cover to "Preview" in the same card shows it whole.
+      // Forward, from a fresh load: card 1 is 60 % of the way up, over the bottom of the stuck
+      // PintuKos card, so its cover is clear and its "Preview" is covered. Tab from the cover
+      // must bring "Preview" out whole.
+      await gotoWithLenis(page)
+      await bringNextCard(page, 'work', 0, 0.6)
       const cover = pintukos.getByRole('button', {
         name: en.projects.openScreenshots.replace('{title}', en.projects.items.pintukos.title),
       })
+      const hitAtCentre = (control: Locator) =>
+        control.evaluate((element) => {
+          const rect = element.getBoundingClientRect()
+          const hit = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2,
+          )
+          return hit === null ? 'off-screen' : element.contains(hit) ? 'clear' : 'covered'
+        })
+      await expect
+        .poll(async () => [await hitAtCentre(cover), await hitAtCentre(preview)], {
+          message: `forward precondition ${viewport.width}x${viewport.height}`,
+        })
+        .toEqual(['clear', 'covered'])
       await cover.focus()
       await page.keyboard.press('Tab')
       await expect(preview).toBeFocused()
