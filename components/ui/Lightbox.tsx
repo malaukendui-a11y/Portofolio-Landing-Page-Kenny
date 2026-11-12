@@ -84,10 +84,10 @@ function Lightbox({
         // Click on the backdrop (the dialog element itself, not its children) closes.
         if (event.target === event.currentTarget) event.currentTarget.close()
       }}
-      // The dim is the full-viewport dialog's own background, not `::backdrop` (same pixels):
-      // contrast checkers such as axe cannot see a pseudo-element, and measured the caption and
-      // counter against the section behind the dialog, which fails over a paper section (#qa).
-      className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none bg-ink-900/95 p-0 text-text-on-dark backdrop:bg-transparent"
+      // `surface-dark-dim`: the dim is the full-viewport dialog's own background, not `::backdrop`
+      // (same pixels), which contrast checkers such as axe cannot see; and the dark surface's
+      // variables (focus ring accent-400), whichever section opened the lightbox (globals.css).
+      className="surface-dark-dim fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none p-0 backdrop:bg-transparent"
     >
       {item && state && (
         <div className="pointer-events-none flex h-full w-full flex-col items-center justify-center px-gutter-sm md:px-gutter-md lg:px-gutter">

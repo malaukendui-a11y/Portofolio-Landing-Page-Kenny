@@ -348,6 +348,20 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* Lightbox (DESIGN §5): the full-viewport <dialog> is the ink-900/95 dim itself, not ::backdrop,
+   which contrast checkers cannot see. It also scopes the dark surface's variables: in the DOM the
+   dialog sits in the section that opened it, and a paper section (#qa) would otherwise give its
+   focus rings accent-600, about 2.7:1 on the dim (WCAG 1.4.11). */
+@utility surface-dark-dim {
+  --surface: var(--color-ink-900);
+  --fg: var(--color-text-on-dark);
+  --fg-muted: var(--color-muted-on-dark);
+  --accent-fg: var(--color-accent-400);
+  --hairline: var(--color-ink-700);
+  background-color: color-mix(in oklab, var(--color-ink-900) 95%, transparent);
+  color: var(--fg);
+}
+
 /* Polaroid line (components/ui/PolaroidLine, DESIGN §4.9). The root reserves its height, so
    the section never shifts when photos load. Cards stay hidden until the first frame places
    them, so nothing stacks in the corner before JS runs. Layered so the `className` utilities

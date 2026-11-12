@@ -63,7 +63,8 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
 
 // TC-095 (M4b batch 2, PRD §12.7, DESIGN §4.6): the QA evidence tiles. Three screenshots from
 // PintuKos in order, each tile named by its image's alt (the title); the second opens the lightbox
-// on the E2E report with its caption, which differs from the alt and so stays announced.
+// (by keyboard) on the E2E report with its caption, which differs from the alt and so stays
+// announced.
 // Lookups inside the dialog are scoped to it: the caption is also printed under its tile.
 test('QA evidence tiles open the lightbox with their captions, in both languages', async ({
   page,
@@ -89,12 +90,18 @@ test('QA evidence tiles open the lightbox with their captions, in both languages
       await expect(qa.getByRole('heading', { name: titles[n], exact: true })).toBeVisible()
     }
 
+    // Opened from the keyboard, so the Close button shows its focus ring. The dialog sits inside
+    // the paper section in the DOM but on a dark dim: the ring must be the dark surface's
+    // accent-400 (#D9634B), not paper's accent-600, which reads about 2.7:1 there (WCAG 1.4.11).
     const second = qa.getByRole('button', { name: titles[1], exact: true })
     await second.scrollIntoViewIfNeeded()
-    await second.click()
+    await second.focus()
+    await page.keyboard.press('Enter')
     const dialog = page.getByRole('dialog', { name: copy.lightbox.label })
     await expect(dialog).toBeVisible()
-    await expect(dialog.getByRole('button', { name: copy.lightbox.close })).toBeFocused()
+    const close = dialog.getByRole('button', { name: copy.lightbox.close })
+    await expect(close).toBeFocused()
+    await expect(close).toHaveCSS('outline-color', 'rgb(217, 99, 75)')
 
     const counter = (n: number) =>
       copy.lightbox.counter.replace('{current}', String(n)).replace('{total}', '3')
