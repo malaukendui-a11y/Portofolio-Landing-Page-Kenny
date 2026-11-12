@@ -1,5 +1,7 @@
 // M4b content (PRD §6, §12): TC-088 (status → CTA matrix for `ctasFor`), TC-089 (project cards
-// from the owner's data), TC-090 (the PintuKos lightbox in both languages).
+// from the owner's data), TC-090 (the PintuKos lightbox in both languages). M4b batch 2:
+// TC-097 (one Node major for the laptop, CI and Vercel).
+import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
@@ -249,4 +251,18 @@ test('the lightbox caption waits for its board and stays on screen on a short wi
     )
     expect(state.bottom).toBeGreaterThan(state.imageBottom)
   }
+})
+
+// TC-097 (M4b batch 2): one Node major for the laptop, CI and Vercel. `engines.node` is
+// `<major>.x` (Vercel picks Node by it; `engine-strict` makes pnpm refuse any other major), CI's
+// setup-node uses the same major, and so does the Node running this suite. A new major is a
+// deliberate commit that changes all three.
+test('one Node major in package.json engines, CI and this machine', () => {
+  test.skip(test.info().project.name !== 'desktop', 'no browser involved')
+  const engines: string = JSON.parse(readFileSync('package.json', 'utf8')).engines.node
+  expect(engines).toMatch(/^\d+\.x$/)
+  const major = engines.split('.')[0]
+  const ci = readFileSync('.github/workflows/ci.yml', 'utf8')
+  expect(ci.match(/node-version:\s*(\S+)/)?.[1], 'ci.yml node-version').toBe(major)
+  expect(process.versions.node.split('.')[0], 'the Node running the suite').toBe(major)
 })
