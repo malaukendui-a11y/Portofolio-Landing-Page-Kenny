@@ -29,7 +29,7 @@ const en = {
     availability: 'Open to work',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Intro',
-    portraitAlt: 'Ananda Kenny, portrait in a black shirt, looking at the camera',
+    portraitAlt: 'Ananda Kenny in a dark suit and tie, looking at the camera',
   },
   intro: {
     label: 'Intro',

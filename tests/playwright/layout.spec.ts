@@ -1,24 +1,57 @@
 // M1 layout checks: TC-008 (hero portrait loaded), TC-009 (no horizontal overflow),
 // TC-010 (mobile menu open/close), TC-011 (nav backdrop after scroll),
-// TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV hidden).
+// TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV).
+import { readFileSync } from 'node:fs'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
+import id from '../../content/id'
 import { site } from '../../content/site'
-import { hasNoHorizontalOverflow } from './helpers'
+import { hasNoHorizontalOverflow, selectLang } from './helpers'
 
-test('hero portrait is loaded with priority', async ({ page }) => {
+const HERO_FILE = 'public/images/portrait/kenny-hero-formal@2x.webp'
+
+test('hero portrait is the formal cutout, loaded with priority', async ({ page, request }) => {
   await page.goto('/')
   const portrait = page.locator('#top').getByRole('img', { name: en.hero.portraitAlt })
   await expect(portrait).toBeVisible()
+  await expect(portrait).toHaveAttribute('id', 'hero-portrait')
+  await expect(portrait).toHaveAttribute('src', /kenny-hero-formal/)
+  // The declared size is the file's own (next/image reserves the box from it).
+  await expect(portrait).toHaveAttribute('width', '1070')
+  await expect(portrait).toHaveAttribute('height', '1600')
   await expect
     .poll(() => portrait.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
     .toBe(true)
+  // next/image serves a smaller candidate (naturalWidth reports it), with the file's aspect.
+  const aspect = await portrait.evaluate(
+    (img: HTMLImageElement) => img.naturalWidth / img.naturalHeight,
+  )
+  expect(Math.abs(aspect - 1070 / 1600)).toBeLessThan(0.005)
   // `priority`: eager (no lazy attribute) and preloaded from <head>.
   await expect(portrait).not.toHaveAttribute('loading', 'lazy')
   await expect(page.locator('link[rel="preload"][as="image"]').first()).toHaveAttribute(
     'imagesrcset',
-    /kenny-hero-crop-color/,
+    /kenny-hero-formal/,
   )
+  // The crop variants it replaces are gone from the build.
+  for (const variant of ['color', 'color-soft', 'bw']) {
+    const url = `/images/portrait/kenny-hero-crop-${variant}@2x.webp`
+    expect((await request.get(url)).status(), url).toBe(404)
+  }
+
+  await selectLang(page, 'ID')
+  await expect(page.locator('#hero-portrait')).toHaveAttribute('alt', id.hero.portraitAlt)
+})
+
+test('the hero portrait file is a 1070 × 1600 WebP with alpha', () => {
+  test.skip(test.info().project.name !== 'desktop', 'a file check, once')
+  const bytes = readFileSync(HERO_FILE)
+  expect(bytes.toString('latin1', 0, 4)).toBe('RIFF')
+  expect(bytes.toString('latin1', 8, 12)).toBe('WEBP')
+  // Extended format: the canvas size sits in the VP8X chunk (24-bit, minus one), alpha flag 0x10.
+  expect(bytes.toString('latin1', 12, 16)).toBe('VP8X')
+  expect([1 + bytes.readUIntLE(24, 3), 1 + bytes.readUIntLE(27, 3)]).toEqual([1070, 1600])
+  expect(bytes[20] & 0x10, 'alpha flag').toBe(0x10)
 })
 
 test('no horizontal overflow at the top or the bottom of the page', async ({ page }) => {

@@ -29,7 +29,7 @@ const id = {
     availability: 'Terbuka untuk bekerja',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Perkenalan',
-    portraitAlt: 'Ananda Kenny, potret dengan kemeja hitam, menatap kamera',
+    portraitAlt: 'Ananda Kenny mengenakan jas gelap dan dasi, menatap kamera',
   },
   intro: {
     label: 'Perkenalan',
