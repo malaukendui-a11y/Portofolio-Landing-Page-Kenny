@@ -1,6 +1,7 @@
 // M1 layout checks: TC-008 (hero portrait loaded), TC-009 (no horizontal overflow),
 // TC-010 (mobile menu open/close), TC-011 (nav backdrop after scroll),
-// TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV).
+// TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV, since M4b batch 2
+// also in Reach Out).
 import { readFileSync } from 'node:fs'
 import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
@@ -122,9 +123,9 @@ test.describe('contact actions', () => {
   })
 })
 
-// TC-014 (PRD F-09): the nav (desktop), the menu (mobile) and Intro link the PDF for download,
-// in both languages, and the build serves it as a PDF.
-test('Download CV links the PDF from the nav, the menu and Intro', async ({
+// TC-014 (PRD F-09): the nav (desktop), the menu (mobile), Intro and, since M4b batch 2, Reach Out
+// link the PDF for download, in both languages, and the build serves it as a PDF.
+test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', async ({
   page,
   request,
 }, testInfo) => {
@@ -156,6 +157,17 @@ test('Download CV links the PDF from the nav, the menu and Intro', async ({
     const intro = page.locator('#about').getByRole('link', { name: copy.intro.downloadCv })
     await intro.scrollIntoViewIfNeeded()
     await expectCv(intro)
+
+    // Reach Out: the recruiter route (Email me, Download CV), then WhatsApp, which stays last so
+    // Tab from it reaches the carousel (polaroid.spec TC-035, TC-039, TC-050).
+    const contact = page.locator('#contact')
+    const reachCv = contact.getByRole('link', { name: copy.reachOut.ctas.cv, exact: true })
+    await reachCv.scrollIntoViewIfNeeded()
+    await expectCv(reachCv)
+    await expect(reachCv).toHaveAttribute('href', /\.pdf$/)
+    await expect(
+      contact.getByRole('link', { name: copy.reachOut.ctas.email }).locator('..').getByRole('link'),
+    ).toHaveText([copy.reachOut.ctas.email, copy.reachOut.ctas.cv, copy.reachOut.ctas.whatsapp])
   }
 
   const response = await request.get(cv)

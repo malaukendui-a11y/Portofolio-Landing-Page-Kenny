@@ -263,7 +263,7 @@ const en = {
     },
     location: { label: 'Location', value: 'East Jakarta, Indonesia · on-site, hybrid or remote' },
     availability: 'Open to work',
-    ctas: { email: 'Email me', whatsapp: 'Chat on WhatsApp' },
+    ctas: { email: 'Email me', cv: 'Download CV', whatsapp: 'Chat on WhatsApp' },
     socialsLabel: 'Elsewhere',
     backToTop: 'Back to top',
   },

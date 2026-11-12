@@ -13,10 +13,11 @@ import { ArrowUpIcon, ArrowUpRightIcon, CopyIcon } from '@/components/ui/icons'
 /**
  * Reach Out (DESIGN §4.9) — paper mirror of the hero: "Reach Out —" ticker, left block
  * with email (copy to clipboard + toast), WhatsApp (prefilled wa.me link), location and
- * the two CTA routes; right block with the polaroid line, socials and a circular
- * back-to-top control (PRD F-10, F-13). DOM order is contact, carousel, socials, so the
- * tab order follows the desktop layout; below md the carousel moves up with CSS `order`
- * to sit between the ticker and the contact block.
+ * the CTA row: the recruiter route (Email me, Download CV while `site.cvUrl` is set, PRD F-09)
+ * and the client route (Chat on WhatsApp, kept last); right block with the polaroid line,
+ * socials and a circular back-to-top control (PRD F-10, F-13). DOM order is contact, carousel,
+ * socials, so the tab order follows the desktop layout; below md the carousel moves up with CSS
+ * `order` to sit between the ticker and the contact block.
  */
 export function ReachOut() {
   const { t } = useLang()
@@ -100,6 +101,12 @@ export function ReachOut() {
 
             <div className="mt-10 flex flex-wrap gap-4">
               <ButtonLink href={`mailto:${site.email}`}>{t.reachOut.ctas.email}</ButtonLink>
+              {site.cvUrl && (
+                <ButtonLink href={site.cvUrl} variant="outlined" download>
+                  {t.reachOut.ctas.cv}
+                </ButtonLink>
+              )}
+              {/* WhatsApp stays the last contact control: Tab from it reaches the carousel. */}
               <ButtonLink href={waHref} variant="outlined" external>
                 {t.reachOut.ctas.whatsapp}
                 <ArrowUpRightIcon />

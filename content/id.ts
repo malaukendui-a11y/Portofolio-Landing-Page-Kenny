@@ -264,7 +264,7 @@ const id = {
     },
     location: { label: 'Lokasi', value: 'Jakarta Timur, Indonesia · on-site, hybrid, atau remote' },
     availability: 'Terbuka untuk bekerja',
-    ctas: { email: 'Kirim email', whatsapp: 'Chat di WhatsApp' },
+    ctas: { email: 'Kirim email', cv: 'Unduh CV', whatsapp: 'Chat di WhatsApp' },
     socialsLabel: 'Tautan lain',
     backToTop: 'Kembali ke atas',
   },

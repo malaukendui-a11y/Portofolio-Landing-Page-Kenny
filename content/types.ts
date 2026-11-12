@@ -145,7 +145,8 @@ export interface Copy {
     whatsapp: { label: string; prefill: string }
     location: { label: string; value: string }
     availability: string
-    ctas: { email: string; whatsapp: string }
+    /** `cv` labels the Download CV pill, shown only while `site.cvUrl` is set (PRD F-09). */
+    ctas: { email: string; cv: string; whatsapp: string }
     socialsLabel: string
     backToTop: string
   }
