@@ -178,7 +178,7 @@ const id = {
     educationHeading: 'Pendidikan',
     work: {
       period: 'Agu 2026',
-      title: 'Quality Assurance — Project Kopra by Mandiri',
+      title: 'QA Tester (Pengujian Manual) — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
       description: 'QA di Kopra by Mandiri, super-platform digital wholesale.',

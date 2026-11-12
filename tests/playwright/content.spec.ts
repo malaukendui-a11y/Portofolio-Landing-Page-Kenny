@@ -1,7 +1,7 @@
 // M4b content (PRD §6, §12): TC-088 (status → CTA matrix for `ctasFor`), TC-089 (project cards
 // from the owner's data), TC-090 (the PintuKos lightbox in both languages). M4b batch 2:
-// TC-094 (the PintuKos invite-only app link), TC-097 (one Node major for the laptop, CI and
-// Vercel).
+// TC-094 (the PintuKos invite-only app link), TC-096 (the owner's work title and thesis year),
+// TC-097 (one Node major for the laptop, CI and Vercel).
 import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
@@ -335,4 +335,37 @@ test('one Node major in package.json engines, CI and this machine', () => {
   const ci = readFileSync('.github/workflows/ci.yml', 'utf8')
   expect(ci.match(/node-version:\s*(\S+)/)?.[1], 'ci.yml node-version').toBe(major)
   expect(process.versions.node.split('.')[0], 'the Node running the suite').toBe(major)
+})
+
+// TC-096 (M4b batch 2): the owner's corrections from his CV answers, pinned as literals (TC-082
+// reads the title from the copy, so it cannot catch a wrong string): the Bank Mandiri work title,
+// and the thesis card's year (completed January 2026; its PDF keeps the 2025 file name).
+test('the work title and the thesis year follow the owner’s CV', async ({ page }) => {
+  const titles = {
+    en: 'QA Tester (Manual Testing) — Project Kopra by Mandiri',
+    id: 'QA Tester (Pengujian Manual) — Project Kopra by Mandiri',
+  }
+  expect(en.experience.work.title).toBe(titles.en)
+  expect(id.experience.work.title).toBe(titles.id)
+  await page.goto('/')
+  for (const copy of [en, id]) {
+    const lang = copy === en ? 'en' : 'id'
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const heading = page
+      .locator('#experience')
+      .getByRole('heading', { name: titles[lang], exact: true })
+    await heading.scrollIntoViewIfNeeded()
+    await expect(heading).toBeVisible()
+
+    const thesis = card(page, copy, 'crypto-research')
+    await thesis.scrollIntoViewIfNeeded()
+    await expect(thesis.getByText('(2026)', { exact: true })).toBeVisible()
+    await expect(thesis.getByRole('link', { name: copy.projects.cta.readPaper })).toHaveAttribute(
+      'href',
+      '/papers/big-data-altcoin-analysis-2025.pdf',
+    )
+  }
 })

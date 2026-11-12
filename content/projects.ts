@@ -146,7 +146,8 @@ export const projects: readonly Project[] = [
     id: 'crypto-research',
     kind: 'research',
     status: 'completed',
-    year: '2025',
+    // Completed January 2026 (owner, M4b batch 2); the PDF keeps its 2025 file name.
+    year: '2026',
     liveUrl: null,
     repoUrl: null,
     repoPublic: false,
