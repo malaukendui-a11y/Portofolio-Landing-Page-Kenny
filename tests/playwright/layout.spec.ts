@@ -1,13 +1,15 @@
 // M1 layout checks: TC-008 (hero portrait loaded), TC-009 (no horizontal overflow),
 // TC-010 (mobile menu open/close), TC-011 (nav backdrop after scroll),
 // TC-012 (copy email → toast), TC-013 (WhatsApp prefill), TC-014 (Download CV, since M4b batch 2
-// also in Reach Out).
+// also in Reach Out), TC-102 (contact links on screen without scrolling, M5).
 import { readFileSync } from 'node:fs'
 import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
 import { site } from '../../content/site'
+import { LOADER_MAX_MS } from '../../lib/loader'
+import { DUR } from '../../lib/motion'
 import { belowMd, hasNoHorizontalOverflow, selectLang } from './helpers'
 
 const HERO_FILE = 'public/images/portrait/kenny-hero-formal@2x.webp'
@@ -214,4 +216,42 @@ test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', as
   const body = await response.body()
   expect(body.subarray(0, 5).toString('latin1')).toBe('%PDF-')
   expect(body.length, 'CV ≤ 500 KB').toBeLessThanOrEqual(500 * 1024)
+})
+
+// TC-102 (PRD §3.3 "contact CTA visible without scrolling", DESIGN §4.2): on a first visit, once
+// the loader has left and the hero entrance has settled, the hero's contact links sit inside the
+// viewport before any scroll: the GitHub and WhatsApp text links in the desktop corner, the same
+// links as 44 px icons on a phone. (LinkedIn joins them once `site.linkedin` is set.)
+test.describe('first visit', () => {
+  test.use({ showLoader: true })
+
+  test('the hero contact links are on screen without scrolling', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'commit' })
+    await expect(page.locator('.loader-overlay')).toBeVisible()
+    await expect(page.locator('html')).not.toHaveAttribute('data-loader', {
+      timeout: LOADER_MAX_MS + DUR.slow * 1000 + 2_000,
+    })
+    const viewport = page.viewportSize()!
+    for (const name of [en.hero.socials.github, en.hero.socials.whatsapp]) {
+      const link = page.locator('#top').getByRole('link', { name, exact: true })
+      await expect(link).toBeVisible()
+      // The entrance starts the list 24 px low and transparent, then clears both.
+      const list = link.locator('xpath=ancestor::ul[1]')
+      await expect(list).toHaveCSS('opacity', '1')
+      await expect(list).toHaveCSS('transform', 'none')
+      const box = (await link.boundingBox())!
+      expect(await page.evaluate(() => window.scrollY), 'no scroll').toBe(0)
+      expect(box.x, name).toBeGreaterThanOrEqual(0)
+      expect(box.y, name).toBeGreaterThanOrEqual(0)
+      expect(box.x + box.width, name).toBeLessThanOrEqual(viewport.width)
+      expect(
+        box.y + box.height,
+        `${name}: bottom inside ${viewport.height} px`,
+      ).toBeLessThanOrEqual(viewport.height)
+      test.info().annotations.push({
+        type: 'contact-in-view',
+        description: `${name}: ${Math.round(viewport.height - box.y - box.height)} px to spare`,
+      })
+    }
+  })
 })
