@@ -44,6 +44,23 @@ async function pointOn(page: Page, card: Locator): Promise<{ x: number; y: numbe
   }
 }
 
+/** Frames per second the page paints at, over half a second. */
+function frameRate(page: Page): Promise<number> {
+  return page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        let frames = 0
+        const start = performance.now()
+        const tick = (now: number) => {
+          frames += 1
+          if (now - start < 500) requestAnimationFrame(tick)
+          else resolve((frames * 1000) / (now - start))
+        }
+        requestAnimationFrame(tick)
+      }),
+  )
+}
+
 /** Waits out what is left of `ms` since `start`. */
 async function waitUntil(page: Page, start: number, ms: number): Promise<void> {
   const left = start + ms - Date.now()
@@ -157,7 +174,17 @@ test.describe('polaroid line', () => {
     await gotoCarousel(page)
     const start = Date.now()
     await expect(count(page)).toHaveText('03 / 06')
-    await expect(count(page)).toHaveText('04 / 06', { timeout: 6_000 })
+    // The frame loop clamps each step to 33 ms, so below 30 fps the line, and the counter that
+    // follows it, runs slower than the clock (docs/DECISIONS.md, TC-036). The premise is measured,
+    // not assumed: CI's Linux WebKit painted this page at about 4 fps (software, DPR 2), where
+    // the step lands after the window.
+    const fps = await frameRate(page)
+    test.info().annotations.push({ type: 'fps', description: fps.toFixed(0) })
+    test.skip(
+      fps < 30,
+      `the page paints at ${fps.toFixed(0)} fps; the 6 s window assumes 30 or more`,
+    )
+    await expect(count(page)).toHaveText('04 / 06', { timeout: start + 6_000 - Date.now() })
     await waitUntil(page, start, 6_000)
     await expect(count(page)).toHaveText('04 / 06')
   })
