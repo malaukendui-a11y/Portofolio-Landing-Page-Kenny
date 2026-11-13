@@ -37,16 +37,23 @@ jobs:
 
       - run: pnpm build
 
-      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm exec playwright install --with-deps chromium
 
       # Two invocations (M5): the SwiftShader 3D project never shares the runner with the Firefox
-      # and WebKit timing tests, and a failure in one browser still lets the other report.
+      # and WebKit timing tests, and a failure in one browser still lets the other report. Chromium
+      # runs before Firefox and WebKit are installed: their system packages (fonts, fontconfig)
+      # moved the WebGL/HTML glyph comparison (TC-057) by 2 px in the first M5 run.
       - name: Playwright (Chromium) smoke + axe + 3D
         run: pnpm exec playwright test --project=desktop --project=mobile --project=desktop-3d
 
+      - run: pnpm exec playwright install --with-deps firefox webkit
+        if: ${{ !cancelled() }}
+
+      # Its own output folder: each run empties its output folder first, which would delete the
+      # Chromium step's traces before the artifact upload.
       - name: Playwright (Firefox, WebKit) cross-browser
         if: ${{ !cancelled() }}
-        run: pnpm exec playwright test --project=desktop-firefox --project=desktop-webkit --project=mobile-webkit
+        run: pnpm exec playwright test --project=desktop-firefox --project=desktop-webkit --project=mobile-webkit --output=test-results/xbrowser
 
       # Headful Chrome under Xvfb: new-headless Chrome takes its pointer from the machine's input
       # devices, and the runner has none, so the 3D gate (fine pointer) would keep the lens off.
