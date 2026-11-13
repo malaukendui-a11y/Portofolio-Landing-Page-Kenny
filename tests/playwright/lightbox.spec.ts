@@ -1,11 +1,113 @@
 // TC-007: lightbox keyboard flow (PRD F-08) on the certificates. TC-095 (M4b batch 2): the QA
 // evidence tiles open their lightbox with captions.
+import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
 import { certifications } from '../../content/certifications'
 import en from '../../content/en'
 import id from '../../content/id'
 import { qaArtifacts } from '../../content/qa'
 import { selectLang } from './helpers'
+
+type TileGeometry = {
+  frame: { width: number; height: number }
+  inner: Record<'left' | 'top' | 'right' | 'bottom', number>
+  box: Record<'left' | 'top' | 'right' | 'bottom' | 'width' | 'height', number>
+  fit: string
+  position: string
+  natural: { width: number; height: number }
+  titleTop: number
+}
+
+/**
+ * The QA tiles (DESIGN §4.6, M5): each button is a 4:3 frame; its image box is the frame's inner
+ * box (nothing it paints is clipped); object-fit contain, centred, so the painted screenshot touches
+ * the frame on one axis only and keeps its aspect (from content/qa.ts, not naturalWidth, which is
+ * the served candidate); titles in one row start within 1 px of each other.
+ */
+async function expectFramedTiles(qa: Locator, oneRow: boolean): Promise<void> {
+  const images = qa.locator('button img')
+  await qa.scrollIntoViewIfNeeded()
+  await expect
+    .poll(() =>
+      images.evaluateAll((list: HTMLImageElement[]) =>
+        list.every((img) => img.complete && img.naturalWidth > 0),
+      ),
+    )
+    .toBe(true)
+  // One synchronous read, so nothing scrolls between the measurements.
+  const tiles: TileGeometry[] = await qa.locator('li').evaluateAll((items) =>
+    items.map((li) => {
+      const button = li.querySelector('button')!
+      const img = button.querySelector('img')!
+      const frame = button.getBoundingClientRect()
+      const border = getComputedStyle(button)
+      const box = img.getBoundingClientRect()
+      const style = getComputedStyle(img)
+      return {
+        frame: { width: frame.width, height: frame.height },
+        inner: {
+          left: frame.left + parseFloat(border.borderLeftWidth),
+          top: frame.top + parseFloat(border.borderTopWidth),
+          right: frame.right - parseFloat(border.borderRightWidth),
+          bottom: frame.bottom - parseFloat(border.borderBottomWidth),
+        },
+        box: {
+          left: box.left,
+          top: box.top,
+          right: box.right,
+          bottom: box.bottom,
+          width: box.width,
+          height: box.height,
+        },
+        fit: style.objectFit,
+        position: style.objectPosition,
+        natural: { width: img.naturalWidth, height: img.naturalHeight },
+        titleTop: li.querySelector('h3')!.getBoundingClientRect().top,
+      }
+    }),
+  )
+  expect(tiles).toHaveLength(qaArtifacts.length)
+  tiles.forEach((tile, n) => {
+    const label = qaArtifacts[n].id
+    expect(
+      Math.abs(tile.frame.height - (tile.frame.width * 3) / 4),
+      `${label}: 4:3 frame`,
+    ).toBeLessThanOrEqual(1)
+    expect([tile.fit, tile.position], `${label}: contained, centred`).toEqual([
+      'contain',
+      '50% 50%',
+    ])
+    for (const edge of ['left', 'top', 'right', 'bottom'] as const)
+      expect(
+        Math.abs(tile.box[edge] - tile.inner[edge]),
+        `${label}: image box ${edge}`,
+      ).toBeLessThanOrEqual(0.5)
+    const scale = Math.min(
+      tile.box.width / tile.natural.width,
+      tile.box.height / tile.natural.height,
+    )
+    const painted = { width: tile.natural.width * scale, height: tile.natural.height * scale }
+    expect(painted.width, `${label}: fits across`).toBeLessThanOrEqual(tile.box.width + 0.5)
+    expect(painted.height, `${label}: fits down`).toBeLessThanOrEqual(tile.box.height + 0.5)
+    expect(
+      Math.min(tile.box.width - painted.width, tile.box.height - painted.height),
+      `${label}: touches one axis`,
+    ).toBeLessThanOrEqual(0.5)
+    const { width, height } = qaArtifacts[n].image
+    expect(
+      Math.abs(painted.width / painted.height - width / height),
+      `${label}: aspect`,
+    ).toBeLessThanOrEqual(0.01)
+    test.info().annotations.push({
+      type: 'qa-tile',
+      description: `${label}: ${Math.round(tile.box.width - painted.width)} × ${Math.round(tile.box.height - painted.height)} px letterbox`,
+    })
+  })
+  if (oneRow) {
+    const tops = tiles.map((tile) => tile.titleTop)
+    expect(Math.max(...tops) - Math.min(...tops), `title tops ${tops}`).toBeLessThanOrEqual(1)
+  }
+}
 
 test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and restores focus', async ({
   page,
@@ -66,8 +168,11 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
 // (by keyboard) on the E2E report with its caption, which differs from the alt and so stays
 // announced.
 // Lookups inside the dialog are scoped to it: the caption is also printed under its tile.
+// M5: every tile is a 4:3 frame with its screenshot contained whole and centred, so where the tiles
+// share a row their titles start at the same height.
 test('QA evidence tiles open the lightbox with their captions, in both languages', async ({
   page,
+  viewport,
 }) => {
   const files = [/pintukos-ci-run/, /pintukos-e2e-report/, /pintukos-uat-sheet/]
   expect(qaArtifacts.map((artifact) => artifact.id)).toEqual(['ci-run', 'e2e-report', 'uat-sheet'])
@@ -89,6 +194,7 @@ test('QA evidence tiles open the lightbox with their captions, in both languages
       await expect(qa.getByRole('button', { name: titles[n], exact: true })).toHaveCount(1)
       await expect(qa.getByRole('heading', { name: titles[n], exact: true })).toBeVisible()
     }
+    await expectFramedTiles(qa, (viewport?.width ?? 0) >= 640)
 
     // Opened from the keyboard, so the Close button shows its focus ring. The dialog sits inside
     // the paper section in the DOM but on a dark dim: the ring must be the dark surface's
