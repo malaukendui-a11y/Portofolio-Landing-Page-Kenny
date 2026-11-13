@@ -8,7 +8,7 @@ import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
 import { site } from '../../content/site'
-import { hasNoHorizontalOverflow, selectLang } from './helpers'
+import { belowMd, hasNoHorizontalOverflow, selectLang } from './helpers'
 
 const HERO_FILE = 'public/images/portrait/kenny-hero-formal@2x.webp'
 
@@ -102,8 +102,9 @@ test('nav gains the dark backdrop after scrolling past the hero top', async ({ p
 
 test('mobile menu opens, traps focus, closes with Esc and restores focus', async ({
   page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile', 'the hamburger only exists below md')
+  viewport,
+}) => {
+  test.skip(!belowMd(viewport), 'the hamburger only exists below md')
   await page.goto('/')
   const open = page.getByRole('button', { name: en.nav.openMenu })
   await expect(open).toHaveAttribute('aria-expanded', 'false')
@@ -128,8 +129,18 @@ test('mobile menu opens, traps focus, closes with Esc and restores focus', async
   await expect(page).toHaveURL(/#work$/)
 })
 
+// Clipboard permission names differ per engine: Chromium has both, Playwright's WebKit only
+// 'clipboard-read', its Firefox none (an unknown name throws when the context opens).
+const CLIPBOARD_PERMISSIONS: Record<string, string[]> = {
+  chromium: ['clipboard-read', 'clipboard-write'],
+  webkit: ['clipboard-read'],
+  firefox: [],
+}
+
 test.describe('contact actions', () => {
-  test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
+  test.use({
+    permissions: async ({ browserName }, run) => run(CLIPBOARD_PERMISSIONS[browserName] ?? []),
+  })
 
   test('copy email writes the clipboard and shows the toast', async ({ page }) => {
     await page.goto('/#contact')
@@ -154,7 +165,8 @@ test.describe('contact actions', () => {
 test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', async ({
   page,
   request,
-}, testInfo) => {
+  viewport,
+}) => {
   expect(site.cvUrl).toMatch(/^\/cv\/.+\.pdf$/)
   const cv = site.cvUrl!
   const expectCv = async (link: Locator) => {
@@ -170,7 +182,7 @@ test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', as
       await expect(page.locator('html')).toHaveAttribute('lang', 'id')
     }
     const nav = page.locator('header').getByRole('link', { name: copy.nav.downloadCv })
-    if (testInfo.project.name === 'mobile') {
+    if (belowMd(viewport)) {
       // Below md the header has only the hamburger; the CV button lives in the menu.
       await expect(nav).toHaveCount(0)
       await page.getByRole('button', { name: copy.nav.openMenu }).click()

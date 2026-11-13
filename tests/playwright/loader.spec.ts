@@ -117,6 +117,7 @@ async function delayPortrait(page: Page, ms: number): Promise<() => number> {
 
 test('first visit shows the loader, which leaves on its own and never returns this session', async ({
   page,
+  browserName,
 }) => {
   await page.goto('/', { waitUntil: 'commit' })
   await expect(overlay(page)).toBeVisible()
@@ -133,7 +134,14 @@ test('first visit shows the loader, which leaves on its own and never returns th
   await expect(overlay(page)).toBeHidden({ timeout: LOADER_MAX_MS + DUR.slow * 1000 + 1_000 })
   expect(await page.evaluate((key) => sessionStorage.getItem(key), LOADER_SESSION_KEY)).toBe('1')
   // Fixed overlay with a fixed-width counter: nothing inside it shifts, and the page stays
-  // well under the CLS budget.
+  // well under the CLS budget. Only Chromium reports layout shifts (Layout Instability API);
+  // elsewhere the check is recorded as not measurable rather than passed.
+  const measurable = await page.evaluate(() =>
+    PerformanceObserver.supportedEntryTypes.includes('layout-shift'),
+  )
+  expect(measurable).toBe(browserName === 'chromium')
+  if (!measurable)
+    test.info().annotations.push({ type: 'cls', description: 'not measurable in ' + browserName })
   const shifts = await page.evaluate(
     () =>
       new Promise<{ total: number; fromOverlay: number }>((resolve) => {
@@ -156,8 +164,10 @@ test('first visit shows the loader, which leaves on its own and never returns th
         setTimeout(() => resolve({ total, fromOverlay }), 100)
       }),
   )
-  expect(shifts.fromOverlay).toBe(0)
-  expect(shifts.total).toBeLessThan(0.1)
+  if (measurable) {
+    expect(shifts.fromOverlay).toBe(0)
+    expect(shifts.total).toBeLessThan(0.1)
+  }
 
   await page.reload({ waitUntil: 'commit' })
   await page.waitForLoadState('domcontentloaded')
@@ -200,13 +210,26 @@ test('the hold never exceeds 1.5 s, even while the portrait is still loading', a
   expect(held(), 'the hero portrait request was held').toBeGreaterThan(0)
 })
 
-test('without any JS, the CSS cap alone lifts the overlay at 1.5 s', async ({ page }) => {
+test('without any JS, the CSS cap alone lifts the overlay at 1.5 s', async ({
+  page,
+  browserName,
+}) => {
   // No hydration at all: every script chunk fails (the pre-paint script is inline).
   await page.route(/\/_next\/static\/.*\.js/, (route) => route.abort())
   await page.goto('/', { waitUntil: 'commit' })
   await expect(overlay(page)).toBeVisible()
-  // Hidden once the fade is over (visibility), about 1.5 s + 0.6 s after navigation.
-  await expect(overlay(page)).toBeHidden({ timeout: LOADER_MAX_MS + DUR.base * 1000 + 2_000 })
+  // Gone once the fade is over, about 1.5 s + 0.6 s after navigation: transparent, and (below)
+  // no longer taking clicks. Chromium and Firefox also apply the release animation's last frame,
+  // visibility: hidden. WebKit leaves that discrete frame unapplied (M5): the overlay stays in the
+  // render tree, invisible, click-through and aria-hidden, which a visitor cannot tell apart.
+  await expect(overlay(page)).toHaveCSS('opacity', '0', {
+    timeout: LOADER_MAX_MS + DUR.base * 1000 + 2_000,
+  })
+  if (browserName === 'webkit')
+    test
+      .info()
+      .annotations.push({ type: 'loader-visibility', description: 'not applied by WebKit' })
+  else await expect(overlay(page)).toBeHidden()
   const state = await page.evaluate(() => {
     const node = document.querySelector<HTMLElement>('.loader-overlay')!
     const style = getComputedStyle(node)
@@ -238,7 +261,9 @@ type TraceEvent = {
   args?: { data?: { displayName?: string; compositeFailed?: number } }
 }
 
-test("the cap's fade runs on the compositor, independent of the main thread", async ({
+// @chromium (M5): reads Chrome trace events (blink.animations, compositeFailed) through
+// browser.startTracing, which only Chromium has.
+test("the cap's fade runs on the compositor, independent of the main thread @chromium", async ({
   page,
   browser,
 }, testInfo) => {

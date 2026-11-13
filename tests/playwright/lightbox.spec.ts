@@ -93,9 +93,13 @@ test('QA evidence tiles open the lightbox with their captions, in both languages
     // Opened from the keyboard, so the Close button shows its focus ring. The dialog sits inside
     // the paper section in the DOM but on a dark dim: the ring must be the dark surface's
     // accent-400 (#D9634B), not paper's accent-600, which reads about 2.7:1 there (WCAG 1.4.11).
+    // Reached with a real Tab from the first tile: Firefox shows the ring on script focus (the
+    // dialog's Close) only when focus came there from the keyboard, as it does for a user.
     const second = qa.getByRole('button', { name: titles[1], exact: true })
     await second.scrollIntoViewIfNeeded()
-    await second.focus()
+    await qa.getByRole('button', { name: titles[0], exact: true }).focus()
+    await page.keyboard.press('Tab')
+    await expect(second).toBeFocused()
     await page.keyboard.press('Enter')
     const dialog = page.getByRole('dialog', { name: copy.lightbox.label })
     await expect(dialog).toBeVisible()

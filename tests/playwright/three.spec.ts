@@ -10,7 +10,14 @@ import type { Page } from '@playwright/test'
 import en from '../../content/en'
 import id from '../../content/id'
 import { expect, test, type WebGL2Support } from './fixtures'
-import { batchIntersectionChanges, hasNoHorizontalOverflow, selectLang } from './helpers'
+import {
+  batchIntersectionChanges,
+  expectDesktopPointer,
+  hasNoHorizontalOverflow,
+  selectLang,
+  tickerPhaseOffset,
+  wide,
+} from './helpers'
 
 declare global {
   interface Window {
@@ -202,8 +209,8 @@ function woffCodePoints(font: Buffer): Set<number> {
 
 // ── Without a canvas ──────────────────────────────────────────────────────────────────────────
 
-test('TC-053 phones get the static lens and download no 3D', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile', 'the phone path')
+test('TC-053 phones get the static lens and download no 3D', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the phone path')
   await instrument(page)
   const requests: { url: string; type: string; at: number }[] = []
   page.on('request', (request) =>
@@ -221,7 +228,7 @@ test('TC-053 phones get the static lens and download no 3D', async ({ page }, te
     'no script after load (the 3D chunk)',
   ).toEqual([])
   expect(await page.evaluate(() => window.__contexts), 'no WebGL context, not even a probe').toBe(0)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+  expect(await hasNoHorizontalOverflow(page)).toBe(true)
 })
 
 test.describe('reduced motion', () => {
@@ -229,8 +236,10 @@ test.describe('reduced motion', () => {
 
   test('TC-054 a desktop under reduced motion keeps the static lens', async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'the desktop reduced-motion path')
+    viewport,
+    hasTouch,
+  }) => {
+    test.skip(!wide(viewport) || hasTouch, 'the desktop reduced-motion path')
     await instrument(page)
     const scripts: number[] = []
     const fonts: string[] = []
@@ -251,8 +260,11 @@ test.describe('reduced motion', () => {
 
 test('TC-059 no WebGL2: the static lens, the HTML marquee, a clean console', async ({
   page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'a desktop that would otherwise mount the 3D')
+  viewport,
+  hasTouch,
+}) => {
+  test.skip(!wide(viewport) || hasTouch, 'a desktop that would otherwise mount the 3D')
+  await expectDesktopPointer(page)
   await instrument(page)
   await page.addInitScript(() => {
     const getContext = HTMLCanvasElement.prototype.getContext
@@ -284,8 +296,15 @@ test.describe('WebGL without a GPU', () => {
 
   test('TC-074 a software renderer keeps the static lens and loads no 3D', async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'a desktop that would otherwise mount the 3D')
+    viewport,
+    hasTouch,
+    webgl2,
+  }) => {
+    test.skip(!wide(viewport) || hasTouch, 'a desktop that would otherwise mount the 3D')
+    // The software path needs a WebGL2 context to name its renderer (Playwright's Windows WebKit
+    // runs without accelerated compositing and may have none).
+    test.skip(!webgl2.available, 'this browser has no WebGL2')
+    await expectDesktopPointer(page)
     await instrument(page)
     const scripts: number[] = []
     page.on('request', (request) => {
@@ -377,18 +396,8 @@ test.describe('3D hero', () => {
     expect(fallbackRequests, 'a capable desktop never fetches the static lens').toEqual([])
 
     // The WebGL copy starts exactly where the frozen HTML track stands (circular, one group).
-    const phase = await page.evaluate(() => {
-      const track = document.querySelector('#top [data-marquee]')!.firstElementChild!
-      const groups = track.children
-      return {
-        group: groups[1].getBoundingClientRect().left - groups[0].getBoundingClientRect().left,
-        html: new DOMMatrix(getComputedStyle(track).transform).m41,
-        webgl: Number(document.querySelector('[data-three]')!.getAttribute('data-phase')),
-        unitDelta: Number(document.querySelector('[data-three]')!.getAttribute('data-unit-delta')),
-      }
-    })
-    const distance = Math.abs(phase.webgl - phase.html) % phase.group
-    expect(Math.min(distance, phase.group - distance), JSON.stringify(phase)).toBeLessThanOrEqual(2)
+    const phase = await tickerPhaseOffset(page)
+    expect(phase.offset, phase.detail).toBeLessThanOrEqual(2)
     // Last glyph of a unit, WebGL vs HTML: 0.01 px on Windows, 3.2 px on Linux CI (platform glyph
     // positioning); Inter's `cpsp` spacing, which this guards against, puts it at 7.1 px.
     expect(Math.abs(phase.unitDelta), 'WebGL vs HTML glyph advance').toBeLessThanOrEqual(5)
