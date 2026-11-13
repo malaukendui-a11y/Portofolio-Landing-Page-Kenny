@@ -44,7 +44,7 @@ export function QAEvidence() {
                 <li key={artifact.id}>
                   <button
                     type="button"
-                    onClick={() => open(items, index)}
+                    onClick={(event) => open(items, index, event.currentTarget)}
                     className="block w-full overflow-hidden rounded-image border border-hairline bg-paper-50"
                   >
                     <Image

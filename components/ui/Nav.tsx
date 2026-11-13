@@ -55,8 +55,8 @@ export function Nav({ base = '' }: { base?: string }) {
     closeRef.current?.focus()
   }, [menuOpen])
 
-  const openMenu = () => {
-    focus.remember()
+  const openMenu = (event: MouseEvent<HTMLButtonElement>) => {
+    focus.remember(event.currentTarget)
     setMenuOpen(true)
   }
 

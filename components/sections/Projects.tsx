@@ -62,7 +62,7 @@ export function Projects() {
                 <div className="lg:col-span-5 xl:col-span-7">
                   <button
                     type="button"
-                    onClick={() => open(gallery, 0)}
+                    onClick={(event) => open(gallery, 0, event.currentTarget)}
                     aria-label={t.projects.openScreenshots.replace('{title}', copy.title)}
                     className="block w-full overflow-hidden rounded-image border border-ink-700"
                   >
@@ -128,7 +128,7 @@ export function Projects() {
                         <Button
                           key={cta.kind}
                           variant={cta.primary ? 'filled' : 'outlined'}
-                          onClick={() => open(gallery, 0)}
+                          onClick={(event) => open(gallery, 0, event.currentTarget)}
                         >
                           {t.projects.cta[cta.kind]}
                         </Button>
