@@ -203,10 +203,10 @@ Build order is strict: **M1 before M2 before M3**. The 3D element is the last th
 2. **Stack and one-line description** for PintuKos and the Malau website (Trading Compass: React + Vite + Supabase from the repo). — **Partial (M4b):** PintuKos stack and description done, Kos & Kontrakan stack and description too, Trading Compass's React · Vite · Supabase confirmed by the owner (M4b batch 2); the Malau stack is still pending.
 3. **Repository decision** for the two private repos (make public + README, or no GitHub button). — **Done (M4b):** no repo is linked. PintuKos stays private while in beta, Malau stays private, and Trading Compass's public repo shows no GitHub button until its README is real.
 4. **CV PDF** (English, ATS version) for the "Download CV" button. — **Done (M4b):** `public/cv/kenny-cv-2026-11-en.pdf`.
-5. **LinkedIn URL** and preferred display name on LinkedIn. — **Pending** (still open after M4b batch 2; the LinkedIn links stay hidden while `site.linkedin` is null).
+5. **LinkedIn URL** and preferred display name on LinkedIn. — **Pending** (still open at the M5 launch; the LinkedIn links stay hidden while `site.linkedin` is null).
 6. **Bank Mandiri dates** (month/year start–end) and the exact programme/internship title for the timeline. — **Done (M4b):** work `Aug 2026` / `Agu 2026`, title `QA Tester (Manual Testing) — Project Kopra by Mandiri` / `QA Tester (Pengujian Manual) — Project Kopra by Mandiri` (M4b batch 2, from the owner's CV; was `Quality Assurance — …`, DECISIONS 2026-11-12); education `2021 — Jan 2026`.
 7. **QA artifacts** from PintuKos (Trading Compass until M4b): test plan, 5–10 test cases, 2–3 bug reports (sanitised screenshots or PDF). — **Done (M4b batch 2, 2026-11-13), with different evidence:** asked were a test plan, 5–10 test cases and 2–3 bug reports; delivered were three screenshots from the PintuKos repository, sample data only — the green GitHub Actions run, the Playwright report (45 passed) and the 85-step UAT sheet — shown as `ci-run`, `e2e-report` and `uat-sheet` (DESIGN §4.6; owner decision).
-8. **Domain**: confirm `anandakenny.com` (or similar) purchase, or launch on `*.vercel.app` first. — **Pending.**
+8. **Domain**: confirm `anandakenny.com` (or similar) purchase, or launch on `*.vercel.app` first. — **Decided (M5, 2026-11-13):** launch on `https://portofolio-landing-page-kenny.vercel.app`; a custom domain comes later through `NEXT_PUBLIC_SITE_URL` (Vercel Production) and `site.url`, with a re-check of OG and JSON-LD (`docs/DECISIONS.md`).
 
 # 13. Decisions log (summary)
 
