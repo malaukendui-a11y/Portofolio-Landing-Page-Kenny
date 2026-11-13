@@ -499,7 +499,7 @@ test.describe('3D hero', () => {
     await page.waitForTimeout(1_000) // the lens fade
     // Freeze the canvas (a hidden tab stops the frame loop), then put the paused HTML track at
     // the same phase and compare the two renderings outside the lens. A negative control moves
-    // the HTML track 2 px and must fail the same comparison.
+    // the HTML track 4 px and must be found at least 3 px off (the edge of the search).
     await setHidden(page, true)
     await expect(page.locator(LAYER)).toHaveAttribute('data-three', 'paused')
     const geometry = await page.evaluate(() => {
@@ -601,7 +601,7 @@ test.describe('3D hero', () => {
       )
 
     const html = await shoot(true)
-    const shifted = await shoot(true, geometry.fraction + 2 / geometry.group)
+    const shifted = await shoot(true, geometry.fraction + 4 / geometry.group)
     const webgl = await shoot(false)
     const aligned = await compare(html, webgl)
     const control = await compare(shifted, webgl)
@@ -610,19 +610,26 @@ test.describe('3D hero', () => {
       type: 'alignment',
       description:
         `in phase: best offset (${aligned.dx}, ${aligned.dy}) px, residual ${percent(aligned.residual)}, ` +
-        `${percent(aligned.direct)} at no offset; HTML 2 px off: best offset (${control.dx}, ${control.dy}) px`,
+        `${percent(aligned.direct)} at no offset; HTML 4 px off: best offset (${control.dx}, ${control.dy}) px`,
     })
-    // Limits in docs/DECISIONS.md (M3 alignment test): the renderings line up within a pixel
-    // and match there (glyph positions differ a little by platform: 0.000 % on Windows, about
-    // 1 % on Linux), and a 2 px offset is found as one.
-    expect(Math.abs(aligned.dx), 'WebGL and HTML marquee in phase (x)').toBeLessThanOrEqual(1)
+    // Limits in docs/DECISIONS.md (M3 alignment test). In x the renderings line up within 1 px
+    // where the laptop's GPU renders (Windows measures 0), within 2 px on Linux, the CI runner,
+    // where Chromium rasterizes the HTML glyphs differently (since runner image 20261101.186.1 it
+    // measures −2). In y within 1 px, and they match there (residual: 0.000 % on Windows, 1–1.5 %
+    // on Linux). The control, 4 px off, must be found at 3 px or more on both, so the comparison
+    // still tells a real shift from the platform's 2 px.
+    const xLimit = process.platform === 'linux' ? 2 : 1
+    expect(
+      Math.abs(aligned.dx),
+      `WebGL and HTML marquee in phase (x), limit ${xLimit} px on ${process.platform}`,
+    ).toBeLessThanOrEqual(xLimit)
     expect(
       Math.abs(aligned.dy),
       'WebGL and HTML marquee on the same baseline (y)',
     ).toBeLessThanOrEqual(1)
     expect(aligned.residual, 'same glyphs, size and spacing').toBeLessThan(0.025)
-    expect(Math.abs(control.dx), 'negative control: a 2 px shift is found').toBeGreaterThanOrEqual(
-      2,
+    expect(Math.abs(control.dx), 'negative control: a 4 px shift is found').toBeGreaterThanOrEqual(
+      3,
     )
   })
 
