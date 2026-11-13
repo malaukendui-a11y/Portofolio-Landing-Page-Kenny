@@ -41,8 +41,7 @@ jobs:
 
       # Two invocations (M5): the SwiftShader 3D project never shares the runner with the Firefox
       # and WebKit timing tests, and a failure in one browser still lets the other report. Chromium
-      # runs before Firefox and WebKit are installed: their system packages (fonts, fontconfig)
-      # moved the WebGL/HTML glyph comparison (TC-057) by 2 px in the first M5 run.
+      # runs before Firefox and WebKit are installed, in the same environment as before M5.
       - name: Playwright (Chromium) smoke + axe + 3D
         run: pnpm exec playwright test --project=desktop --project=mobile --project=desktop-3d
 
