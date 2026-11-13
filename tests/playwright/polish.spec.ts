@@ -6,7 +6,7 @@ import en from '../../content/en'
 import id from '../../content/id'
 import { site } from '../../content/site'
 import { siteUrl } from '../../lib/seo'
-import { selectLang } from './helpers'
+import { selectLang, tabsToLinks } from './helpers'
 
 /** Next writes the root URL without its trailing slash; compare URLs in normalised form. */
 const normalise = (url: string | null) => (url === null ? null : new URL(url).href)
@@ -222,7 +222,14 @@ test.describe('404 page', () => {
     await expect(page).toHaveTitle(id.notFound.title)
   })
 
-  test('works from the keyboard and leads back to the top of the home page', async ({ page }) => {
+  test('works from the keyboard and leads back to the top of the home page', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(
+      !tabsToLinks(browserName),
+      'this WebKit, like Safari by default, does not Tab to links',
+    )
     await page.goto(missing)
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: en.nav.skipToContent })).toBeFocused()
