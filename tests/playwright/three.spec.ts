@@ -10,7 +10,14 @@ import type { Page } from '@playwright/test'
 import en from '../../content/en'
 import id from '../../content/id'
 import { expect, test, type WebGL2Support } from './fixtures'
-import { batchIntersectionChanges, hasNoHorizontalOverflow, selectLang } from './helpers'
+import {
+  batchIntersectionChanges,
+  expectDesktopPointer,
+  hasNoHorizontalOverflow,
+  selectLang,
+  tickerPhaseOffset,
+  wide,
+} from './helpers'
 
 declare global {
   interface Window {
@@ -202,8 +209,8 @@ function woffCodePoints(font: Buffer): Set<number> {
 
 // ── Without a canvas ──────────────────────────────────────────────────────────────────────────
 
-test('TC-053 phones get the static lens and download no 3D', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile', 'the phone path')
+test('TC-053 phones get the static lens and download no 3D', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the phone path')
   await instrument(page)
   const requests: { url: string; type: string; at: number }[] = []
   page.on('request', (request) =>
@@ -221,7 +228,7 @@ test('TC-053 phones get the static lens and download no 3D', async ({ page }, te
     'no script after load (the 3D chunk)',
   ).toEqual([])
   expect(await page.evaluate(() => window.__contexts), 'no WebGL context, not even a probe').toBe(0)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+  expect(await hasNoHorizontalOverflow(page)).toBe(true)
 })
 
 test.describe('reduced motion', () => {
@@ -229,8 +236,10 @@ test.describe('reduced motion', () => {
 
   test('TC-054 a desktop under reduced motion keeps the static lens', async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'the desktop reduced-motion path')
+    viewport,
+    hasTouch,
+  }) => {
+    test.skip(!wide(viewport) || hasTouch, 'the desktop reduced-motion path')
     await instrument(page)
     const scripts: number[] = []
     const fonts: string[] = []
@@ -251,8 +260,11 @@ test.describe('reduced motion', () => {
 
 test('TC-059 no WebGL2: the static lens, the HTML marquee, a clean console', async ({
   page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'a desktop that would otherwise mount the 3D')
+  viewport,
+  hasTouch,
+}) => {
+  test.skip(!wide(viewport) || hasTouch, 'a desktop that would otherwise mount the 3D')
+  await expectDesktopPointer(page)
   await instrument(page)
   await page.addInitScript(() => {
     const getContext = HTMLCanvasElement.prototype.getContext
@@ -284,8 +296,15 @@ test.describe('WebGL without a GPU', () => {
 
   test('TC-074 a software renderer keeps the static lens and loads no 3D', async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'a desktop that would otherwise mount the 3D')
+    viewport,
+    hasTouch,
+    webgl2,
+  }) => {
+    test.skip(!wide(viewport) || hasTouch, 'a desktop that would otherwise mount the 3D')
+    // The software path needs a WebGL2 context to name its renderer (Playwright's Windows WebKit
+    // runs without accelerated compositing and may have none).
+    test.skip(!webgl2.available, 'this browser has no WebGL2')
+    await expectDesktopPointer(page)
     await instrument(page)
     const scripts: number[] = []
     page.on('request', (request) => {
@@ -377,18 +396,8 @@ test.describe('3D hero', () => {
     expect(fallbackRequests, 'a capable desktop never fetches the static lens').toEqual([])
 
     // The WebGL copy starts exactly where the frozen HTML track stands (circular, one group).
-    const phase = await page.evaluate(() => {
-      const track = document.querySelector('#top [data-marquee]')!.firstElementChild!
-      const groups = track.children
-      return {
-        group: groups[1].getBoundingClientRect().left - groups[0].getBoundingClientRect().left,
-        html: new DOMMatrix(getComputedStyle(track).transform).m41,
-        webgl: Number(document.querySelector('[data-three]')!.getAttribute('data-phase')),
-        unitDelta: Number(document.querySelector('[data-three]')!.getAttribute('data-unit-delta')),
-      }
-    })
-    const distance = Math.abs(phase.webgl - phase.html) % phase.group
-    expect(Math.min(distance, phase.group - distance), JSON.stringify(phase)).toBeLessThanOrEqual(2)
+    const phase = await tickerPhaseOffset(page)
+    expect(phase.offset, phase.detail).toBeLessThanOrEqual(2)
     // Last glyph of a unit, WebGL vs HTML: 0.01 px on Windows, 3.2 px on Linux CI (platform glyph
     // positioning); Inter's `cpsp` spacing, which this guards against, puts it at 7.1 px.
     expect(Math.abs(phase.unitDelta), 'WebGL vs HTML glyph advance').toBeLessThanOrEqual(5)
@@ -490,7 +499,7 @@ test.describe('3D hero', () => {
     await page.waitForTimeout(1_000) // the lens fade
     // Freeze the canvas (a hidden tab stops the frame loop), then put the paused HTML track at
     // the same phase and compare the two renderings outside the lens. A negative control moves
-    // the HTML track 2 px and must fail the same comparison.
+    // the HTML track 4 px and must be found at least 3 px off (the edge of the search).
     await setHidden(page, true)
     await expect(page.locator(LAYER)).toHaveAttribute('data-three', 'paused')
     const geometry = await page.evaluate(() => {
@@ -592,7 +601,7 @@ test.describe('3D hero', () => {
       )
 
     const html = await shoot(true)
-    const shifted = await shoot(true, geometry.fraction + 2 / geometry.group)
+    const shifted = await shoot(true, geometry.fraction + 4 / geometry.group)
     const webgl = await shoot(false)
     const aligned = await compare(html, webgl)
     const control = await compare(shifted, webgl)
@@ -601,19 +610,26 @@ test.describe('3D hero', () => {
       type: 'alignment',
       description:
         `in phase: best offset (${aligned.dx}, ${aligned.dy}) px, residual ${percent(aligned.residual)}, ` +
-        `${percent(aligned.direct)} at no offset; HTML 2 px off: best offset (${control.dx}, ${control.dy}) px`,
+        `${percent(aligned.direct)} at no offset; HTML 4 px off: best offset (${control.dx}, ${control.dy}) px`,
     })
-    // Limits in docs/DECISIONS.md (M3 alignment test): the renderings line up within a pixel
-    // and match there (glyph positions differ a little by platform: 0.000 % on Windows, about
-    // 1 % on Linux), and a 2 px offset is found as one.
-    expect(Math.abs(aligned.dx), 'WebGL and HTML marquee in phase (x)').toBeLessThanOrEqual(1)
+    // Limits in docs/DECISIONS.md (M3 alignment test). In x the renderings line up within 1 px
+    // where the laptop's GPU renders (Windows measures 0), within 2 px on Linux, the CI runner,
+    // where Chromium rasterizes the HTML glyphs differently (since runner image 20261101.186.1 it
+    // measures −2). In y within 1 px, and they match there (residual: 0.000 % on Windows, 1–1.5 %
+    // on Linux). The control, 4 px off, must be found at 3 px or more on both, so the comparison
+    // still tells a real shift from the platform's 2 px.
+    const xLimit = process.platform === 'linux' ? 2 : 1
+    expect(
+      Math.abs(aligned.dx),
+      `WebGL and HTML marquee in phase (x), limit ${xLimit} px on ${process.platform}`,
+    ).toBeLessThanOrEqual(xLimit)
     expect(
       Math.abs(aligned.dy),
       'WebGL and HTML marquee on the same baseline (y)',
     ).toBeLessThanOrEqual(1)
     expect(aligned.residual, 'same glyphs, size and spacing').toBeLessThan(0.025)
-    expect(Math.abs(control.dx), 'negative control: a 2 px shift is found').toBeGreaterThanOrEqual(
-      2,
+    expect(Math.abs(control.dx), 'negative control: a 4 px shift is found').toBeGreaterThanOrEqual(
+      3,
     )
   })
 

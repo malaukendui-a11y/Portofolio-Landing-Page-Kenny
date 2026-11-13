@@ -4,7 +4,16 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
-import { batchIntersectionChanges, revealAll, scrollOutAndBack, selectLang } from './helpers'
+import {
+  batchIntersectionChanges,
+  belowMd,
+  expectDesktopPointer,
+  revealAll,
+  scrollOutAndBack,
+  selectLang,
+  tabsToLinks,
+  wide,
+} from './helpers'
 
 const statementText = (copy: typeof en) => copy.intro.statement.map((part) => part.text).join('')
 
@@ -60,9 +69,9 @@ async function clickNavLink(page: Page, label: string, mobile: boolean): Promise
 }
 
 test.describe('anchor navigation (Lenis)', () => {
-  test('nav links reach their sections and move focus there', async ({ page }, testInfo) => {
+  test('nav links reach their sections and move focus there', async ({ page, viewport }) => {
     await gotoWithLenis(page)
-    const mobile = testInfo.project.name === 'mobile'
+    const mobile = belowMd(viewport)
     for (const [label, id] of NAV_SECTIONS) {
       await clickNavLink(page, label, mobile)
       await expectAt(page, id)
@@ -72,6 +81,7 @@ test.describe('anchor navigation (Lenis)', () => {
 
   test('every nav anchor, clicked 20 times in a row, arrives every time', async ({
     page,
+    viewport,
   }, testInfo) => {
     test.setTimeout(300_000)
     // Count the native safety net in lib/smoothScroll.ts without touching the app: it is
@@ -86,7 +96,7 @@ test.describe('anchor navigation (Lenis)', () => {
       }
     })
     await gotoWithLenis(page)
-    const mobile = testInfo.project.name === 'mobile'
+    const mobile = belowMd(viewport)
     const rounds = 20
     for (let round = 0; round < rounds; round += 1) {
       for (const [label, id] of NAV_SECTIONS) {
@@ -107,7 +117,14 @@ test.describe('anchor navigation (Lenis)', () => {
 
   test('after images load and the page grows, wheeling down reaches the real bottom', async ({
     page,
+    browserName,
+    isMobile,
   }) => {
+    // A test-harness limit, not the site's: Playwright cannot send wheel events in mobile WebKit.
+    test.skip(
+      browserName === 'webkit' && isMobile,
+      'Playwright has no mouse wheel in mobile WebKit',
+    )
     await gotoWithLenis(page)
     // Load every lazy image (projects, certificates), as scrolling down would.
     await page.evaluate(() => {
@@ -169,14 +186,12 @@ test.describe('marquee', () => {
 
   test('hero marquee loops at the token speed; Reach Out runs in reverse', async ({
     page,
-  }, testInfo) => {
+    viewport,
+  }) => {
     await page.goto('/')
     const hero = track(page, 'top')
     await expect(hero).toHaveCSS('animation-name', 'marquee')
-    await expect(hero).toHaveCSS(
-      'animation-duration',
-      testInfo.project.name === 'mobile' ? '28s' : '40s',
-    )
+    await expect(hero).toHaveCSS('animation-duration', belowMd(viewport) ? '28s' : '40s')
     await expect(hero).toHaveCSS('animation-play-state', 'running')
     // The track moves left (a cold browser can take a moment to produce frames).
     const before = await translateX(page, 'top')
@@ -337,8 +352,9 @@ async function expectPlainList(page: Page, section: string) {
 test.describe('stacked cards', () => {
   test('at 1440, card n scales and dims as card n+1 arrives, and recovers', async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+    viewport,
+  }) => {
+    test.skip(!wide(viewport), 'stacking starts at 1024 px')
     await gotoWithLenis(page)
     for (const section of ['services', 'work']) {
       await expect(page.locator(`#${section} article`).first()).toHaveCSS('position', 'sticky')
@@ -376,8 +392,16 @@ test.describe('stacked cards', () => {
   })
 
   // TC-031, WCAG 2.2 SC 2.4.11: focus moving backwards lands in a card the later ones cover.
-  test('Shift+Tab into a covered card uncovers the focused control', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+  test('Shift+Tab into a covered card uncovers the focused control', async ({
+    page,
+    isMobile,
+    browserName,
+  }) => {
+    test.skip(isMobile, 'stacking starts at 1024 px; the test sets its own desktop windows')
+    test.skip(
+      !tabsToLinks(browserName),
+      'this WebKit, like Safari by default, does not Tab to links',
+    )
     const focusState = () =>
       page.evaluate(() => {
         const focused = document.activeElement as HTMLElement
@@ -462,8 +486,8 @@ test.describe('stacked cards', () => {
   // TC-092: a stuck card taller than the space below its sticky top never shows its bottom
   // (stack rows, the CTA row) while the cards stack, and focus there would stay obscured
   // (WCAG 2.2 SC 2.4.11). Every project card must fit, in both languages.
-  test('every project card fits below its sticky top', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+  test('every project card fits below its sticky top', async ({ page, isMobile }, testInfo) => {
+    test.skip(isMobile, 'stacking starts at 1024 px; the test sets its own desktop windows')
     await page.goto('/')
     const margins: string[] = []
     for (const lang of ['en', 'id'] as const) {
@@ -499,8 +523,8 @@ test.describe('stacked cards', () => {
     console.log(`card fit: ${margins.join('; ')}`)
   })
 
-  test('below 1024 px the cards are a plain list', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'the 390 px layout')
+  test('below 1024 px the cards are a plain list', async ({ page, viewport }) => {
+    test.skip(wide(viewport), 'the 390 px layout')
     await page.goto('/')
     await expectPlainList(page, 'services')
     await expectPlainList(page, 'work')
@@ -510,8 +534,9 @@ test.describe('stacked cards', () => {
 // TC-029: hover states (DESIGN §4.4 rows, §5 pill buttons). Tailwind's `hover:` sits behind
 // `@media (hover: hover)`, which the touch emulation of the mobile project does not match.
 test.describe('hover', () => {
-  test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'hover needs a fine pointer')
+  test.beforeEach(async ({ hasTouch, page }) => {
+    test.skip(hasTouch, 'hover needs a fine pointer')
+    await expectDesktopPointer(page)
   })
 
   test('pill buttons invert over dur-fast and the arrow slides', async ({ page }) => {

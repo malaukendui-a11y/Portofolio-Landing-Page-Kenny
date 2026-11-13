@@ -2,11 +2,14 @@
 // for `/` on load, summed as encoded (gzip) bytes, must stay within 250 KB. The fixture keeps
 // the 3D layer off here, so its lazy chunk is never requested; three.spec.ts checks, with the
 // 3D on, that no 3D code is among the scripts loaded before `load` (TC-055).
+//
+// @chromium (M5): an encoded-size budget. Each engine fills request.sizes() from a different
+// source, so the gate is measured once, in Chromium.
 import { expect, test } from './fixtures'
 
 const BUDGET_BYTES = 250 * 1024
 
-test('initial JS stays within 250 KB gzipped', async ({ page }, testInfo) => {
+test('initial JS stays within 250 KB gzipped @chromium', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'one measurement is enough')
   const scripts: { url: string; bytes: number }[] = []
   page.on('requestfinished', async (request) => {

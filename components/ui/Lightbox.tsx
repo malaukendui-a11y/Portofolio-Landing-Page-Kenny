@@ -163,19 +163,20 @@ function Lightbox({
 
 /**
  * `const { open, lightbox } = useLightbox()` — render `{lightbox}` once in the
- * section and call `open(items, index)` from any trigger button.
+ * section and call `open(items, index, event.currentTarget)` from any trigger button; focus
+ * returns to that trigger on close.
  */
 export function useLightbox(): {
-  open: (items: readonly LightboxItem[], index?: number) => void
+  open: (items: readonly LightboxItem[], index?: number, trigger?: HTMLElement | null) => void
   lightbox: ReactNode
 } {
   const [state, setState] = useState<LightboxState | null>(null)
   const focus = useRestoreFocus()
 
   const open = useCallback(
-    (items: readonly LightboxItem[], index = 0) => {
+    (items: readonly LightboxItem[], index = 0, trigger?: HTMLElement | null) => {
       if (items.length === 0) return
-      focus.remember()
+      focus.remember(trigger)
       setState({ items, index })
     },
     [focus],

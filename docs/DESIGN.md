@@ -146,7 +146,7 @@ Research card uses the same anatomy with a PDF icon and "Read the paper (PDF)".
 
 ## 4.6 QA Evidence (paper)
 
-A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDENCE`. Left column: a short statement about the Bank Mandiri experience (no confidential detail). Right column: a 3-up grid of evidence screenshots from PintuKos (Trading Compass until M4b) — **CI run** (GitHub Actions), **E2E report** (Playwright, 45 passed) and **UAT sheet** (85 steps) (M4b batch 2) — at their natural aspect, each opening the lightbox with its caption; title (`h3`) under each tile, caption in mono. The tile's accessible name is the image's alt, its title.
+A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDENCE`. Left column: a short statement about the Bank Mandiri experience (no confidential detail). Right column: a 3-up grid of evidence screenshots from PintuKos (Trading Compass until M4b) — **CI run** (GitHub Actions), **E2E report** (Playwright, 45 passed) and **UAT sheet** (85 steps) (M4b batch 2) — each contained whole and centred in a uniform 4:3 frame (`rounded-image`, hairline border) on `paper-100`, so the three titles start at the same height (M5, owner choice), each opening the lightbox with its caption; title (`h3`) under each tile, caption in mono. The tile's accessible name is the image's alt, its title.
 
 ## 4.7 Experience & Education (dark)
 
@@ -199,7 +199,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 - Portraits: the hero uses the colour original only (`kenny-hero-formal@2x.webp` since M4b); no alternate treatments are kept. Reach Out shows the polaroid line, not a portrait (§4.9).
 - Project screenshots: real UI only, 16:10 crops, no device mockups, no fake data that looks like real users; light drop of 1 px `ink-700` border on dark. **Owner exception (M4b):** design renders are allowed when every image's alt text, and so its lightbox caption, says so ("design render, sample data"). The PintuKos boards are 16:9 renders with phone frames and sample data, because the live app holds real tenants' data behind a login (`docs/DECISIONS.md` 2026-11-13).
-- QA evidence (§4.6): real screenshots of the owner's own tooling (the GitHub Actions run, the Playwright report, the UAT sheet) at their natural aspect, sample data only, no mockups (M4b batch 2).
+- QA evidence (§4.6): real screenshots of the owner's own tooling (the GitHub Actions run, the Playwright report, the UAT sheet), shown whole in uniform 4:3 frames (M5), sample data only, no mockups (M4b batch 2).
 - Certificates: photographed originals, straightened, no filters.
 - No stock photos, no illustrations, no icons other than a minimal line set (Lucide) at 1.5 px stroke.
 

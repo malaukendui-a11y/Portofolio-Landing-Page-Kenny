@@ -8,11 +8,10 @@ import { selectLang } from './helpers'
 test('renders English by default, toggles to Indonesian and persists the choice', async ({
   page,
 }) => {
-  const externalRequests: string[] = []
-  page.on('request', (request) => {
-    const { hostname } = new URL(request.url())
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') externalRequests.push(request.url())
-  })
+  // Origins, not host names: a blob: URL carries the page's own origin. A request the CSP blocks is
+  // never sent; the fixture's CSP guard fails the test on it instead.
+  const requested: string[] = []
+  page.on('request', (request) => requested.push(request.url()))
 
   await page.goto('/')
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
@@ -27,7 +26,11 @@ test('renders English by default, toggles to Indonesian and persists the choice'
   await expect(page.locator('html')).toHaveAttribute('lang', 'id')
   await expect(page.getByText(id.intro.paragraph)).toBeVisible()
 
-  expect(externalRequests, 'fonts and scripts must be self-hosted').toEqual([])
+  const origin = new URL(page.url()).origin
+  expect(
+    requested.filter((url) => new URL(url).origin !== origin),
+    'fonts and scripts must be self-hosted',
+  ).toEqual([])
 })
 
 test('project cards follow the status → CTA rules', async ({ page }) => {

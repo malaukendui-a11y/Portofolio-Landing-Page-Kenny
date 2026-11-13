@@ -38,7 +38,7 @@ export function Certifications() {
             >
               <button
                 type="button"
-                onClick={() => open(items, index)}
+                onClick={(event) => open(items, index, event.currentTarget)}
                 aria-label={t.certifications.openCertificate.replace('{title}', copy.title)}
                 className="block w-full overflow-hidden rounded-image border border-ink-700 bg-ink-900"
               >

@@ -8,7 +8,14 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
-import { batchIntersectionChanges, scrollOutAndBack, selectLang } from './helpers'
+import {
+  batchIntersectionChanges,
+  belowMd,
+  hasNoHorizontalOverflow,
+  scrollOutAndBack,
+  selectLang,
+  wide,
+} from './helpers'
 
 const labels = en.reachOut.polaroids
 
@@ -35,6 +42,23 @@ async function pointOn(page: Page, card: Locator): Promise<{ x: number; y: numbe
     x: Math.min(area.x + area.width - 4, Math.max(area.x + 4, box.x + box.width / 2)),
     y: box.y + box.height / 2,
   }
+}
+
+/** Frames per second the page paints at, over half a second. */
+function frameRate(page: Page): Promise<number> {
+  return page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        let frames = 0
+        const start = performance.now()
+        const tick = (now: number) => {
+          frames += 1
+          if (now - start < 500) requestAnimationFrame(tick)
+          else resolve((frames * 1000) / (now - start))
+        }
+        requestAnimationFrame(tick)
+      }),
+  )
 }
 
 /** Waits out what is left of `ms` since `start`. */
@@ -150,7 +174,17 @@ test.describe('polaroid line', () => {
     await gotoCarousel(page)
     const start = Date.now()
     await expect(count(page)).toHaveText('03 / 06')
-    await expect(count(page)).toHaveText('04 / 06', { timeout: 6_000 })
+    // The frame loop clamps each step to 33 ms, so below 30 fps the line, and the counter that
+    // follows it, runs slower than the clock (docs/DECISIONS.md, TC-036). The premise is measured,
+    // not assumed: CI's Linux WebKit painted this page at about 4 fps (software, DPR 2), where
+    // the step lands after the window.
+    const fps = await frameRate(page)
+    test.info().annotations.push({ type: 'fps', description: fps.toFixed(0) })
+    test.skip(
+      fps < 30,
+      `the page paints at ${fps.toFixed(0)} fps; the 6 s window assumes 30 or more`,
+    )
+    await expect(count(page)).toHaveText('04 / 06', { timeout: start + 6_000 - Date.now() })
     await waitUntil(page, start, 6_000)
     await expect(count(page)).toHaveText('04 / 06')
   })
@@ -187,7 +221,9 @@ test.describe('polaroid line', () => {
     await expect(count(page)).toHaveText('03 / 06')
 
     await play(page).click()
-    await page.mouse.move(0, 0)
+    // A real mouse sends a stream of moves. After the click swapped the icon under the pointer,
+    // Playwright's WebKit fires the leave only on a later move event, so step the move away.
+    await page.mouse.move(1, 1, { steps: 5 })
     await expect(pause(page)).toBeVisible()
     await expect(status).toHaveAttribute('aria-live', 'off')
     await expect(count(page)).toHaveText('04 / 06', { timeout: 7_000 })
@@ -286,13 +322,23 @@ test.describe('polaroid line', () => {
     const area = (await root(page).boundingBox())!
     const y = area.y + area.height * 0.4
     const x = area.x + area.width / 2
+    // The mouse's pointerId differs per engine (1 in Chromium and WebKit, 0 in Gecko): remember the
+    // one the real press used, so the synthetic move below reads as the same pointer.
+    await root(page).evaluate((element) => {
+      element.addEventListener(
+        'pointerdown',
+        (event) =>
+          element.setAttribute('data-test-pointer', String((event as PointerEvent).pointerId)),
+        { once: true, capture: true },
+      )
+    })
     await page.mouse.move(x, y)
     await page.mouse.down()
     await page.mouse.move(x - 40, y, { steps: 4 })
     await expect(root(page)).toHaveAttribute('data-drag', '1')
     await root(page).evaluate((element) => {
-      // pointerId 1: Chromium's id for the mouse, so this reads as the same pointer.
-      const init = { bubbles: true, composed: true, pointerId: 1, pointerType: 'mouse', buttons: 0 }
+      const pointerId = Number(element.getAttribute('data-test-pointer'))
+      const init = { bubbles: true, composed: true, pointerId, pointerType: 'mouse', buttons: 0 }
       element.dispatchEvent(new PointerEvent('pointermove', init))
     })
     await expect(root(page)).toHaveAttribute('data-drag', '0')
@@ -343,8 +389,8 @@ test.describe('polaroid line', () => {
     await expect(page.getByRole('button', { name: copy.play })).toBeVisible()
   })
 
-  test('a resize keeps the current photo centred', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'one resize path is enough')
+  test('a resize keeps the current photo centred', async ({ page, viewport }) => {
+    test.skip(!wide(viewport), 'one resize path is enough: from a wide window down to 390')
     await gotoCarousel(page)
     await next(page).click()
     await expect(count(page)).toHaveText('04 / 06')
@@ -365,24 +411,22 @@ test.describe('polaroid line', () => {
     expect(width).toBe(150)
   })
 
-  test('sits between the ticker and the contact block on mobile', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'the order only changes below md')
+  test('sits between the ticker and the contact block on mobile', async ({ page, viewport }) => {
+    test.skip(!belowMd(viewport), 'the order only changes below md')
     await gotoCarousel(page)
     const carousel = (await root(page).boundingBox())!
     const ticker = (await page.locator('#contact [data-marquee]').boundingBox())!
     const heading = (await page.locator('#contact-heading').boundingBox())!
     expect(carousel.y).toBeGreaterThanOrEqual(ticker.y + ticker.height)
     expect(carousel.y + carousel.height).toBeLessThanOrEqual(heading.y)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+    expect(await hasNoHorizontalOverflow(page)).toBe(true)
   })
 
+  // A blob: URL (a worker, for instance) carries the page's own origin, so origins are compared,
+  // not host names. A request the CSP blocks is never sent; the fixture's CSP guard covers that.
   test('sends no request to another host while scrolling to #contact', async ({ page }) => {
-    const external: string[] = []
-    page.on('request', (request) => {
-      const { hostname, protocol } = new URL(request.url())
-      if (protocol === 'data:') return
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') external.push(request.url())
-    })
+    const requested: string[] = []
+    page.on('request', (request) => requested.push(request.url()))
     await gotoCarousel(page)
     await page.locator('#contact').scrollIntoViewIfNeeded()
     await expect
@@ -392,15 +436,18 @@ test.describe('polaroid line', () => {
           .evaluate((img) => (img as HTMLImageElement).complete),
       )
       .toBe(true)
-    expect(external).toEqual([])
+    const origin = new URL(page.url()).origin
+    expect(requested.filter((url) => new URL(url).origin !== origin)).toEqual([])
   })
 })
 
-// Real touch input through CDP (the mobile project has hasTouch): the browser makes its own
-// pan decision and fires its own pointer events, which dispatching PointerEvents cannot.
+// Real touch input through CDP (the phone projects have hasTouch): the browser makes its own
+// pan decision and fires its own pointer events, which dispatching PointerEvents cannot. CDP
+// exists only in Chromium, so those tests carry @chromium; Playwright's only cross-browser touch
+// input is a tap, which the tap tests use in every phone project.
 test.describe('polaroid line under real touch', () => {
-  test.beforeEach(async ({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'needs touch emulation')
+  test.beforeEach(async ({ hasTouch }) => {
+    test.skip(!hasTouch, 'needs touch emulation')
   })
 
   type Point = { x: number; y: number; id: number }
@@ -411,7 +458,9 @@ test.describe('polaroid line under real touch', () => {
       cdp.send('Input.dispatchTouchEvent', { type, touchPoints })
   }
 
-  test('a vertical swipe from a side card scrolls the page and does not jump', async ({ page }) => {
+  test('a vertical swipe from a side card scrolls the page and does not jump @chromium', async ({
+    page,
+  }) => {
     await gotoCarousel(page)
     const { x, y } = await pointOn(page, page.locator('.pl-card[data-i="3"]'))
     const before = await page.evaluate(() => window.scrollY)
@@ -434,7 +483,7 @@ test.describe('polaroid line under real touch', () => {
     await expect(count(page)).toHaveText('04 / 06')
   })
 
-  test('two fingers on a print do not fling the line', async ({ page }) => {
+  test('two fingers on a print do not fling the line @chromium', async ({ page }) => {
     await gotoCarousel(page)
     const area = (await root(page).boundingBox())!
     const y = area.y + area.height * 0.4
@@ -457,7 +506,9 @@ test.describe('polaroid line under real touch', () => {
     await expect(count(page)).toHaveText('03 / 06')
   })
 
-  test('a pinch on the carousel zooms the page and leaves the line alone', async ({ page }) => {
+  test('a pinch on the carousel zooms the page and leaves the line alone @chromium', async ({
+    page,
+  }) => {
     await gotoCarousel(page)
     await expect(root(page)).toHaveCSS('touch-action', 'pan-y pinch-zoom')
     const area = (await root(page).boundingBox())!
@@ -481,7 +532,7 @@ test.describe('polaroid line under real touch', () => {
     await expect(count(page)).toHaveText('03 / 06')
   })
 
-  test('a second finger during a drag does not fling the line', async ({ page }) => {
+  test('a second finger during a drag does not fling the line @chromium', async ({ page }) => {
     await gotoCarousel(page)
     const area = (await root(page).boundingBox())!
     const y = area.y + area.height * 0.4
@@ -512,7 +563,7 @@ test.describe('polaroid line under real touch', () => {
     await expect(count(page)).toHaveText('03 / 06')
   })
 
-  test('one finger still drags the line sideways', async ({ page }) => {
+  test('one finger still drags the line sideways @chromium', async ({ page }) => {
     await gotoCarousel(page)
     const area = (await root(page).boundingBox())!
     const y = area.y + area.height * 0.4

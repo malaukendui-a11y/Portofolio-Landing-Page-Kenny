@@ -10,7 +10,8 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 /**
  * QA Evidence (DESIGN §4.6) — paper surface. Left: the Bank Mandiri statement and where the
  * evidence comes from. Right: a 3-up grid of the PintuKos evidence screenshots (PRD §12.7, M4b
- * batch 2) at their natural aspect; a tile's name is its image's alt (the title), and the
+ * batch 2), each contained whole and centred in a uniform 4:3 frame on paper-100, so the three
+ * titles start at the same height (M5); a tile's name is its image's alt (the title), and the
  * lightbox shows its caption. Rendered only while `content/qa.ts` has artifacts, no placeholders.
  */
 export function QAEvidence() {
@@ -44,8 +45,10 @@ export function QAEvidence() {
                 <li key={artifact.id}>
                   <button
                     type="button"
-                    onClick={() => open(items, index)}
-                    className="block w-full overflow-hidden rounded-image border border-hairline bg-paper-50"
+                    onClick={(event) => open(items, index, event.currentTarget)}
+                    // The image is placed absolutely: a percentage height inside a <button> does
+                    // not resolve the same way in every engine, and would crop it silently.
+                    className="relative block aspect-[4/3] w-full overflow-hidden rounded-image border border-hairline bg-paper-100"
                   >
                     <Image
                       src={artifact.image.src}
@@ -55,7 +58,7 @@ export function QAEvidence() {
                       // A tile is about 17vw wide from 1024 px (240 px at 1440), 30vw from 640 px
                       // and the full column below.
                       sizes="(min-width: 1024px) 17vw, (min-width: 640px) 30vw, calc(100vw - 40px)"
-                      className="h-auto w-full"
+                      className="absolute inset-0 h-full w-full object-contain"
                     />
                   </button>
                   <h3 className="mt-4 font-display text-h3-sm text-balance md:text-h3">

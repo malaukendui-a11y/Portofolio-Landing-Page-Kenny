@@ -288,8 +288,9 @@ function captionState(page: Page) {
 // height-bound board (the image leaves it room).
 test('the lightbox caption waits for its board and stays on screen on a short window', async ({
   page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'height-bound boards only happen on wide windows')
+  isMobile,
+}) => {
+  test.skip(isMobile, 'height-bound boards only happen on wide windows; the test sets its own')
   await page.setViewportSize({ width: 1280, height: 600 })
   // Hold board 02 (never shown before the lightbox steps to it) until released.
   let release: () => void = () => {}

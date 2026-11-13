@@ -32,9 +32,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     // The pre-paint script sets data-loader on <html> before hydration; LangHtmlSync sets lang.
     <html lang="en" className={`${fontClassNames} h-full`} suppressHydrationWarning>
       <head>
-        {/* Loader flag (PRD F-12) before first paint; the CSP (M5) must allow its hash. */}
+        {/* Loader flag (PRD F-12) before first paint. The CSP allows it through 'unsafe-inline';
+            never add its hash (lib/security-headers.ts). */}
         <script dangerouslySetInnerHTML={{ __html: LOADER_PREPAINT_SCRIPT }} />
-        {/* JSON-LD Person (PRD §8 SEO): a data block, never executed; hash noted for the M5 CSP. */}
+        {/* JSON-LD Person (PRD §8 SEO): a data block, never executed, so script-src does not gate it. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON_JSON_LD }} />
       </head>
       <body className="flex min-h-full flex-col">{children}</body>

@@ -6,9 +6,10 @@ import en from '@/content/en'
 import { site } from '@/content/site'
 
 /**
- * Canonical origin. `NEXT_PUBLIC_SITE_URL` replaces the default at build time, which is how M5
- * moves to a custom domain without a code change. `||` (not `??`): an empty variable falls back
- * instead of making `new URL('')` throw.
+ * Canonical origin. `NEXT_PUBLIC_SITE_URL` replaces the default at build time, which is how the site
+ * moves to a custom domain without a code change (launched on vercel.app in M5; the domain comes
+ * later, PRD §12.8). `||` (not `??`): an empty variable falls back instead of making `new URL('')`
+ * throw.
  */
 export const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL || site.url)
 
@@ -31,6 +32,6 @@ export const personJsonLd = {
 
 /**
  * The JSON-LD as the inline script's text, with `<` escaped so no value can close the tag (Next's
- * JSON-LD guide). The M5 CSP note in docs/DECISIONS.md records this text's hash.
+ * JSON-LD guide). A data block: the CSP does not gate it, so it needs no hash (lib/security-headers.ts).
  */
 export const PERSON_JSON_LD = JSON.stringify(personJsonLd).replace(/</g, '\\u003c')
