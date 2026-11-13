@@ -418,12 +418,16 @@ test.describe('stacked cards', () => {
         .toEqual({ topmost: true, inViewport: true })
 
       // Forward, from a fresh load: card 1 is 60 % of the way up, over the bottom of the stuck
-      // PintuKos card, so its cover is clear and its "Preview" is covered. Tab from the cover
-      // must bring "Preview" out whole.
+      // PintuKos card, so its cover is clear and its CTA row is covered. Tab from the cover must
+      // bring the app link (first in the row since M4b batch 2) out whole, then "Preview".
       await gotoWithLenis(page)
       await bringNextCard(page, 'work', 0, 0.6)
       const cover = pintukos.getByRole('button', {
         name: en.projects.openScreenshots.replace('{title}', en.projects.items.pintukos.title),
+      })
+      const app = pintukos.getByRole('link', {
+        name: en.projects.cta.liveDemoPrivate,
+        exact: true,
       })
       const hitAtCentre = (control: Locator) =>
         control.evaluate((element) => {
@@ -435,16 +439,23 @@ test.describe('stacked cards', () => {
           return hit === null ? 'off-screen' : element.contains(hit) ? 'clear' : 'covered'
         })
       await expect
-        .poll(async () => [await hitAtCentre(cover), await hitAtCentre(preview)], {
-          message: `forward precondition ${viewport.width}x${viewport.height}`,
-        })
-        .toEqual(['clear', 'covered'])
+        .poll(
+          async () => [
+            await hitAtCentre(cover),
+            await hitAtCentre(app),
+            await hitAtCentre(preview),
+          ],
+          { message: `forward precondition ${viewport.width}x${viewport.height}` },
+        )
+        .toEqual(['clear', 'covered', 'covered'])
       await cover.focus()
-      await page.keyboard.press('Tab')
-      await expect(preview).toBeFocused()
-      await expect
-        .poll(focusState, { message: `forward ${viewport.width}x${viewport.height}` })
-        .toEqual({ topmost: true, inViewport: true })
+      for (const control of [app, preview]) {
+        await page.keyboard.press('Tab')
+        await expect(control).toBeFocused()
+        await expect
+          .poll(focusState, { message: `forward ${viewport.width}x${viewport.height}` })
+          .toEqual({ topmost: true, inViewport: true })
+      }
     }
   })
 

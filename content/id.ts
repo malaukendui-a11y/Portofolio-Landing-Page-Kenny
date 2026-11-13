@@ -107,6 +107,7 @@ const id = {
     },
     cta: {
       liveDemo: 'Demo langsung',
+      liveDemoPrivate: 'Buka aplikasi · hanya undangan',
       github: 'GitHub',
       preview: 'Pratinjau',
       previewDesigns: 'Pratinjau desain',
@@ -152,19 +153,22 @@ const id = {
     statement:
       'Di Bank Mandiri saya menguji Project Kopra, super-platform digital wholesale, melalui siklus pengujian manual dan UAT.',
     paragraph:
-      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, pengujian end-to-end Playwright dengan audit axe, pengujian SQL, dan UAT 85 langkah.',
+      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, 45 jalan uji end-to-end Playwright di 14 alur dengan audit axe, pengujian SQL, dan UAT 85 langkah.',
     artifacts: {
-      'test-plan': {
-        title: 'Test plan',
-        caption: 'PintuKos · lingkup, risiko, kriteria masuk dan keluar',
+      'ci-run': {
+        title: 'Jalan CI — alur utama',
+        caption:
+          'GitHub Actions: pengujian end-to-end Playwright dengan Supabase lokal, semua job hijau',
       },
-      'test-cases': {
-        title: 'Test case',
-        caption: 'PintuKos · kasus tingkat skenario dan langkah',
+      'e2e-report': {
+        title: 'Laporan E2E — 45 lulus',
+        caption:
+          'Playwright: 45 jalan uji di 14 alur pada viewport HP dan laptop, termasuk pemindaian aksesibilitas',
       },
-      'bug-report': {
-        title: 'Laporan bug',
-        caption: 'PintuKos · severity, langkah reproduksi, re-test',
+      'uat-sheet': {
+        title: 'Lembar UAT — 85 langkah',
+        caption:
+          'Uji penerimaan di lingkungan DEV: persiapan dan tiga sesi, semua langkah wajib sesuai',
       },
     },
   },
@@ -174,7 +178,7 @@ const id = {
     educationHeading: 'Pendidikan',
     work: {
       period: 'Agu 2026',
-      title: 'Quality Assurance — Project Kopra by Mandiri',
+      title: 'QA Tester (Pengujian Manual) — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
       description: 'QA di Kopra by Mandiri, super-platform digital wholesale.',
@@ -260,7 +264,7 @@ const id = {
     },
     location: { label: 'Lokasi', value: 'Jakarta Timur, Indonesia · on-site, hybrid, atau remote' },
     availability: 'Terbuka untuk bekerja',
-    ctas: { email: 'Kirim email', whatsapp: 'Chat di WhatsApp' },
+    ctas: { email: 'Kirim email', cv: 'Unduh CV', whatsapp: 'Chat di WhatsApp' },
     socialsLabel: 'Tautan lain',
     backToTop: 'Kembali ke atas',
   },

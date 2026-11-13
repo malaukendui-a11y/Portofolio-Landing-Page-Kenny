@@ -34,9 +34,13 @@ test('project cards follow the status → CTA rules', async ({ page }) => {
   await page.goto('/')
   const work = page.locator('#work')
   await expect(work.getByRole('heading', { name: en.projects.items.pintukos.title })).toBeVisible()
-  // No project has a public liveUrl, so no "Live demo" anywhere; PintuKos is live as a private
-  // deployment and previews its images instead (the only "Preview").
+  // No project has a public liveUrl, so no "Live demo" anywhere. PintuKos is live behind a login:
+  // it links its app as invite only (the one such link, M4b batch 2) and previews its images
+  // (the only "Preview").
   await expect(work.getByRole('link', { name: en.projects.cta.liveDemo })).toHaveCount(0)
+  const app = work.getByRole('link', { name: en.projects.cta.liveDemoPrivate, exact: true })
+  await expect(app).toHaveCount(1)
+  await expect(app).toHaveAttribute('href', 'https://app.pintukos.my.id/')
   await expect(
     work.getByRole('button', { name: en.projects.cta.preview, exact: true }),
   ).toHaveCount(1)

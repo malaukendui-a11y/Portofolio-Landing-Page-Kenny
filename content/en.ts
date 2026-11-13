@@ -107,6 +107,7 @@ const en = {
     },
     cta: {
       liveDemo: 'Live demo',
+      liveDemoPrivate: 'Open app · invite only',
       github: 'GitHub',
       preview: 'Preview',
       previewDesigns: 'Preview designs',
@@ -152,19 +153,22 @@ const en = {
     statement:
       'At Bank Mandiri I tested Project Kopra, a wholesale digital super-platform, through manual and UAT cycles.',
     paragraph:
-      'Kopra artifacts are confidential, so the evidence here comes from my own product, PintuKos: 2,000+ unit tests, Playwright end-to-end tests with axe audits, SQL checks and an 85-step UAT.',
+      'Kopra artifacts are confidential, so the evidence here comes from my own product, PintuKos: 2,000+ unit tests, 45 Playwright end-to-end runs across 14 flows with axe audits, SQL checks and an 85-step UAT.',
     artifacts: {
-      'test-plan': {
-        title: 'Test plan',
-        caption: 'PintuKos · scope, risks, entry and exit criteria',
+      'ci-run': {
+        title: 'CI run — main flows',
+        caption:
+          'GitHub Actions: Playwright end-to-end tests against a local Supabase, every job green',
       },
-      'test-cases': {
-        title: 'Test cases',
-        caption: 'PintuKos · scenario- and step-level cases',
+      'e2e-report': {
+        title: 'E2E report — 45 passed',
+        caption:
+          'Playwright: 45 runs across 14 flows on phone and laptop viewports, accessibility scans included',
       },
-      'bug-report': {
-        title: 'Bug report',
-        caption: 'PintuKos · severity, steps to reproduce, re-test',
+      'uat-sheet': {
+        title: 'UAT sheet — 85 steps',
+        caption:
+          'Acceptance test on the DEV environment: preparation and three sessions, every required step passed',
       },
     },
   },
@@ -174,7 +178,7 @@ const en = {
     educationHeading: 'Education',
     work: {
       period: 'Aug 2026',
-      title: 'Quality Assurance — Project Kopra by Mandiri',
+      title: 'QA Tester (Manual Testing) — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
       description: 'QA on Kopra by Mandiri, a wholesale digital super-platform.',
@@ -259,7 +263,7 @@ const en = {
     },
     location: { label: 'Location', value: 'East Jakarta, Indonesia · on-site, hybrid or remote' },
     availability: 'Open to work',
-    ctas: { email: 'Email me', whatsapp: 'Chat on WhatsApp' },
+    ctas: { email: 'Email me', cv: 'Download CV', whatsapp: 'Chat on WhatsApp' },
     socialsLabel: 'Elsewhere',
     backToTop: 'Back to top',
   },

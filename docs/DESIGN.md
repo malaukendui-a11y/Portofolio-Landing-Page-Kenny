@@ -120,7 +120,7 @@ Layer order, back to front:
 
 1. `paper-100` surface with a soft radial white glow centred behind the portrait (≈ 60 % opacity at centre, 0 at 520 px) and a faint `accent-glow` behind the glass element.
 2. **WebGL canvas** (desktop only): name ticker as drei `Text` in Inter Display, colour `ink-900`, size matching `display-ticker`, scrolling right-to-left; the **glass element** floating over the left third, refracting the letters as they pass. (HTML ticker fallback when the canvas is not active.)
-3. **Portrait cutout** `kenny-hero-formal@2x.webp` (1070 × 1600, the formal portrait since M4b), height ≈ 86 % of viewport, horizontally centred at 56 % of the width, anchored to the bottom edge; the soft alpha fade at its bottom edge is part of the asset.
+3. **Portrait cutout** `kenny-hero-formal@2x.webp` (1070 × 1600, the formal portrait since M4b), height ≈ 86 % of viewport, horizontally centred at 56 % of the width, anchored to the bottom edge; the soft alpha fades at its bottom edge and, on both sides, above the shoulder tips (M4b batch 2, checklist C-01) are part of the asset.
 4. UI: bottom-left social list (LinkedIn, GitHub, WhatsApp — `body`, with an `—` dash prefix); bottom-right two roles (`h2` size 32 px / 600, right-aligned: *Software Engineer* / *QA & Web Developer*); top-right under nav: availability pill `● Open to work · Oct 2026` (mono, success dot).
 5. Bottom-left corner: `//  INTRO` label as the scroll cue, matching the reference's transition into the next section.
 
@@ -140,13 +140,13 @@ Mobile: cards stack normally (no sticky), numeral hidden, list unchanged.
 
 ## 4.5 Projects (dark, stacked cards)
 
-Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 6/6 from 1024 to 1279 px for a card with images): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, a short description (one or two sentences), role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules. A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092).
+Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 5/7 from 1024 to 1279 px for a card with images, so a two-CTA row fits one line in either language there; M4b batch 2): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, a short description (one or two sentences), role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules (PintuKos: "Open app · invite only", then "Preview"; the Indonesian row still wraps from 1280 px to about 1300 px). A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092; tightest since batch 2: 32 px, Indonesian at 1280×800).
 
 Research card uses the same anatomy with a PDF icon and "Read the paper (PDF)".
 
 ## 4.6 QA Evidence (paper)
 
-A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDENCE`. Left column: a short statement about the Bank Mandiri experience (no confidential detail). Right column: a 3-up grid of document previews — Test Plan, Test Cases, Bug Report — from PintuKos (Trading Compass until M4b), each opening the lightbox. Captions in mono.
+A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDENCE`. Left column: a short statement about the Bank Mandiri experience (no confidential detail). Right column: a 3-up grid of evidence screenshots from PintuKos (Trading Compass until M4b) — **CI run** (GitHub Actions), **E2E report** (Playwright, 45 passed) and **UAT sheet** (85 steps) (M4b batch 2) — at their natural aspect, each opening the lightbox with its caption; title (`h3`) under each tile, caption in mono. The tile's accessible name is the image's alt, its title.
 
 ## 4.7 Experience & Education (dark)
 
@@ -158,7 +158,7 @@ Up to four cards in a row at ≥ 1280 (two at tablet, stacked on mobile), newest
 
 ## 4.9 Reach Out (paper — mirror of the hero)
 
-Giant ticker **"Reach Out —"** in `ink-900`, left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Two CTA pills: **Email me** (recruiters) and **Chat on WhatsApp** (clients). Right block: the polaroid line, then social links and a circular back-to-top button.
+Giant ticker **"Reach Out —"** in `ink-900`, left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Three CTA pills: **Email me** (recruiters, filled), **Download CV** (recruiters, outlined, a `download` link shown only while `site.cvUrl` is set; M4b batch 2, PRD F-09) and **Chat on WhatsApp** (clients, outlined), which stays last so Tab from it reaches the polaroid line. Right block: the polaroid line, then social links and a circular back-to-top button.
 
 **Polaroid line** (`components/ui/PolaroidLine`, replaces the footer portrait): six square photos on `paper-50` prints with a blank lip (no titles or captions), pegged to a sagging string at 42 % ink. It starts on the third photo so the line looks full at load. Counter `03 / 06`, a pause/play toggle and two arrows, all 44 px round buttons, sit bottom-right. Drag with one finger or the mouse, click a print, arrows or ←/→ move the line, clamped at both ends; a pinch belongs to the browser and zooms the page. Autoplay advances every 4.5 s, wraps 06 → 01, runs only on screen and waits for hover and keyboard focus; the toggle stops it until pressed again. Height is reserved: `clamp(400px, 58vh, 600px)` at md+, `clamp(360px, 52svh, 480px)` below. Below md the carousel sits between the ticker and the contact block. Reduced motion: prints hang still, no autoplay and so no toggle, no scale/filter transition, and the line jumps to its target instead of springing; every other control keeps working.
 
@@ -199,6 +199,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 - Portraits: the hero uses the colour original only (`kenny-hero-formal@2x.webp` since M4b); no alternate treatments are kept. Reach Out shows the polaroid line, not a portrait (§4.9).
 - Project screenshots: real UI only, 16:10 crops, no device mockups, no fake data that looks like real users; light drop of 1 px `ink-700` border on dark. **Owner exception (M4b):** design renders are allowed when every image's alt text, and so its lightbox caption, says so ("design render, sample data"). The PintuKos boards are 16:9 renders with phone frames and sample data, because the live app holds real tenants' data behind a login (`docs/DECISIONS.md` 2026-11-13).
+- QA evidence (§4.6): real screenshots of the owner's own tooling (the GitHub Actions run, the Playwright report, the UAT sheet) at their natural aspect, sample data only, no mockups (M4b batch 2).
 - Certificates: photographed originals, straightened, no filters.
 - No stock photos, no illustrations, no icons other than a minimal line set (Lucide) at 1.5 px stroke.
 
@@ -232,9 +233,10 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 
 | Asset | File | Notes |
 |---|---|---|
-| Hero portrait | `public/images/portrait/kenny-hero-formal@2x.webp` | 1070 × 1600 RGBA WebP (144 KB), the formal portrait (M4b), the only tracked portrait; the bottom fade is baked in (the side edges stay opaque at shoulder height, checklist C-01) |
+| Hero portrait | `public/images/portrait/kenny-hero-formal@2x.webp` | 1070 × 1600 RGBA WebP (139 KB), the formal portrait (M4b), the only tracked portrait; the bottom fade and, since the M4b batch-2 re-export, a fade above the shoulder tips are baked in (outermost columns' alpha at most 6, was 210; checklist C-01) |
 | Reach Out polaroids | `public/images/polaroids/polaroid-{01-comprehensive-exam,02-graduation,03-working-laptop,04-nusa-penida,05-touring,06-portrait}.webp` | 1200 × 1200, each under 300 KB; data in `content/polaroids.ts` |
 | Project images | `public/images/projects/pintukos-{01-overview,02-payment-flow,03-owner-tools,04-design-system}.webp` | 1600 × 900 (16:9) WebP, 51–89 KB each; design renders with sample data and Indonesian on-board text (exception to §7); data and bilingual alts in `content/projects.ts` (M4b) |
+| QA evidence | `public/images/qa/pintukos-{ci-run,e2e-report,uat-sheet}.webp` | 1507 × 781, 1026 × 821 and 1640 × 1240 WebP (29, 166 and 53 KB); screenshots from the owner's PintuKos repository (GitHub Actions run, Playwright report, UAT sheet), sample data only, Indonesian UI text on the UAT sheet and the report; data in `content/qa.ts`, titles and captions in `content/en.ts` / `id.ts` (M4b batch 2) |
 | CV | `public/cv/kenny-cv-2026-11-en.pdf` | 62 KB English PDF, `site.cvUrl`; named by month, so a new version gets a new file name (M4b) |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | 480 × 480 RGBA, lens only (no letters), 27 KB; `node scripts/export-glass-fallback.mjs` against `next dev -p 3100` (difference matte of the dev scene over black and white) |

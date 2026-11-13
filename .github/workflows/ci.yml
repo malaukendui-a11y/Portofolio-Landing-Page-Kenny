@@ -24,9 +24,11 @@ jobs:
       # pnpm version comes from the "packageManager" field in package.json.
       - uses: pnpm/action-setup@v6
 
+      # One Node major for the laptop, CI and Vercel: the same major as package.json
+      # engines.node (docs/DECISIONS.md 2026-11-13, M4b batch 2). content.spec TC-097 checks both.
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile

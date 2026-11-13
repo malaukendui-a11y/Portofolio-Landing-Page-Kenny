@@ -7,7 +7,8 @@ Scope lives in `docs/PRD.md`, visuals in `docs/DESIGN.md`, engineering rules in 
 
 ## Development
 
-Requires Node ≥ 22 and pnpm (version pinned in `package.json` → `packageManager`).
+Requires Node 24 (`engines.node` `24.x`, enforced by `engine-strict` in `.npmrc`; CI and Vercel use
+the same major) and pnpm (version pinned in `package.json` → `packageManager`).
 
 ```
 pnpm install
