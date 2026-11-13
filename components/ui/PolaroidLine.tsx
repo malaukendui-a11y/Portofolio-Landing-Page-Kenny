@@ -24,6 +24,7 @@ import { useReducedMotion } from '@/lib/useReducedMotion'
  * prints once off-screen; autoplay runs only on screen, waits for hover or keyboard focus and
  * stops at the pause button; only the first finger drags; a cancelled pointer is never a click;
  * a press that leaves the root ends; under reduced motion the line jumps instead of springing.
+ * MIT, see THIRD_PARTY_NOTICES.md.
  */
 
 export interface PolaroidSlide {
