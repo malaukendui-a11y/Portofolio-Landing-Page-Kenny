@@ -14,6 +14,10 @@
  * - worker-src blob: that worker itself. connect-src 'self': the ticker-font fetch and Next's
  *   prefetches (troika's CDN fallback-font lookup stays blocked, as it should).
  * - 'unsafe-eval' only under `next dev` (React's dev tooling), never in a build.
+ * - No upgrade-insecure-requests: WebKit applies it to http://localhost too, so on `next start` every
+ *   script, stylesheet and font went to https://localhost and failed (measured with Playwright's
+ *   WebKit, M5). The site is HTTPS-only on Vercel (HSTS) and has no http:// subresources, so the
+ *   directive would add nothing there.
  * No report-to / report-uri: that would send data to an endpoint (CLAUDE.md rule 10).
  */
 
@@ -42,7 +46,6 @@ export function contentSecurityPolicy(development: boolean): string {
     "base-uri 'self'",
     "form-action 'none'",
     "frame-ancestors 'none'",
-    'upgrade-insecure-requests',
   ].join('; ')
 }
 
