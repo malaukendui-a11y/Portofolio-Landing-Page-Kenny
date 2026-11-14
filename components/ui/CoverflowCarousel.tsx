@@ -132,6 +132,59 @@ function paint(
   }
 }
 
+/**
+ * The visible card under a point, by the ring's own projection (`paint`'s maths): each card's two
+ * vertical edges, turned and pushed back, seen from `perspective · width` in front of the frame's
+ * centre. Hit-testing cannot be trusted here: WebKitGTK never reaches the cards that recede behind
+ * the rail's plane, so a click on a side card lands on the frame. Nearest card wins.
+ */
+function cardUnder(
+  cards: readonly (HTMLDivElement | null)[],
+  count: number,
+  pos: number,
+  width: number,
+  frame: DOMRect,
+  x: number,
+  y: number,
+): number | null {
+  if (!width) return null
+  const pitch = width * (1 + gap)
+  const viewer = perspective * width
+  const cx = frame.left + frame.width / 2
+  const cy = frame.top + frame.height / 2
+  let found: number | null = null
+  let nearest = Number.POSITIVE_INFINITY
+  for (let index = 0; index < count; index++) {
+    const card = cards[index]
+    if (!card) continue
+    let offset = index - pos
+    if (loop) {
+      offset = ((offset % count) + count) % count
+      if (offset > count / 2) offset -= count
+    }
+    const distance = Math.abs(offset)
+    if (loop && distance >= count / 2) continue // faded out
+    const ramp = Math.pow(distance, falloff)
+    const tilt = ((Math.min(rotate * ramp, MAX_TILT) * Math.sign(offset)) / 180) * Math.PI
+    const depthZ = -depth * width * ramp
+    // rotateY(−tilt) sends a local edge at ±w/2 to (±w/2 · cos tilt, ±w/2 · sin tilt).
+    const edges = [-1, 1].map((side) => {
+      const half = (side * width) / 2
+      const scale = viewer / (viewer - (depthZ + half * Math.sin(tilt)))
+      return { x: (offset * pitch + half * Math.cos(tilt)) * scale, scale }
+    })
+    const left = cx + Math.min(edges[0].x, edges[1].x)
+    const right = cx + Math.max(edges[0].x, edges[1].x)
+    const halfHeight = (card.offsetHeight / 2) * Math.max(edges[0].scale, edges[1].scale)
+    if (x < left || x > right || Math.abs(y - cy) > halfHeight) continue
+    if (distance < nearest) {
+      nearest = distance
+      found = index
+    }
+  }
+  return found
+}
+
 /** Title, `issuer · period`-style subtitle and label/value rows. Sizer copies render no links. */
 function CaptionBody({ caption, live }: { caption: CoverflowSlide['caption']; live: boolean }) {
   return (
@@ -397,15 +450,30 @@ export function CoverflowCarousel({
       suppressClick.current = false
       if (event.detail !== 0) return
     }
-    // A screen reader activating the frame itself (its name says Enter opens): the centre card.
-    if (event.target === event.currentTarget) {
-      if (event.detail === 0) onOpen(indexAt(target.current, count), event.currentTarget)
-      return
-    }
+    const ring = event.currentTarget
+    let index: number | null
     const card = (event.target as Element).closest<HTMLElement>('[data-cf-index]')
-    if (!card || !event.currentTarget.contains(card)) return
-    const index = Number(card.dataset.cfIndex)
-    if (index === indexAt(target.current, count)) onOpen(index, event.currentTarget)
+    if (card && ring.contains(card)) {
+      index = Number(card.dataset.cfIndex)
+    } else if (event.detail === 0) {
+      // A screen reader activating the frame itself (its name says Enter opens): the centre card.
+      if (event.target === ring) onOpen(indexAt(target.current, count), ring)
+      return
+    } else {
+      // A click that hit-testing gave to the frame or the rail: the card under it, by geometry.
+      const frame = ring.getBoundingClientRect()
+      index = cardUnder(
+        cards.current,
+        count,
+        pos.current,
+        width.current,
+        frame,
+        event.clientX,
+        event.clientY,
+      )
+    }
+    if (index === null) return
+    if (index === indexAt(target.current, count)) onOpen(index, ring)
     else goTo(index)
   }
 
