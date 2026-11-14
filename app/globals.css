@@ -551,10 +551,13 @@
   .cf-frame[data-drag='1'] {
     cursor: grabbing;
   }
+  /* In the 3D context the rail is a plane at z = 0, in front of the receding side cards: without
+     `pointer-events: none` Chromium and Firefox hit the rail, not the card, on a side-card click. */
   .cf-rail {
     position: relative;
     height: calc(var(--cf-card) / var(--cf-aspect));
     transform-style: preserve-3d;
+    pointer-events: none;
   }
   .cf-card {
     position: absolute;
@@ -567,6 +570,7 @@
     border: 1px solid var(--hairline);
     border-radius: var(--radius-image);
     background: var(--color-ink-800);
+    pointer-events: auto;
     will-change: transform;
   }
   .cf-card[aria-current='true'] {

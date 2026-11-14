@@ -30,7 +30,8 @@ import { useReducedMotion } from '@/lib/useReducedMotion'
  * `animate-in`, `shadow-xl`, `rounded-2xl`, `text-[15px]`, the `<img>` and the show-props (styles
  * are `.cf-*` in app/globals.css). Changed, see docs/DECISIONS.md: PolaroidLine's pointer rules
  * (only the first pointer drags, a cancelled pointer is never a click, a press that leaves the
- * frame ends, a lost release ends the drag); a press becomes a drag after 4 px across and leaves a
+ * frame ends, a lost release ends the drag) and a pinch-zoom mid-drag ends it too; the rail lets
+ * clicks through to the side cards behind its plane; a press becomes a drag after 4 px across and leaves a
  * settle in flight alone until then; clicks come from the native `click` event; a release held
  * still for 100 ms does not throw; a card faded out is hidden; Enter is cancelled so its keypress
  * cannot click the lightbox's Close button; the frame keeps focus; under reduced motion the ring
@@ -205,6 +206,8 @@ export function CoverflowCarousel({
     /** Cards per second, for the throw. */
     v: number
     moved: boolean
+    /** The pinch-zoom scale at the press. */
+    scale: number
   }>(null)
   /** Set when a press became a drag: the click it ends with is not a click. */
   const suppressClick = useRef(false)
@@ -277,8 +280,12 @@ export function CoverflowCarousel({
     [],
   )
 
-  /** Ends a drag; `thrown` lets a flick carry. */
-  const endDrag = (event: ReactPointerEvent | null, thrown: boolean) => {
+  /**
+   * Ends a drag; `thrown` lets a flick carry. `released`: the pointer is up, so the click it ends
+   * with, if any, comes in this same task; a later click is not this drag's. A lost release keeps
+   * the flag for the click its real release will still bring.
+   */
+  const endDrag = (event: ReactPointerEvent | null, thrown: boolean, released = true) => {
     const d = drag.current
     drag.current = null
     if (!d?.moved) return
@@ -289,10 +296,11 @@ export function CoverflowCarousel({
         ? Math.max(-MAX_THROW, Math.min(MAX_THROW, d.v * THROW))
         : 0
     settle(clampPos(Math.round(pos.current + carried), count))
-    // The click that ends a mouse drag is dispatched in this same task; a later one is not ours.
-    window.setTimeout(() => {
-      suppressClick.current = false
-    }, 0)
+    if (released) {
+      window.setTimeout(() => {
+        suppressClick.current = false
+      }, 0)
+    }
   }
 
   // A press anywhere in the frame focuses the frame, so ←/→ work after a click (the open button,
@@ -319,15 +327,22 @@ export function CoverflowCarousel({
       t: event.timeStamp,
       v: 0,
       moved: false,
+      scale: window.visualViewport?.scale ?? 1,
     }
   }
 
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const d = drag.current
     if (!d || d.id !== event.pointerId) return
+    // A second finger that landed outside the frame (on an arrow, say) sends us no pointerdown, but
+    // the page zooms and this finger's coordinates with it: end the drag, no throw.
+    if ((window.visualViewport?.scale ?? 1) !== d.scale) {
+      endDrag(null, false)
+      return
+    }
     // The release never reached us, so the button is up already.
     if (event.pointerType === 'mouse' && event.buttons === 0) {
-      endDrag(event, false)
+      endDrag(event, false, false)
       return
     }
     const pitch = width.current * (1 + gap)
