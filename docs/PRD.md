@@ -83,7 +83,7 @@ Single route `/` with anchored sections. Language toggle switches all copy in pl
 | 5 | Projects (`#work`) | Proof of work with honest status | 4 project cards + 1 research card (see §6) |
 | 6 | QA Evidence (`#qa`) | Differentiator for QA roles | Bank Mandiri experience summary + evidence from Kenny's own product PintuKos (a CI run, an E2E report and a UAT sheet; M4b batch 2), shown as images in a lightbox |
 | 7 | Experience & Education (`#experience`) | Timeline | Bank Mandiri (Project Kopra), Universitas Gunadarma |
-| 8 | Certifications (`#certifications`) | Credentials | 3 Gunadarma certificates with lightbox |
+| 8 | Certifications (`#certifications`) | Credentials | 4 certificates (RevoU + 3 Gunadarma), newest first, in a coverflow carousel with lightbox (v1.1, DECISIONS 2026-11-14) |
 | 9 | Reach Out (`#contact`) | Mirror of hero; conversion | Giant "Reach Out" ticker, polaroid line (DECISIONS 2026-11-02), email, WhatsApp, Download CV (M4b batch 2), location, availability, social links, back-to-top |
 | 10 | Footer | Legal / meta | © year, "Built with Next.js, GSAP & React Three Fiber", language note |
 
