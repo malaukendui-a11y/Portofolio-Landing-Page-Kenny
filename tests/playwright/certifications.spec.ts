@@ -80,25 +80,48 @@ async function mouseDrag(
   await page.mouse.up()
 }
 
-/** Waits until card `index`'s transform holds still for 300 ms, and returns it. */
-async function settledTransform(page: Page, index: number): Promise<string> {
-  const read = () =>
-    cards(page)
-      .nth(index)
-      .evaluate((card) => (card as HTMLElement).style.transform)
-  let last = ''
-  await expect
-    .poll(
-      async () => {
-        const first = await read()
-        await page.waitForTimeout(300)
-        last = await read()
-        return first === last
-      },
-      { timeout: 10_000, intervals: [0] },
-    )
-    .toBe(true)
-  return last
+/** Card `index`'s inline transform, as this engine serialises it. */
+function transformOf(page: Page, index: number): Promise<string> {
+  return cards(page)
+    .nth(index)
+    .evaluate((card) => (card as HTMLElement).style.transform)
+}
+
+/**
+ * A synthetic mouse flick on the frame from rest: `steps` moves adding up to `dx` px, each `gap` ms
+ * after the last (busy-waited: constructed events carry their creation time as `timeStamp`, so the
+ * velocity does not depend on the frame rate), then a release at once.
+ */
+function flick(page: Page, dx: number, { steps, gap }: { steps: number; gap: number }) {
+  return page.evaluate(
+    ({ dx, steps, gap }) => {
+      const ring = document.querySelector<HTMLElement>('#certifications .cf-frame')!
+      const box = ring.getBoundingClientRect()
+      const x = box.left + box.width / 2
+      const init = {
+        bubbles: true,
+        composed: true,
+        pointerId: 99,
+        pointerType: 'mouse',
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        clientY: box.top + box.height / 2,
+      }
+      ring.dispatchEvent(new PointerEvent('pointerdown', { ...init, clientX: x }))
+      for (let k = 1; k <= steps; k++) {
+        const start = performance.now()
+        while (performance.now() - start < gap) {
+          // busy-wait: a timer would let the frame rate decide the gap
+        }
+        ring.dispatchEvent(
+          new PointerEvent('pointermove', { ...init, clientX: x + (dx * k) / steps }),
+        )
+      }
+      ring.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0, clientX: x + dx }))
+    },
+    { dx, steps, gap },
+  )
 }
 
 /** Dispatches ArrowRight on the frame in the page and returns card 2's transform 50 ms later. */
@@ -110,23 +133,6 @@ function transformAfter50ms(page: Page): Promise<string> {
     await new Promise((resolve) => setTimeout(resolve, 50))
     return card.style.transform
   })
-}
-
-/** Frames per second the page paints at, over half a second (as polaroid.spec.ts). */
-function frameRate(page: Page): Promise<number> {
-  return page.evaluate(
-    () =>
-      new Promise<number>((resolve) => {
-        let frames = 0
-        const start = performance.now()
-        const tick = (now: number) => {
-          frames += 1
-          if (now - start < 500) requestAnimationFrame(tick)
-          else resolve((frames * 1000) / (now - start))
-        }
-        requestAnimationFrame(tick)
-      }),
-  )
 }
 
 test.describe('certificate coverflow', () => {
@@ -170,6 +176,18 @@ test.describe('certificate coverflow', () => {
 
     await expect(dot(page, 1)).toHaveAttribute('aria-current', 'true')
     for (const n of [2, 3, 4]) await expect(dot(page, n)).not.toHaveAttribute('aria-current')
+
+    // Three cards show; the one half a turn away (card 3) is hidden, from screen readers too.
+    for (const n of [0, 1, 3]) await expect(cards(page).nth(n)).toHaveCSS('visibility', 'visible')
+    await expect(cards(page).nth(2)).toBeHidden()
+    const slide = (n: number) => labels.slide.replace('{n}', String(n)).replace('{count}', '4')
+    await expect(page.getByRole('group', { name: slide(3), exact: true })).toHaveCount(0)
+    await expect(page.getByRole('group', { name: slide(2), exact: true })).toHaveCount(1)
+
+    // The caption is quiet until the visitor is in the carousel, then polite.
+    await expect(caption(page)).toHaveAttribute('aria-live', 'off')
+    await ring.focus()
+    await expect(caption(page)).toHaveAttribute('aria-live', 'polite')
 
     // Portrait 3:4 from layout boxes (transforms ignored), certificates whole, no shadow.
     const sizes = await cards(page).evaluateAll((list) =>
@@ -217,13 +235,36 @@ test.describe('certificate coverflow', () => {
     await expect(frame(page)).toHaveCSS('outline-color', 'rgb(217, 99, 75)')
     await expect(frame(page)).toHaveCSS('outline-offset', '2px')
 
-    const before = await page.evaluate(() => window.scrollY)
+    // Window listeners run after React's (on the document): they see whether the keys were taken.
+    await page.evaluate(() => {
+      const seen: [string, boolean][] = []
+      ;(window as unknown as { __keys: typeof seen }).__keys = seen
+      window.addEventListener('keydown', (event) => seen.push([event.key, event.defaultPrevented]))
+    })
+    const keys = () => page.evaluate(() => (window as unknown as { __keys: unknown }).__keys)
     await page.keyboard.press('ArrowRight')
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
     await expect(caption(page).locator('h3')).toHaveText(title(1))
     await expect(dot(page, 2)).toHaveAttribute('aria-current', 'true')
-    expect(await page.evaluate(() => window.scrollY)).toBe(before)
     await page.keyboard.press('ArrowLeft')
+    await expect(current(page)).toHaveAttribute('data-cf-index', '0')
+    expect(await keys()).toEqual([
+      ['ArrowRight', true],
+      ['ArrowLeft', true],
+    ])
+    // Alt + ← is the browser's Back: dispatched (a real one could navigate), not taken.
+    const taken = await frame(page).evaluate((element) => {
+      const event = new KeyboardEvent('keydown', {
+        key: 'ArrowLeft',
+        altKey: true,
+        bubbles: true,
+        cancelable: true,
+      })
+      element.dispatchEvent(event)
+      return event.defaultPrevented
+    })
+    expect(taken).toBe(false)
+    await page.waitForTimeout(300)
     await expect(current(page)).toHaveAttribute('data-cf-index', '0')
 
     // Enter's keypress must not reach the dialog's Close button, which has focus by then.
@@ -235,6 +276,35 @@ test.describe('certificate coverflow', () => {
     await expect(dialog(page)).toContainText('1 / 4')
     await page.keyboard.press('Escape')
     await expect(dialog(page)).toBeHidden()
+    await expect(frame(page)).toBeFocused()
+
+    // A screen reader activating the frame itself (a click with detail 0) opens the centre card.
+    await frame(page).evaluate((element) =>
+      element.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true, detail: 0 }),
+      ),
+    )
+    await expect(dialog(page)).toBeVisible()
+    await expect(dialog(page)).toContainText('1 / 4')
+    await page.keyboard.press('Escape')
+    await expect(frame(page)).toBeFocused()
+  })
+
+  // TC-106: the open button (tabIndex -1, reached by a screen reader) shows its ring on the card
+  // and hands its focus to the frame when it leaves with the centre card.
+  test('the open button is ringed on the card and hands focus back to the frame', async ({
+    page,
+  }) => {
+    await gotoCoverflow(page)
+    // Keyboard first, so the script focus below counts as :focus-visible in every engine.
+    await button(page, en.certifications.carousel.prev).focus()
+    await page.keyboard.press('Shift+Tab')
+    await expect(frame(page)).toBeFocused()
+    await current(page).locator('.cf-open').focus()
+    await expect(current(page)).toHaveCSS('outline-style', 'solid')
+    await expect(current(page)).toHaveCSS('outline-color', 'rgb(217, 99, 75)')
+    await page.keyboard.press('ArrowRight')
+    await expect(current(page)).toHaveAttribute('data-cf-index', '1')
     await expect(frame(page)).toBeFocused()
   })
 
@@ -293,6 +363,7 @@ test.describe('certificate coverflow', () => {
     page,
   }) => {
     await gotoCoverflow(page)
+    const rest = await transformOf(page, 0) // the centre pose, as this engine writes it
     await button(page, en.certifications.carousel.openCurrent).click()
     await expect(dialog(page)).toBeVisible()
     await expect(dialog(page)).toContainText('1 / 4')
@@ -300,19 +371,27 @@ test.describe('certificate coverflow', () => {
     await expect(dialog(page).locator('figcaption > span').first()).toHaveText(title(0))
     await page.keyboard.press('Escape')
     await expect(dialog(page)).toBeHidden()
-    // Back on the frame, in WebKit too, where a click does not focus (2026-11-13 Safari fix).
+    // Back on the frame: the press focused it (mousedown), so this holds in every engine.
+    await expect(frame(page)).toBeFocused()
+
+    // The trigger path itself (the 2026-11-13 Safari fix): nothing focused, a click with no press,
+    // as Safari's tap leaves it; focus must come back to the frame, not <body>.
+    await frame(page).evaluate((element) => {
+      ;(element as HTMLElement).blur()
+      element.querySelector<HTMLElement>('.cf-open')!.click()
+    })
+    await expect(dialog(page)).toBeVisible()
+    await page.keyboard.press('Escape')
     await expect(frame(page)).toBeFocused()
 
     const neighbour = await pointOnCard(page, 1)
     await page.mouse.click(neighbour.x, neighbour.y)
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
-    await page.waitForTimeout(300)
-    await expect(openDialogs(page)).toHaveCount(0)
-
-    // The frame's padding is not a card: nothing happens.
+    // A press in the frame's padding while the ring turns: not a card, so nothing opens, and it
+    // must not stop the ring between two cards (the original cancelled the settle on press).
     const area = (await frame(page).boundingBox())!
     await page.mouse.click(area.x + area.width / 2, area.y + 10)
-    await page.waitForTimeout(300)
+    await expect.poll(() => transformOf(page, 1), { timeout: 20_000 }).toBe(rest)
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
     await expect(openDialogs(page)).toHaveCount(0)
   })
@@ -377,28 +456,44 @@ test.describe('certificate coverflow', () => {
     for (const name of [labels.prev, labels.next, labels.openCurrent])
       await expect(button(page, name)).toHaveCount(1)
     await expect(dot(page, 2, id)).toHaveAttribute('aria-current', 'true')
-    await expect(caption(page).locator('h3')).toHaveText(title(1, id))
+    // The title reads the same in both languages; the subtitle and the scope do not.
+    const item = id.certifications.items['gunadarma-designing-software']
+    await expect(caption(page).locator('h3')).toHaveText(item.title)
+    await expect(caption(page).locator('p')).toHaveText(`${item.issuer} · ${item.period}`)
     await expect(caption(page).locator('dt')).toHaveText(['No.', id.certifications.scope])
+    await expect(caption(page).locator('dd').last()).toHaveText(item.scope)
   })
 
   // TC-114: PolaroidLine's pointer rules, cross-engine with dispatched events and the mouse.
-  test('a cancelled touch on a side card is not a click', async ({ page }) => {
+  test('a cancelled touch drag settles where it is, with no throw and no click', async ({
+    page,
+  }) => {
     await gotoCoverflow(page)
-    await cards(page)
-      .nth(1)
-      .evaluate((card) => {
-        const init = {
-          bubbles: true,
-          composed: true,
-          pointerId: 7,
-          pointerType: 'touch',
-          isPrimary: true,
-          button: 0,
-          buttons: 1,
-        }
-        card.dispatchEvent(new PointerEvent('pointerdown', init))
-        card.dispatchEvent(new PointerEvent('pointercancel', init))
-      })
+    const step = await pitch(page)
+    // Two quick moves, then a cancel within the throw window: a throw would carry two cards.
+    const dragging = await frame(page).evaluate(async (element, step) => {
+      const box = element.getBoundingClientRect()
+      const x = box.left + box.width / 2
+      const init = {
+        bubbles: true,
+        composed: true,
+        pointerId: 7,
+        pointerType: 'touch',
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        clientY: box.top + box.height / 2,
+      }
+      element.dispatchEvent(new PointerEvent('pointerdown', { ...init, clientX: x }))
+      element.dispatchEvent(new PointerEvent('pointermove', { ...init, clientX: x - 0.3 * step }))
+      element.dispatchEvent(new PointerEvent('pointermove', { ...init, clientX: x - 0.45 * step }))
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const state = (element as HTMLElement).dataset.drag
+      element.dispatchEvent(new PointerEvent('pointercancel', init))
+      return state
+    }, step)
+    expect(dragging).toBe('1')
+    await expect(frame(page)).toHaveAttribute('data-drag', '0')
     await page.waitForTimeout(500)
     await expect(current(page)).toHaveAttribute('data-cf-index', '0')
     await expect(openDialogs(page)).toHaveCount(0)
@@ -406,19 +501,66 @@ test.describe('certificate coverflow', () => {
 
   test('a press that leaves the frame ends there', async ({ page }) => {
     await gotoCoverflow(page)
+    const rest = await transformOf(page, 0)
     const box = (await frame(page).boundingBox())!
-    const x = box.x + box.width / 2
-    await page.mouse.move(x, box.y + box.height / 2)
+    const start = await pointOnCard(page, 0)
+    await page.mouse.move(start.x, start.y)
     await page.mouse.down()
-    // Straight up and out: no movement across, so it never became a drag.
-    await page.mouse.move(x, Math.max(1, box.y - 20), { steps: 4 })
-    await page.mouse.up()
-    await page.mouse.move(x - 160, box.y + box.height / 2, { steps: 8 })
+    // Straight up and out, no movement across: not a drag. One more move outside: Playwright's
+    // WebKit fires the leave on a later move (polaroid.spec.ts).
+    await page.mouse.move(start.x, Math.max(1, box.y - 20), { steps: 4 })
+    await page.mouse.move(start.x, Math.max(1, box.y - 40))
+    // Back in, the button still down, 60 px across: the press ended, so this is not a drag.
+    await page.mouse.move(start.x - 60, start.y, { steps: 6 })
     await expect(frame(page)).toHaveAttribute('data-drag', '0')
     await page.waitForTimeout(400)
     await expect(current(page)).toHaveAttribute('data-cf-index', '0')
+    expect(await transformOf(page, 0)).toBe(rest)
+    // Released outside, so no click lands on the open button the press began on.
+    await page.mouse.move(start.x, Math.max(1, box.y - 20), { steps: 4 })
+    await page.mouse.up()
+    await page.waitForTimeout(300)
     await expect(openDialogs(page)).toHaveCount(0)
   })
+
+  // A press that moved past 4 px is a drag, and the click it ends with is not a click: for a touch
+  // that click can arrive a task or more after the pointerup (tap recognition), so the drag's flag
+  // must outlive it (it lasts until the next press).
+  for (const late of [false, true]) {
+    test(`a drag swallows its own click (${late ? 'a task later' : 'same task'})`, async ({
+      page,
+    }) => {
+      await gotoCoverflow(page)
+      await current(page)
+        .locator('.cf-open')
+        .evaluate(async (open, late) => {
+          const box = open.getBoundingClientRect()
+          const x = box.left + box.width / 2
+          const init = {
+            bubbles: true,
+            composed: true,
+            pointerId: 8,
+            pointerType: 'touch',
+            isPrimary: true,
+            button: 0,
+            buttons: 1,
+            clientY: box.top + box.height / 2,
+          }
+          open.dispatchEvent(new PointerEvent('pointerdown', { ...init, clientX: x }))
+          open.dispatchEvent(new PointerEvent('pointermove', { ...init, clientX: x + 6 }))
+          // Held still, so the release does not throw and the ring stays on card 1.
+          await new Promise((resolve) => setTimeout(resolve, 150))
+          open.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0, clientX: x + 6 }))
+          if (late) await new Promise((resolve) => setTimeout(resolve, 50))
+          open.dispatchEvent(
+            new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }),
+          )
+        }, late)
+      await page.waitForTimeout(300)
+      await expect(openDialogs(page)).toHaveCount(0)
+      await expect(current(page)).toHaveAttribute('data-cf-index', '0')
+    })
+  }
 
   test('a drag whose release was lost ends on the next mouse move', async ({ page }) => {
     await gotoCoverflow(page)
@@ -459,44 +601,42 @@ test.describe('certificate coverflow under reduced motion', () => {
 
   test('the ring jumps, the caption does not fade, a flick does not throw', async ({ page }) => {
     await gotoCoverflow(page)
-    const early = await transformAfter50ms(page)
+    const rest = await transformOf(page, 0)
+    // 50 ms after ArrowRight, card 2 already has the centre pose card 1 had at rest.
+    expect(await transformAfter50ms(page)).toBe(rest)
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
-    expect(early).toBe(await settledTransform(page, 1))
     await expect(caption(page).locator('.cf-caption-body')).toHaveCSS('animation-name', 'none')
 
-    // The same fast flick as the motion control, released at once: exactly one card on.
-    const step = await pitch(page)
-    await mouseDrag(page, await pointOnCard(page, 1), -1.1 * step, { steps: 4, hold: 0 })
-    await expect(current(page)).toHaveAttribute('data-cf-index', '2')
+    // A fast flick of 1.1 cards from rest: exactly one card on (thrown, it would be three).
+    await gotoCoverflow(page)
+    await flick(page, -1.1 * (await pitch(page)), { steps: 4, gap: 12 })
+    await expect(current(page)).toHaveAttribute('data-cf-index', '1')
     await page.waitForTimeout(300)
-    await expect(current(page)).toHaveAttribute('data-cf-index', '2')
+    await expect(current(page)).toHaveAttribute('data-cf-index', '1')
   })
 })
 
+// The controls run at any frame rate: the first reads 50 ms in, before an ease can finish; the
+// flick times its own moves.
 test.describe('certificate coverflow with motion (controls for TC-110)', () => {
-  test('the ring eases, the caption fades in, and a flick throws at most two cards', async ({
+  test('the ring eases, the caption fades in, and a flick throws two cards at most', async ({
     page,
   }) => {
     await gotoCoverflow(page)
-    // The ease runs about 45 frames, and the throw needs moves at a real frame rate (as TC-038):
-    // measured, not assumed. Playwright's WebKit paints this page at about 4–13 fps.
-    const fps = await frameRate(page)
-    test.info().annotations.push({ type: 'fps', description: fps.toFixed(0) })
-    test.skip(fps < 30, `the page paints at ${fps.toFixed(0)} fps; the controls assume 30 or more`)
-
-    const early = await transformAfter50ms(page)
+    const rest = await transformOf(page, 0)
+    expect(await transformAfter50ms(page)).not.toBe(rest)
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
-    expect(early).not.toBe(await settledTransform(page, 1))
     await expect(caption(page).locator('.cf-caption-body')).toHaveCSS(
       'animation-name',
       'cf-caption-in',
     )
 
-    const step = await pitch(page)
-    await mouseDrag(page, await pointOnCard(page, 1), -1.1 * step, { steps: 4, hold: 0 })
-    // From index 1, 1.1 cards on is 2.1: without a throw it lands on index 2. Thrown, at most two
-    // cards more: 3, or 4, which is index 0 on the ring of four.
-    await expect(current(page)).toHaveAttribute('data-cf-index', /^[30]$/)
+    // 1.1 cards in four moves 12 ms apart: about 23 cards a second, a carry of about four cards
+    // before the clamp. Clamped to two: round(1.1 + 2) = 3. With no throw, 1; with no clamp, 1 again
+    // (round(5.2) = 5 is index 1 on a ring of four).
+    await gotoCoverflow(page)
+    await flick(page, -1.1 * (await pitch(page)), { steps: 4, gap: 12 })
+    await expect(current(page)).toHaveAttribute('data-cf-index', '3')
   })
 })
 
