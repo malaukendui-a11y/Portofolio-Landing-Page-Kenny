@@ -47,23 +47,75 @@ function pitch(page: Page): Promise<number> {
     .evaluate((card, gap) => (card as HTMLElement).offsetWidth * (1 + gap), COVERFLOW.gap)
 }
 
-/** A point inside the frame where card `index` (its open button, for the centre) is on top. */
+/**
+ * A point inside the frame where card `index` (its open button, for the centre) is on top. When
+ * there is none, the message lists what each candidate point hit instead.
+ */
 async function pointOnCard(page: Page, index: number): Promise<{ x: number; y: number }> {
-  const point = await page.evaluate((i) => {
-    const card = document.querySelector(`#certifications .cf-card[data-cf-index="${i}"]`)!
+  const found = await page.evaluate((i) => {
+    const card = document.querySelector<HTMLElement>(
+      `#certifications .cf-card[data-cf-index="${i}"]`,
+    )!
     const box = card.getBoundingClientRect()
     const area = document.querySelector('#certifications .cf-frame')!.getBoundingClientRect()
+    const hits: string[] = []
     for (const fy of [0.5, 0.35, 0.65, 0.25, 0.75])
       for (const fx of [0.5, 0.35, 0.65, 0.2, 0.8, 0.1, 0.9]) {
         const x = box.left + box.width * fx
         const y = box.top + box.height * fy
         if (x < Math.max(area.left, 0) + 2 || x > Math.min(area.right, innerWidth) - 2) continue
-        if (document.elementFromPoint(x, y)?.closest('.cf-card') === card) return { x, y }
+        const hit = document.elementFromPoint(x, y)
+        if (hit?.closest('.cf-card') === card) return { point: { x, y }, detail: '' }
+        const owner = hit?.closest<HTMLElement>('.cf-card')?.dataset.cfIndex ?? '-'
+        hits.push(
+          `(${Math.round(x)},${Math.round(y)}) ${hit?.tagName}.${hit?.className} card ${owner}`,
+        )
       }
-    return null
+    const style = getComputedStyle(card)
+    // TEMPORARY (CI Linux WebKit diagnosis): what the card centre hits under three variants.
+    const rail = card.parentElement as HTMLElement
+    const ring = rail.parentElement as HTMLElement
+    const cx = box.left + box.width / 2
+    const cy = box.top + box.height / 2
+    const probe = (label: string, apply: () => void, undo: () => void) => {
+      apply()
+      const hit = document.elementFromPoint(cx, cy) as HTMLElement | null
+      undo()
+      return `${label}: ${hit?.tagName}.${hit?.className} card ${hit?.closest<HTMLElement>('.cf-card')?.dataset.cfIndex ?? '-'}`
+    }
+    const variants = [
+      probe(
+        'rail auto',
+        () => (rail.style.pointerEvents = 'auto'),
+        () => (rail.style.pointerEvents = ''),
+      ),
+      probe(
+        'no perspective',
+        () => {
+          ring.dataset.testPerspective = ring.style.perspective
+          ring.style.perspective = 'none'
+        },
+        () => (ring.style.perspective = ring.dataset.testPerspective ?? ''),
+      ),
+      probe(
+        'flat rail',
+        () => (rail.style.transformStyle = 'flat'),
+        () => (rail.style.transformStyle = ''),
+      ),
+    ]
+    const detail = JSON.stringify({
+      box: [box.left, box.top, box.width, box.height].map(Math.round),
+      frame: [area.left, area.top, area.width, area.height].map(Math.round),
+      transform: card.style.transform,
+      visibility: style.visibility,
+      pointerEvents: style.pointerEvents,
+      hits: [...new Set(hits)].slice(0, 12),
+      variants,
+    })
+    return { point: null, detail }
   }, index)
-  expect(point, `a point on card ${index}`).not.toBeNull()
-  return point!
+  expect(found.point, `a point on card ${index}: ${found.detail}`).not.toBeNull()
+  return found.point!
 }
 
 /** A mouse drag of `dx` px from `from`; `hold` ms of stillness before the release. */
