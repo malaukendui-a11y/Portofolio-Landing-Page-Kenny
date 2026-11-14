@@ -34,8 +34,9 @@ import { useReducedMotion } from '@/lib/useReducedMotion'
  * clicks through to the side cards behind its plane; a press becomes a drag after 4 px across and leaves a
  * settle in flight alone until then; clicks come from the native `click` event; a release held
  * still for 100 ms does not throw; a card faded out is hidden; Enter is cancelled so its keypress
- * cannot click the lightbox's Close button; the frame keeps focus; under reduced motion the ring
- * jumps and never throws.
+ * cannot click the lightbox's Close button; the frame keeps focus, and a screen reader activating
+ * it opens the centre card; Alt / Ctrl / Cmd + arrows stay the browser's; the caption is live only
+ * while the visitor is in the carousel; under reduced motion the ring jumps and never throws.
  * MIT, see THIRD_PARTY_NOTICES.md.
  */
 
@@ -186,6 +187,10 @@ export function CoverflowCarousel({
   const reduced = useReducedMotion()
   const [selected, setSelected] = useState(0)
   const [dragging, setDragging] = useState(false)
+  // The caption speaks only while the visitor is in the carousel (focus or a press inside it), as
+  // PolaroidLine's status does: a language switch, or the switch to Indonesian just after
+  // hydration, rewrites it in place, and that must not be read out from anywhere on the page.
+  const [engaged, setEngaged] = useState(false)
 
   const frameRef = useRef<HTMLDivElement>(null)
   const cards = useRef<(HTMLDivElement | null)[]>([])
@@ -209,12 +214,15 @@ export function CoverflowCarousel({
     /** The pinch-zoom scale at the press. */
     scale: number
   }>(null)
-  /** Set when a press became a drag: the click it ends with is not a click. */
+  /** Set when a press became a drag: the click it ends with is not a click. It stays set until the
+      next press, because a touch's click can come a task or more after its pointerup. */
   const suppressClick = useRef(false)
 
   const draw = () => paint(cards.current, count, pos.current, width.current)
 
   const settle = (to: number) => {
+    // A key, arrow or dot during a live drag would fight the pointer for `pos`: the drag wins.
+    if (drag.current?.moved) return
     cancelAnimationFrame(raf.current)
     raf.current = 0
     target.current = to
@@ -280,12 +288,8 @@ export function CoverflowCarousel({
     [],
   )
 
-  /**
-   * Ends a drag; `thrown` lets a flick carry. `released`: the pointer is up, so the click it ends
-   * with, if any, comes in this same task; a later click is not this drag's. A lost release keeps
-   * the flag for the click its real release will still bring.
-   */
-  const endDrag = (event: ReactPointerEvent | null, thrown: boolean, released = true) => {
+  /** Ends a drag and settles on a whole card; `thrown` lets a flick carry. */
+  const endDrag = (event: ReactPointerEvent | null, thrown: boolean) => {
     const d = drag.current
     drag.current = null
     if (!d?.moved) return
@@ -296,11 +300,6 @@ export function CoverflowCarousel({
         ? Math.max(-MAX_THROW, Math.min(MAX_THROW, d.v * THROW))
         : 0
     settle(clampPos(Math.round(pos.current + carried), count))
-    if (released) {
-      window.setTimeout(() => {
-        suppressClick.current = false
-      }, 0)
-    }
   }
 
   // A press anywhere in the frame focuses the frame, so ←/→ work after a click (the open button,
@@ -318,6 +317,8 @@ export function CoverflowCarousel({
       return
     }
     if (event.button !== 0) return
+    // Another device pressing during a live drag: that drag ends where it is.
+    if (drag.current) endDrag(null, false)
     suppressClick.current = false
     // A settle in flight carries on: a click must not strand the ring between two cards.
     drag.current = {
@@ -342,7 +343,7 @@ export function CoverflowCarousel({
     }
     // The release never reached us, so the button is up already.
     if (event.pointerType === 'mouse' && event.buttons === 0) {
-      endDrag(event, false, false)
+      endDrag(event, false)
       return
     }
     const pitch = width.current * (1 + gap)
@@ -396,6 +397,11 @@ export function CoverflowCarousel({
       suppressClick.current = false
       if (event.detail !== 0) return
     }
+    // A screen reader activating the frame itself (its name says Enter opens): the centre card.
+    if (event.target === event.currentTarget) {
+      if (event.detail === 0) onOpen(indexAt(target.current, count), event.currentTarget)
+      return
+    }
     const card = (event.target as Element).closest<HTMLElement>('[data-cf-index]')
     if (!card || !event.currentTarget.contains(card)) return
     const index = Number(card.dataset.cfIndex)
@@ -404,6 +410,8 @@ export function CoverflowCarousel({
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Alt / Ctrl / Cmd + ← → are the browser's (Back, Forward).
+    if (event.altKey || event.ctrlKey || event.metaKey) return
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
       nudge(event.key === 'ArrowRight' ? 1 : -1)
@@ -431,6 +439,12 @@ export function CoverflowCarousel({
       role="region"
       aria-roledescription="carousel"
       aria-label={labels.region}
+      onFocus={() => setEngaged(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setEngaged(false)
+      }}
+      onPointerDown={() => setEngaged(true)}
+      onClickCapture={() => setEngaged(true)}
     >
       <div className="cf-stage">
         <div
@@ -520,7 +534,7 @@ export function CoverflowCarousel({
       {/* Every caption sits in one grid cell: the invisible copies keep the tallest one's
           height, so changing the slide or the language never moves the dots. */}
       <div className="cf-caption">
-        <div className="cf-caption-live" aria-live="polite">
+        <div className="cf-caption-live" aria-live={engaged ? 'polite' : 'off'}>
           <div key={selected} className="cf-caption-body">
             <CaptionBody caption={slides[selected].caption} live />
           </div>

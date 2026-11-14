@@ -599,7 +599,8 @@
     pointer-events: none;
     -webkit-user-drag: none;
   }
-  /* The centre card's open control; the card clips its overflow, so the ring sits inside. */
+  /* The centre card's open control. Its focus ring is drawn on the card (DESIGN §9, on ink-900):
+     inside, it would sit on the blurred backdrop at under 3:1 and be cut by the card's corners. */
   .cf-open {
     position: absolute;
     inset: 0;
@@ -611,7 +612,11 @@
     cursor: inherit;
   }
   .cf-open:focus-visible {
-    outline-offset: -4px;
+    outline: none;
+  }
+  .cf-card:has(> .cf-open:focus-visible) {
+    outline: 2px solid var(--accent-fg);
+    outline-offset: 2px;
   }
   .cf-ctl {
     position: absolute;
