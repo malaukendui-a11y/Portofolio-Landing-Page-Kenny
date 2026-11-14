@@ -522,6 +522,222 @@
       color: var(--surface);
     }
   }
+
+  /* Coverflow (components/ui/CoverflowCarousel, DESIGN §4.8, v1.1): the certificates on a ring.
+     The settings in lib/coverflow.ts arrive as --cf-card (card width) and --cf-aspect (width /
+     height). The rail reserves the card height, so nothing shifts as the certificates load; cards
+     stay hidden until the first paint() places them, as .pl-card does. No box-shadow (§10). */
+  .cf-root {
+    /* The backdrop: a blurred copy of the certificate, bled past the card's edges, fills the
+       space around the contained certificate (DESIGN §4.8, the approved demo's "Blur"). */
+    --cf-bleed: 12%;
+    --cf-blur: blur(22px);
+    --cf-tone: saturate(1.15) brightness(0.9);
+    display: grid;
+    gap: 0.5rem;
+  }
+  .cf-stage {
+    position: relative;
+  }
+  .cf-frame {
+    overflow: hidden;
+    padding-block: 2.5rem;
+    /* Vertical scrolling and pinch-zoom stay the browser's (owner, 2026-11-14, as .pl-root). */
+    touch-action: pan-y pinch-zoom;
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .cf-frame[data-drag='1'] {
+    cursor: grabbing;
+  }
+  .cf-rail {
+    position: relative;
+    height: calc(var(--cf-card) / var(--cf-aspect));
+    transform-style: preserve-3d;
+  }
+  .cf-card {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--cf-card);
+    aspect-ratio: var(--cf-aspect);
+    overflow: hidden;
+    visibility: hidden;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-image);
+    background: var(--color-ink-800);
+    will-change: transform;
+  }
+  .cf-card[aria-current='true'] {
+    border-color: var(--fg-muted);
+  }
+  .cf-backdrop {
+    position: absolute;
+    inset: calc(var(--cf-bleed) * -1);
+    width: calc(100% + 2 * var(--cf-bleed));
+    height: calc(100% + 2 * var(--cf-bleed));
+    max-width: none;
+    object-fit: cover;
+    filter: var(--cf-blur) var(--cf-tone);
+  }
+  /* The certificate itself: whole, never cropped (portrait and landscape scans mix). */
+  .cf-shot {
+    position: absolute;
+    inset: 6%;
+    width: 88%;
+    height: 88%;
+    max-width: none;
+    object-fit: contain;
+  }
+  .cf-backdrop,
+  .cf-shot {
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
+  /* The centre card's open control; the card clips its overflow, so the ring sits inside. */
+  .cf-open {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: inherit;
+  }
+  .cf-open:focus-visible {
+    outline-offset: -4px;
+  }
+  .cf-ctl {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    translate: 0 -50%;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--color-ink-900) 70%, transparent);
+    color: var(--fg);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+  .cf-prev {
+    left: 0;
+  }
+  .cf-next {
+    right: 0;
+  }
+  @media (width >= 48rem) {
+    .cf-prev {
+      left: 0.5rem;
+    }
+    .cf-next {
+      right: 0.5rem;
+    }
+  }
+  @media (hover: hover) {
+    .cf-ctl:hover {
+      background: var(--color-ink-800);
+    }
+  }
+  /* Captions share one grid cell: the invisible, aria-hidden copies hold the tallest height. */
+  .cf-caption {
+    display: grid;
+    text-align: center;
+  }
+  .cf-caption > * {
+    grid-area: 1 / 1;
+  }
+  .cf-caption-body {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 0.375rem;
+    padding-inline: 1.5rem;
+  }
+  .cf-caption-sizer {
+    visibility: hidden;
+  }
+  /* Keyed by the slide, so it plays on every change; never under reduced motion. */
+  .cf-caption-live > .cf-caption-body {
+    animation: cf-caption-in var(--duration-fast) var(--ease-out);
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+  .cf-title {
+    max-width: 34ch;
+    text-wrap: balance;
+  }
+  .cf-rows {
+    width: 100%;
+    max-width: 26rem;
+    margin-top: 0.75rem;
+  }
+  .cf-rows > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.375rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .cf-rows dt {
+    white-space: nowrap;
+  }
+  .cf-rows dd {
+    min-width: 0;
+    text-align: right;
+  }
+  /* 44 px targets (DESIGN §8). Inactive dots in muted-on-dark (7.3:1, WCAG 1.4.11); the current
+     one in text-on-dark and drawn as a pill, so the state is not lightness alone. */
+  .cf-dots {
+    display: flex;
+    justify-content: center;
+  }
+  .cf-dot {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .cf-dot::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--fg-muted);
+    transition:
+      width var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+  .cf-dot[aria-current='true']::before {
+    width: 1.25rem;
+    background: var(--fg);
+  }
+  @media (forced-colors: active) {
+    .cf-dot::before {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .cf-dot[aria-current='true']::before {
+      background: Highlight;
+    }
+  }
+}
+
+@keyframes cf-caption-in {
+  from {
+    opacity: 0;
+    translate: 0 0.25rem;
+  }
 }
 
 @layer base {
