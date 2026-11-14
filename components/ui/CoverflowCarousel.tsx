@@ -31,7 +31,9 @@ import { useReducedMotion } from '@/lib/useReducedMotion'
  * are `.cf-*` in app/globals.css). Changed, see docs/DECISIONS.md: PolaroidLine's pointer rules
  * (only the first pointer drags, a cancelled pointer is never a click, a press that leaves the
  * frame ends, a lost release ends the drag) and a pinch-zoom mid-drag ends it too; the rail lets
- * clicks through to the side cards behind its plane; a press becomes a drag after 4 px across and leaves a
+ * clicks through to the side cards behind its plane, and where an engine still cannot hit-test
+ * them (WebKitGTK), a click on the frame finds the card by the ring's geometry; a press becomes a
+ * drag after 4 px across and leaves a
  * settle in flight alone until then; clicks come from the native `click` event; a release held
  * still for 100 ms does not throw; a card faded out is hidden; Enter is cancelled so its keypress
  * cannot click the lightbox's Close button; the frame keeps focus, and a screen reader activating
