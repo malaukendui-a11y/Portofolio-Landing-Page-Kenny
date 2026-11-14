@@ -48,69 +48,42 @@ function pitch(page: Page): Promise<number> {
 }
 
 /**
- * A point inside the frame where card `index` (its open button, for the centre) is on top. When
- * there is none, the message lists what each candidate point hit instead.
+ * A point inside the frame on card `index`: one where hit-testing returns the card (its open
+ * button, for the centre) if the engine gives one; otherwise one where it returns the frame or the
+ * rail, which the carousel maps to a card by its own geometry. WebKitGTK (CI's Linux WebKit) never
+ * hit-tests the cards that recede behind the rail's plane. When there is none, the message lists
+ * what each candidate point hit.
  */
 async function pointOnCard(page: Page, index: number): Promise<{ x: number; y: number }> {
   const found = await page.evaluate((i) => {
     const card = document.querySelector<HTMLElement>(
       `#certifications .cf-card[data-cf-index="${i}"]`,
     )!
+    const rail = card.parentElement!
+    const ring = rail.parentElement!
     const box = card.getBoundingClientRect()
-    const area = document.querySelector('#certifications .cf-frame')!.getBoundingClientRect()
-    const hits: string[] = []
+    const area = ring.getBoundingClientRect()
+    const candidates: { x: number; y: number; hit: Element | null }[] = []
     for (const fy of [0.5, 0.35, 0.65, 0.25, 0.75])
       for (const fx of [0.5, 0.35, 0.65, 0.2, 0.8, 0.1, 0.9]) {
         const x = box.left + box.width * fx
         const y = box.top + box.height * fy
         if (x < Math.max(area.left, 0) + 2 || x > Math.min(area.right, innerWidth) - 2) continue
-        const hit = document.elementFromPoint(x, y)
-        if (hit?.closest('.cf-card') === card) return { point: { x, y }, detail: '' }
-        const owner = hit?.closest<HTMLElement>('.cf-card')?.dataset.cfIndex ?? '-'
-        hits.push(
-          `(${Math.round(x)},${Math.round(y)}) ${hit?.tagName}.${hit?.className} card ${owner}`,
-        )
+        candidates.push({ x, y, hit: document.elementFromPoint(x, y) })
       }
-    const style = getComputedStyle(card)
-    // TEMPORARY (CI Linux WebKit diagnosis): what the card centre hits under three variants.
-    const rail = card.parentElement as HTMLElement
-    const ring = rail.parentElement as HTMLElement
-    const cx = box.left + box.width / 2
-    const cy = box.top + box.height / 2
-    const probe = (label: string, apply: () => void, undo: () => void) => {
-      apply()
-      const hit = document.elementFromPoint(cx, cy) as HTMLElement | null
-      undo()
-      return `${label}: ${hit?.tagName}.${hit?.className} card ${hit?.closest<HTMLElement>('.cf-card')?.dataset.cfIndex ?? '-'}`
-    }
-    const variants = [
-      probe(
-        'rail auto',
-        () => (rail.style.pointerEvents = 'auto'),
-        () => (rail.style.pointerEvents = ''),
-      ),
-      probe(
-        'no perspective',
-        () => {
-          ring.dataset.testPerspective = ring.style.perspective
-          ring.style.perspective = 'none'
-        },
-        () => (ring.style.perspective = ring.dataset.testPerspective ?? ''),
-      ),
-      probe(
-        'flat rail',
-        () => (rail.style.transformStyle = 'flat'),
-        () => (rail.style.transformStyle = ''),
-      ),
-    ]
+    const direct = candidates.find(({ hit }) => hit?.closest('.cf-card') === card)
+    const through = candidates.find(({ hit }) => hit === ring || hit === rail)
+    const chosen = direct ?? through
+    if (chosen) return { point: { x: chosen.x, y: chosen.y }, detail: '' }
+    const hits = candidates.map(
+      ({ x, y, hit }) =>
+        `(${Math.round(x)},${Math.round(y)}) ${hit?.tagName}.${hit?.className} card ${hit?.closest<HTMLElement>('.cf-card')?.dataset.cfIndex ?? '-'}`,
+    )
     const detail = JSON.stringify({
       box: [box.left, box.top, box.width, box.height].map(Math.round),
       frame: [area.left, area.top, area.width, area.height].map(Math.round),
       transform: card.style.transform,
-      visibility: style.visibility,
-      pointerEvents: style.pointerEvents,
       hits: [...new Set(hits)].slice(0, 12),
-      variants,
     })
     return { point: null, detail }
   }, index)
@@ -444,6 +417,35 @@ test.describe('certificate coverflow', () => {
     const area = (await frame(page).boundingBox())!
     await page.mouse.click(area.x + area.width / 2, area.y + 10)
     await expect.poll(() => transformOf(page, 1), { timeout: 20_000 }).toBe(rest)
+    await expect(current(page)).toHaveAttribute('data-cf-index', '1')
+    await expect(openDialogs(page)).toHaveCount(0)
+  })
+
+  // TC-109: where hit-testing cannot reach the cards (WebKitGTK gives a side card's click to the
+  // frame), the ring's own geometry still finds the card under the pointer. Forced here in every
+  // engine by making the cards un-hittable.
+  test('clicks find the card by geometry where hit-testing misses it', async ({ page }) => {
+    await gotoCoverflow(page)
+    const rest = await transformOf(page, 0)
+    await page.addStyleTag({
+      content: '#certifications .cf-card { pointer-events: none !important; }',
+    })
+    const side = await pointOnCard(page, 1)
+    await page.mouse.click(side.x, side.y)
+    await expect(current(page)).toHaveAttribute('data-cf-index', '1')
+    await page.waitForTimeout(300)
+    await expect(openDialogs(page)).toHaveCount(0)
+    // Once it is the centre card, a click on it opens it.
+    await expect.poll(() => transformOf(page, 1), { timeout: 20_000 }).toBe(rest)
+    const centre = await pointOnCard(page, 1)
+    await page.mouse.click(centre.x, centre.y)
+    await expect(dialog(page)).toBeVisible()
+    await expect(dialog(page)).toContainText('2 / 4')
+    await page.keyboard.press('Escape')
+    // The frame's padding stays inert.
+    const area = (await frame(page).boundingBox())!
+    await page.mouse.click(area.x + area.width / 2, area.y + 10)
+    await page.waitForTimeout(300)
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
     await expect(openDialogs(page)).toHaveCount(0)
   })
