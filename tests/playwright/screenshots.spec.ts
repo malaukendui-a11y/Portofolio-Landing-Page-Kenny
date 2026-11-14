@@ -1,12 +1,13 @@
 // TC-016: screenshots for the owner's review (CLAUDE.md §7), written to
 // test-results/screenshots/: full pages per viewport and language, M2 motion frames at 1440
-// (hero after the entrance, Services and Projects mid-stack), and the M4b captures (the PintuKos
-// card stuck and covered, the project and QA lightboxes, the QA section, the hero's shoulders).
+// (hero after the entrance, Services and Projects mid-stack), the M4b captures (the PintuKos card
+// stuck and covered, the project and QA lightboxes, the QA section, the hero's shoulders) and, since
+// v1.1, the certificate coverflow.
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
 import id from '../../content/id'
-import { revealAll, selectLang } from './helpers'
+import { imagesLoaded, revealAll, selectLang } from './helpers'
 
 // Full-page capture under combined mobile emulation (isMobile + DPR 2.6) drops the
 // hero portrait from the bitmap although it is loaded and laid out; capture the same
@@ -190,25 +191,6 @@ test.describe('hero shoulders', () => {
   })
 })
 
-/** Waits until every image inside `selector` has loaded (lazy ones are switched to eager). */
-async function imagesLoaded(page: Page, selector: string) {
-  await page.evaluate((sel) => {
-    for (const img of Array.from(document.querySelectorAll<HTMLImageElement>(`${sel} img`))) {
-      img.loading = 'eager'
-    }
-  }, selector)
-  await expect
-    .poll(
-      () =>
-        page.evaluate((sel) => {
-          const images = Array.from(document.querySelectorAll<HTMLImageElement>(`${sel} img`))
-          return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0)
-        }, selector),
-      { timeout: 20_000 },
-    )
-    .toBe(true)
-}
-
 // M4b batch 2 (TC-016): the QA evidence section and its lightbox on the E2E report, at 1440 and
 // 390, in EN and ID.
 for (const lang of ['en', 'id'] as const) {
@@ -250,6 +232,37 @@ for (const lang of ['en', 'id'] as const) {
     // The caption stays invisible until next/image's onLoad (after decode), a moment later.
     await expect(page.locator('dialog[open] figcaption > span').first()).toBeVisible()
     await page.screenshot({ path: shot(`${testInfo.project.name}-lightbox-qa-${lang}`) })
+  })
+}
+
+// v1.1 (TC-016): the certificate coverflow at rest on the newest certificate, at 1440 and 390, in
+// EN and ID, for comparing with the approved demo.
+for (const lang of ['en', 'id'] as const) {
+  test(`certifications coverflow (${lang})`, async ({ page }, testInfo) => {
+    await page.goto('/')
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const section = page.locator('#certifications')
+    await section.scrollIntoViewIfNeeded()
+    await expect(section.locator('.cf-card[aria-current="true"]')).toBeVisible()
+    await imagesLoaded(page, '#certifications')
+    await expect
+      .poll(() =>
+        section.evaluate((element) =>
+          Array.from(element.querySelectorAll('[data-reveal]')).every(
+            (reveal) => getComputedStyle(reveal).opacity === '1',
+          ),
+        ),
+      )
+      .toBe(true)
+    // An element capture scrolls under the sticky header, which would be painted mid-section.
+    await section.screenshot({
+      path: shot(`${testInfo.project.name}-certifications-${lang}`),
+      animations: 'disabled',
+      style: 'header { visibility: hidden !important; }',
+    })
   })
 }
 

@@ -207,6 +207,16 @@ const id = {
     openCertificate: 'Buka sertifikat: {title}',
     certificateNo: 'No.',
     verify: 'Verifikasi',
+    scope: 'Cakupan',
+    carousel: {
+      label: 'Sertifikat',
+      frame: 'Sertifikat: tombol panah untuk berpindah, Enter untuk membuka',
+      prev: 'Sertifikat sebelumnya',
+      next: 'Sertifikat berikutnya',
+      goTo: 'Ke sertifikat {n}',
+      slide: '{n} dari {count}',
+      openCurrent: 'Buka sertifikat ini',
+    },
     items: {
       'revou-intro-software-engineering': {
         title: 'Intro to Software Engineering',

@@ -161,3 +161,26 @@ export function hasNoHorizontalOverflow(page: Page): Promise<boolean> {
     () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
   )
 }
+
+/**
+ * Waits until every image inside `selector` has loaded; lazy ones are switched to eager first.
+ * Switching re-selects the srcset candidate, and Chromium may then show a larger one it already
+ * has in its cache: use this for captures, not to read which candidate an image chose.
+ */
+export async function imagesLoaded(page: Page, selector: string): Promise<void> {
+  await page.evaluate((sel) => {
+    for (const img of Array.from(document.querySelectorAll<HTMLImageElement>(`${sel} img`))) {
+      img.loading = 'eager'
+    }
+  }, selector)
+  await expect
+    .poll(
+      () =>
+        page.evaluate((sel) => {
+          const images = Array.from(document.querySelectorAll<HTMLImageElement>(`${sel} img`))
+          return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0)
+        }, selector),
+      { timeout: 20_000 },
+    )
+    .toBe(true)
+}
