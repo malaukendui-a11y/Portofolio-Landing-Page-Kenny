@@ -154,8 +154,28 @@ Two-column timeline with a hairline spine; each entry: mono date range, `h3` tit
 
 ## 4.8 Certifications (dark)
 
-Up to four cards in a row at ≥ 1280 (two at tablet, stacked on mobile), newest first: certificate image at its natural aspect (lightbox), issuer badge, period (mono), title, 1-line scope, certificate number or verify link (mono).
+**Coverflow** (`components/ui/CoverflowCarousel`, v1.1; owner decision 2026-11-14, ported from the 21st.dev "Coverflow Carousel" by Ruixen, MIT). The certificates, newest first, sit on a ring that folds away from the centre. This is the layout at every width: the v1.0 card grid (up to four certificates in a row) is gone.
 
+- **Settings** (`lib/coverflow.ts`): rotate 44°, depth 0.6, perspective 3, falloff 0.56, fade 0.1, gap 0.05, loop on.
+  - With four certificates and loop on, the card half a turn away is faded out, so three show at a time (accepted by the owner).
+  - Tilt and recession ease off with distance (`ramp = distance ^ 0.56`), the tilt is capped at 82°, and a release settles with an exponential ease.
+- **Cards:** portrait 3 : 4, `clamp(148px, 22vw, 260px)` wide, in `ink-800` with a 1 px hairline and the `image` radius.
+  - The centre card's border is `muted-on-dark`. No shadows.
+  - Each card shows its certificate whole (`object-contain`, inset 6 %, never cropped), because the scans mix portrait and landscape.
+  - Behind it sits a **blurred copy of the same certificate**: bled 12 % past the card's edges, `blur(22px) saturate(1.15) brightness(0.9)`, chosen in the approved demo over a paper mat and the component's dark card.
+- **Caption** under the ring, centred, for the centre card:
+  - title (`h3`), then issuer · period (mono, `meta`);
+  - rows with hairline dividers: the certificate number or a verify link, then the scope (`meta-sm`, mono labels);
+  - it fades in on change (0.25 s);
+  - its height is reserved for the tallest caption, so the dots never move.
+- **Controls:**
+  - two 44 px round arrows over the ring's edges;
+  - four dots with 44 px targets: inactive dots in `muted-on-dark` (WCAG 1.4.11), the current one a wider `text-on-dark` pill;
+  - drag or swipe sideways; a flick carries at most two cards, and a release held still does not throw;
+  - a click on the centre card opens the lightbox (F-08), a click on a side card turns it to the centre;
+  - the ring itself is one Tab stop: ← → step, Enter opens the centre card, and focus returns there when the lightbox closes;
+  - vertical scrolling and pinch-zoom stay the browser's.
+- **Reduced motion:** the ring jumps instead of easing, a release never throws and the caption does not fade. The tilt and depth stay, because they are layout.
 ## 4.9 Reach Out (paper — mirror of the hero)
 
 Giant ticker **"Reach Out —"** in `ink-900`, left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Three CTA pills: **Email me** (recruiters, filled), **Download CV** (recruiters, outlined, a `download` link shown only while `site.cvUrl` is set; M4b batch 2, PRD F-09) and **Chat on WhatsApp** (clients, outlined), which stays last so Tab from it reaches the polaroid line. Right block: the polaroid line, then social links and a circular back-to-top button.
@@ -200,7 +220,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 - Portraits: the hero uses the colour original only (`kenny-hero-formal@2x.webp` since M4b); no alternate treatments are kept. Reach Out shows the polaroid line, not a portrait (§4.9).
 - Project screenshots: real UI only, 16:10 crops, no device mockups, no fake data that looks like real users; light drop of 1 px `ink-700` border on dark. **Owner exception (M4b):** design renders are allowed when every image's alt text, and so its lightbox caption, says so ("design render, sample data"). The PintuKos boards are 16:9 renders with phone frames and sample data, because the live app holds real tenants' data behind a login (`docs/DECISIONS.md` 2026-11-13).
 - QA evidence (§4.6): real screenshots of the owner's own tooling (the GitHub Actions run, the Playwright report, the UAT sheet), shown whole in uniform 4:3 frames (M5), sample data only, no mockups (M4b batch 2).
-- Certificates: photographed originals, straightened, no filters.
+- Certificates: photographed originals, straightened, no filters. The coverflow's blurred backdrop (§4.8) is a decorative copy behind the certificate; the certificate itself is shown unfiltered and uncropped.
 - No stock photos, no illustrations, no icons other than a minimal line set (Lucide) at 1.5 px stroke.
 
 # 8. Responsive behaviour

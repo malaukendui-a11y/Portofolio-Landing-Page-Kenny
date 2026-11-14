@@ -124,6 +124,23 @@ export interface Copy {
     openCertificate: string
     certificateNo: string
     verify: string
+    /** Label of the scope row in the coverflow caption (v1.1). */
+    scope: string
+    /** Coverflow carousel (components/ui/CoverflowCarousel, DESIGN §4.8, v1.1). */
+    carousel: {
+      /** The carousel region's name. */
+      label: string
+      /** The keyboard frame's name: how ← → and Enter work. */
+      frame: string
+      prev: string
+      next: string
+      /** `{n}` is replaced at render time. */
+      goTo: string
+      /** A slide's name; `{n}` and `{count}` are replaced at render time. */
+      slide: string
+      /** The centre card's open control. */
+      openCurrent: string
+    }
     items: Record<CertificationId, Certification>
   }
   reachOut: {

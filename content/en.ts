@@ -207,6 +207,16 @@ const en = {
     openCertificate: 'Open certificate: {title}',
     certificateNo: 'No.',
     verify: 'Verify',
+    scope: 'Scope',
+    carousel: {
+      label: 'Certificates',
+      frame: 'Certificates: arrow keys to browse, Enter to open',
+      prev: 'Previous certificate',
+      next: 'Next certificate',
+      goTo: 'Go to certificate {n}',
+      slide: '{n} of {count}',
+      openCurrent: 'Open this certificate',
+    },
     items: {
       'revou-intro-software-engineering': {
         title: 'Intro to Software Engineering',

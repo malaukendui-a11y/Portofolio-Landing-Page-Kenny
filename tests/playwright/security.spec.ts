@@ -4,8 +4,6 @@
 // name over in phase. The header literal comes from lib/security-headers.ts, as next.config.ts does.
 import type { ConsoleMessage, Locator, Page } from '@playwright/test'
 import { expect, test, type WebGL2Support } from './fixtures'
-import { certifications } from '../../content/certifications'
-import en from '../../content/en'
 import id from '../../content/id'
 import { site } from '../../content/site'
 import { LOADER_MAX_MS } from '../../lib/loader'
@@ -136,13 +134,8 @@ async function walk(
   await selectLang(page, 'ID')
   await expect(page.locator('html')).toHaveAttribute('lang', 'id')
 
-  const certificate = id.certifications.items[certifications[0].id].title
-  await openAndClose(
-    page,
-    page.getByRole('button', {
-      name: id.certifications.openCertificate.replace('{title}', certificate),
-    }),
-  )
+  // The certificate coverflow (v1.1): Enter on its frame opens the centre card.
+  await openAndClose(page, page.getByRole('group', { name: id.certifications.carousel.frame }))
   await openAndClose(
     page,
     page.getByRole('button', {

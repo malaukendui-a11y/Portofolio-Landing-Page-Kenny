@@ -1,5 +1,5 @@
-// TC-007: lightbox keyboard flow (PRD F-08) on the certificates. TC-095 (M4b batch 2): the QA
-// evidence tiles open their lightbox with captions.
+// TC-007: lightbox keyboard flow (PRD F-08) on the certificates, opened from the coverflow's frame
+// since v1.1. TC-095 (M4b batch 2): the QA evidence tiles open their lightbox with captions.
 import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
 import { certifications } from '../../content/certifications'
@@ -109,19 +109,19 @@ async function expectFramedTiles(qa: Locator, oneRow: boolean): Promise<void> {
   }
 }
 
+// v1.1: the certificates are a coverflow; its frame is the trigger. Enter on the focused frame opens
+// the centre card (the newest, RevoU), and the dialog must still be open a moment later: the Enter's
+// keypress would otherwise click the Close button that the dialog has just focused.
 test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and restores focus', async ({
   page,
 }) => {
   await page.goto('/')
-  const first = certifications[0]
-  const trigger = page.getByRole('button', {
-    name: en.certifications.openCertificate.replace(
-      '{title}',
-      en.certifications.items[first.id].title,
-    ),
-  })
+  const trigger = page.getByRole('group', { name: en.certifications.carousel.frame })
   await trigger.scrollIntoViewIfNeeded()
-  await trigger.click()
+  // The first paint() shows the centre card: the page has hydrated and the keys reach React.
+  await expect(page.locator('#certifications .cf-card[aria-current="true"]')).toBeVisible()
+  await trigger.focus()
+  await page.keyboard.press('Enter')
 
   // The scroll lock is set and released in a React effect, a moment after the native
   // <dialog> opens or closes: retry the reads instead of taking one sample.
@@ -130,6 +130,8 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
   const dialog = page.getByRole('dialog', { name: en.lightbox.label })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('button', { name: en.lightbox.close })).toBeFocused()
+  await page.waitForTimeout(300)
+  await expect(dialog).toBeVisible()
   await expect.poll(bodyOverflow).toBe('hidden')
 
   const total = certifications.length
