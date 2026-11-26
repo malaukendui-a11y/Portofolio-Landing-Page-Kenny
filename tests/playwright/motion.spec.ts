@@ -530,17 +530,15 @@ test.describe('stacked cards', () => {
               ? await cards.evaluateAll((articles: HTMLElement[]) =>
                   Math.min(
                     ...articles.map((card) => {
+                      // Where the last row ends (plus the card's bottom padding) once the card
+                      // sits at its sticky top, against the bottom of the window.
                       const rows = card.querySelector('ol')!.getBoundingClientRect()
-                      const padding = parseFloat(getComputedStyle(card).paddingBottom)
-                      const stuckBottom =
-                        parseFloat(getComputedStyle(card).top) +
-                        Math.max(card.offsetHeight, innerHeight)
-                      // Where the last row ends relative to the card's top, placed at its sticky top.
+                      const style = getComputedStyle(card)
                       const rowsEnd =
-                        parseFloat(getComputedStyle(card).top) +
+                        parseFloat(style.top) +
                         (rows.bottom - card.getBoundingClientRect().top) +
-                        padding
-                      return Math.floor(Math.min(stuckBottom, innerHeight) - rowsEnd)
+                        parseFloat(style.paddingBottom)
+                      return Math.floor(innerHeight - rowsEnd)
                     }),
                   ),
                 )
