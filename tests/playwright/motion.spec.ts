@@ -490,8 +490,13 @@ test.describe('stacked cards', () => {
 
   // TC-092: a stuck card taller than the space below its sticky top never shows its bottom
   // (stack rows, the CTA row) while the cards stack, and focus there would stay obscured
-  // (WCAG 2.2 SC 2.4.11). Every project card must fit, in both languages.
-  test('every project card fits below its sticky top', async ({ page, isMobile }, testInfo) => {
+  // (WCAG 2.2 SC 2.4.11). Every project card must fit, in both languages. Since v1.1 content the
+  // service cards are measured too: they fill the window below the nav by design, so a card whose
+  // rows outgrow that space hides its last rows while it is stuck (seven rows in card 02).
+  test('every service and project card fits below its sticky top', async ({
+    page,
+    isMobile,
+  }, testInfo) => {
     test.skip(isMobile, 'stacking starts at 1024 px; the test sets its own desktop windows')
     await page.goto('/')
     const margins: string[] = []
@@ -508,20 +513,45 @@ test.describe('stacked cards', () => {
       ]) {
         await page.setViewportSize(viewport)
         await page.evaluate(() => document.fonts.ready)
-        const cards = page.locator('#work article')
-        await expect(cards.first()).toHaveCSS('position', 'sticky')
-        // px of each card below the fold while it is stuck (top = its sticky offset).
-        const overflow = await cards.evaluateAll((articles: HTMLElement[]) =>
-          articles.map((card) =>
-            Math.ceil(parseFloat(getComputedStyle(card).top) + card.offsetHeight - innerHeight),
-          ),
-        )
-        const label = `${lang} ${viewport.width}×${viewport.height}`
-        margins.push(`${label}: ${-Math.max(...overflow)} px to spare`)
-        expect(
-          overflow.filter((px) => px > 0),
-          `${label}: px below the fold per card ${overflow}`,
-        ).toEqual([])
+        for (const section of ['services', 'work']) {
+          const cards = page.locator(`#${section} article`)
+          await expect(cards.first()).toHaveCSS('position', 'sticky')
+          // px of each card below the fold while it is stuck (top = its sticky offset). A service
+          // card's min-height reaches the fold exactly, so a fitting one measures 0.
+          const overflow = await cards.evaluateAll((articles: HTMLElement[]) =>
+            articles.map((card) =>
+              Math.ceil(parseFloat(getComputedStyle(card).top) + card.offsetHeight - innerHeight),
+            ),
+          )
+          // Services: the spare room is inside the card (min-height); measure from the bottom of
+          // its last row (the grid stretches the content column, so measure the list itself).
+          const spare =
+            section === 'services'
+              ? await cards.evaluateAll((articles: HTMLElement[]) =>
+                  Math.min(
+                    ...articles.map((card) => {
+                      const rows = card.querySelector('ol')!.getBoundingClientRect()
+                      const padding = parseFloat(getComputedStyle(card).paddingBottom)
+                      const stuckBottom =
+                        parseFloat(getComputedStyle(card).top) +
+                        Math.max(card.offsetHeight, innerHeight)
+                      // Where the last row ends relative to the card's top, placed at its sticky top.
+                      const rowsEnd =
+                        parseFloat(getComputedStyle(card).top) +
+                        (rows.bottom - card.getBoundingClientRect().top) +
+                        padding
+                      return Math.floor(Math.min(stuckBottom, innerHeight) - rowsEnd)
+                    }),
+                  ),
+                )
+              : -Math.max(...overflow)
+          const label = `${section} ${lang} ${viewport.width}×${viewport.height}`
+          margins.push(`${label}: ${spare} px to spare`)
+          expect(
+            overflow.filter((px) => px > 0),
+            `${label}: px below the fold per card ${overflow}`,
+          ).toEqual([])
+        }
       }
     }
     testInfo.annotations.push({ type: 'card-fit', description: margins.join('; ') })
