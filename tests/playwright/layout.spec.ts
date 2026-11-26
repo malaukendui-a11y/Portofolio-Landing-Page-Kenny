@@ -261,3 +261,169 @@ test.describe('first visit', () => {
     }
   })
 })
+
+// TC-126 (v1.1 content, DESIGN §4.2): the longer junior roles still fit the hero. Desktop at 1440×900
+// and 1024×768 (the roles sit bottom right, over the portrait's faded lower edge), the phone at 390
+// (under the portrait). Gates: the roles stay inside the viewport and clear of the corner UI (the
+// socials, the //INTRO cue, the availability badge, the nav), and wherever they cross the portrait
+// they stay legible: ink against the portrait composited over paper-100 keeps WCAG 1.4.3's 3 : 1 for
+// large text (32 px / 600) at every sampled pixel. The hero's glow is ignored (paper only). The
+// annotation records how many portrait pixels under the roles have alpha > 32, and each role's lines.
+test('the hero roles fit beside the portrait and the corner UI', async ({ page, isMobile }) => {
+  const css = readFileSync('app/globals.css', 'utf8')
+  const token = (name: string) => css.match(new RegExp(`--${name}:\\s*([^;]+);`))![1].trim()
+  const colours = { paper: token('color-paper-100'), ink: token('color-text-on-paper') }
+  const sizes = isMobile
+    ? [page.viewportSize()!]
+    : [
+        { width: 1440, height: 900 },
+        { width: 1024, height: 768 },
+      ]
+  const notes: string[] = []
+  for (const size of sizes) {
+    await page.setViewportSize(size)
+    await page.goto('/')
+    await page.evaluate(() => document.fonts.ready)
+    // The entrance has settled: the stagger lists are opaque and in place, the portrait too.
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('#top [data-hero-stagger], #hero-portrait')].every(
+            (element) => {
+              const style = getComputedStyle(element)
+              return style.opacity === '1' && style.transform === 'none'
+            },
+          ),
+        ),
+      )
+      .toBe(true)
+    await expect
+      .poll(() =>
+        page
+          .locator('#hero-portrait')
+          .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+      )
+      .toBe(true)
+
+    const fit = await page.evaluate(
+      async ({ roles, labels, paper, ink }) => {
+        const shown = (element: Element | null | undefined): element is HTMLElement =>
+          element instanceof HTMLElement && element.getClientRects().length > 0
+        const lists = [...document.querySelectorAll('#top ul')].filter(shown)
+        const list = lists.find((ul) => ul.textContent?.includes(roles[0]))!
+        const box = list.getBoundingClientRect()
+
+        // Corner UI the roles must not touch.
+        const corner: Record<string, DOMRect | undefined> = {
+          socials: lists
+            .find(
+              (ul) =>
+                ul.textContent?.includes(labels.github) || ul.querySelector('a[href*="github"]'),
+            )
+            ?.getBoundingClientRect(),
+          cue: [...document.querySelectorAll('#top p')]
+            .filter(shown)
+            .find((p) => p.textContent?.trim() === labels.cue)
+            ?.getBoundingClientRect(),
+          badge: [...document.querySelectorAll('#top *')]
+            .filter(shown)
+            .find(
+              (element) =>
+                element.childElementCount === 0 && element.textContent?.includes(labels.badge),
+            )
+            ?.getBoundingClientRect(),
+          nav: document.querySelector('header')?.getBoundingClientRect(),
+        }
+        const touches = Object.entries(corner)
+          .filter(
+            ([, rect]) =>
+              rect !== undefined &&
+              rect.left < box.right &&
+              rect.right > box.left &&
+              rect.top < box.bottom &&
+              rect.bottom > box.top,
+          )
+          .map(([name]) => name)
+
+        // Legibility over the portrait: sample the portrait under every line box of the roles.
+        const img = document.getElementById('hero-portrait') as HTMLImageElement
+        const frame = img.getBoundingClientRect()
+        const source = new Image()
+        source.src = img.currentSrc
+        await source.decode()
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(frame.width)
+        canvas.height = Math.round(frame.height)
+        const context = canvas.getContext('2d', { willReadFrequently: true })!
+        context.drawImage(source, 0, 0, canvas.width, canvas.height)
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
+        const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+        const luminance = ([r, g, b]: number[]) => {
+          const linear = (c: number) => {
+            const s = c / 255
+            return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+          }
+          return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
+        }
+        const paperRgb = rgb(paper)
+        const inkL = luminance(rgb(ink))
+        let samples = 0
+        let opaque = 0
+        let minContrast = Infinity
+        const lines: number[] = []
+        for (const item of list.querySelectorAll('li')) {
+          const range = document.createRange()
+          range.selectNodeContents(item)
+          const rects = [...range.getClientRects()]
+          lines.push(rects.length)
+          for (const rect of rects) {
+            for (let y = Math.ceil(rect.top); y < rect.bottom; y += 2) {
+              for (let x = Math.ceil(rect.left); x < rect.right; x += 2) {
+                const px = Math.floor(x - frame.left)
+                const py = Math.floor(y - frame.top)
+                if (px < 0 || py < 0 || px >= canvas.width || py >= canvas.height) continue
+                const i = (py * canvas.width + px) * 4
+                const alpha = pixels[i + 3] / 255
+                if (alpha === 0) continue
+                samples++
+                if (pixels[i + 3] > 32) opaque++
+                const composite = [0, 1, 2].map(
+                  (c) => alpha * pixels[i + c] + (1 - alpha) * paperRgb[c],
+                )
+                minContrast = Math.min(minContrast, (luminance(composite) + 0.05) / (inkL + 0.05))
+              }
+            }
+          }
+        }
+        return {
+          inside: box.left >= 0 && box.right <= innerWidth,
+          touches,
+          samples,
+          opaque,
+          minContrast: samples ? Math.round(minContrast * 100) / 100 : null,
+          lines,
+        }
+      },
+      {
+        roles: en.hero.roles,
+        labels: {
+          github: en.hero.socials.github,
+          cue: en.hero.scrollCue,
+          badge: en.hero.availability,
+        },
+        ...colours,
+      },
+    )
+    const label = `${size.width}×${size.height}`
+    notes.push(
+      `${label}: ${fit.samples} portrait px under the roles (${fit.opaque} with alpha > 32), ` +
+        `min contrast ${fit.minContrast ?? '—'} : 1, lines ${fit.lines.join('/')}`,
+    )
+    expect(fit.inside, `${label}: roles inside the viewport`).toBe(true)
+    expect(fit.touches, `${label}: roles clear of the corner UI`).toEqual([])
+    if (fit.minContrast !== null)
+      expect(fit.minContrast, `${label}: ink on the portrait`).toBeGreaterThanOrEqual(3)
+  }
+  test.info().annotations.push({ type: 'hero-roles', description: notes.join('; ') })
+  console.log(`hero roles: ${notes.join('; ')}`)
+})

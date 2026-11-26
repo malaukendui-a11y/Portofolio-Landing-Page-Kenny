@@ -1,8 +1,9 @@
 // TC-016: screenshots for the owner's review (CLAUDE.md §7), written to
 // test-results/screenshots/: full pages per viewport and language, M2 motion frames at 1440
 // (hero after the entrance, Services and Projects mid-stack), the M4b captures (the PintuKos card
-// stuck and covered, the project and QA lightboxes, the QA section, the hero's shoulders) and, since
-// v1.1, the certificate coverflow.
+// stuck and covered, the project and QA lightboxes, the QA section, the hero's shoulders), since
+// v1.1 the certificate coverflow and, since v1.1 content, this portfolio's card and lightbox and
+// service card 02 stuck on short windows.
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
@@ -292,3 +293,70 @@ test('ID: the PintuKos card stuck at 1280 and 1024', async ({ page }, testInfo) 
     await page.screenshot({ path: shot(`desktop-motion-work-pintukos-id-${viewport.width}`) })
   }
 })
+
+/** Scrolls so card `index` of `section` has just stuck at its sticky top (measured in flow). */
+async function stickCard(page: Page, section: string, index: number) {
+  await page.evaluate((id) => document.getElementById(id)!.scrollIntoView(), section)
+  await page.waitForTimeout(400)
+  if (section === 'work') await imagesLoaded(page, `#${section}`) // services has no images
+  await page.evaluate(
+    ({ section, index }) => {
+      const card = document.querySelectorAll<HTMLElement>(`#${section} article`)[index]
+      const stickyTop = parseFloat(getComputedStyle(card).top)
+      window.scrollTo(0, window.scrollY + card.getBoundingClientRect().top - stickyTop)
+    },
+    { section, index },
+  )
+  await page.waitForTimeout(400)
+}
+
+// v1.1 content (TC-016, TC-092): this portfolio's card just stuck, in ID (the longer copy), on a
+// 1280 × 800 and a 1024 × 768 window; service card 02 (seven rows, compacted on short windows)
+// stuck on 1366 × 768 and 1024 × 768.
+test('v1.1: the portfolio card and service card 02 stuck on short windows', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'stacking starts at 1024 px')
+  await page.goto('/')
+  for (const viewport of [
+    { width: 1366, height: 768 },
+    { width: 1024, height: 768 },
+  ]) {
+    await page.setViewportSize(viewport)
+    await stickCard(page, 'services', 1)
+    await page.screenshot({ path: shot(`desktop-services-02-stuck-${viewport.width}`) })
+  }
+  await selectLang(page, 'ID')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+  for (const viewport of [
+    { width: 1280, height: 800 },
+    { width: 1024, height: 768 },
+  ]) {
+    await page.setViewportSize(viewport)
+    await stickCard(page, 'work', 1)
+    await page.screenshot({ path: shot(`desktop-work-portfolio-id-${viewport.width}`) })
+  }
+})
+
+// v1.1 content (TC-016): this portfolio's lightbox at 1440 and 390, in EN and ID.
+for (const lang of ['en', 'id'] as const) {
+  test(`portfolio lightbox (${lang})`, async ({ page }, testInfo) => {
+    const copy = lang === 'en' ? en : id
+    await page.goto('/')
+    if (lang === 'id') {
+      await selectLang(page, 'ID')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const cover = page.getByRole('button', {
+      name: copy.projects.openScreenshots.replace('{title}', copy.projects.items.portfolio.title),
+    })
+    await cover.scrollIntoViewIfNeeded()
+    await cover.click()
+    const image = page.getByRole('dialog', { name: copy.lightbox.label }).getByRole('img')
+    await expect
+      .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+      .toBe(true)
+    await expect(page.locator('dialog[open] figcaption > span').first()).toBeVisible()
+    await page.screenshot({ path: shot(`${testInfo.project.name}-lightbox-portfolio-${lang}`) })
+  })
+}
