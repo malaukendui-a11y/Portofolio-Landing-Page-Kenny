@@ -179,15 +179,16 @@ const id = {
     heading: 'Pengalaman',
     educationHeading: 'Pendidikan',
     work: {
-      period: 'Agu 2026',
+      period: 'Agu 2026 (1 bulan)',
       title: 'QA Tester (Pengujian Manual) — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
-      description: 'QA di Kopra by Mandiri, super-platform digital wholesale.',
+      description:
+        'Magang / kontrak proyek melalui PT Bahtera Pesat Lintasbuana, menguji Kopra by Mandiri, platform digital wholesale banking.',
       bullets: [
-        'Pengujian manual dan UAT dengan siklus regresi',
-        'Perancangan skenario dan test case; pelaporan eksekusi di Atlassian Jira',
-        'Pelacakan siklus hidup defect di Jira: severity, re-test, dan sign-off',
+        'Mengeksekusi sekitar 250 test case UAT dan regresi',
+        'Melaporkan sekitar 20 defect di Jira dengan langkah reproduksi dan severity; sekitar 90% diselesaikan sebelum rilis',
+        'Merancang dan mendokumentasikan test case dan test report terstruktur di Jira',
       ],
     },
     education: {
@@ -195,12 +196,21 @@ const id = {
       title: 'Sarjana Sistem Informasi (S.Kom)',
       org: 'Universitas Gunadarma — Fakultas Ilmu Komputer & Teknologi Informasi',
       location: 'Depok',
-      description: '',
+      description:
+        'IPK 3,43 / 4,00. Penulisan Ilmiah (2024) tentang analisis big data harga altcoin.',
       bullets: [
         'Standar QA dan pengujian perangkat lunak',
         'Big-data mining, machine learning, dan analisis sistem',
-        'Pengembangan web full-stack dan arsitektur database',
+        'Pemrograman web dan perancangan basis data',
       ],
+    },
+    selfStudy: {
+      period: 'Feb — Jul 2026',
+      title: 'Belajar mandiri — Software engineering',
+      org: 'Otodidak',
+      location: '',
+      description: 'JavaScript, React, TypeScript, Git, dan GitHub.',
+      bullets: [],
     },
   },
   certifications: {

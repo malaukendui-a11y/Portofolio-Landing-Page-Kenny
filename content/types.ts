@@ -116,6 +116,8 @@ export interface Copy {
     educationHeading: string
     work: TimelineEntry
     education: TimelineEntry
+    /** Rendered in the Education column under the degree (v1.1 content). */
+    selfStudy: TimelineEntry
   }
   certifications: {
     label: string

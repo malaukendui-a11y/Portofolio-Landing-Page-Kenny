@@ -179,15 +179,16 @@ const en = {
     heading: 'Experience',
     educationHeading: 'Education',
     work: {
-      period: 'Aug 2026',
+      period: 'Aug 2026 (1 month)',
       title: 'QA Tester (Manual Testing) — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
-      description: 'QA on Kopra by Mandiri, a wholesale digital super-platform.',
+      description:
+        'Internship / project contract via PT Bahtera Pesat Lintasbuana, testing Kopra by Mandiri, a wholesale digital banking platform.',
       bullets: [
-        'Manual and UAT testing with regression cycles',
-        'Test scenario and test case design; execution reporting in Atlassian Jira',
-        'Defect lifecycle tracking in Jira: severity, re-test and sign-off',
+        'Ran about 250 UAT and regression test cases',
+        'Reported about 20 defects in Jira with reproduction steps and severity; about 90% were resolved before release',
+        'Designed and documented structured test cases and test reports in Jira',
       ],
     },
     education: {
@@ -195,12 +196,21 @@ const en = {
       title: 'Bachelor of Information Systems (S.Kom)',
       org: 'Universitas Gunadarma — Faculty of Computer Science & Information Technology',
       location: 'Depok',
-      description: '',
+      description:
+        'GPA 3.43 / 4.00. Scientific paper (2024) on big-data analysis of altcoin prices.',
       bullets: [
         'Software QA and testing standards',
         'Big-data mining, machine learning and systems analysis',
-        'Full-stack web development and database architecture',
+        'Web programming and database design',
       ],
+    },
+    selfStudy: {
+      period: 'Feb — Jul 2026',
+      title: 'Self-study — Software engineering',
+      org: 'Self-directed',
+      location: '',
+      description: 'JavaScript, React, TypeScript, Git and GitHub.',
+      bullets: [],
     },
   },
   certifications: {
