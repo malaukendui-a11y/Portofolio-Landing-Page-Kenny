@@ -120,8 +120,14 @@ const id = {
       pintukos: {
         title: 'PintuKos',
         description:
-          'Aplikasi keuangan untuk kos dan kontrakan keluarga (dipakai internal): tagihan otomatis, pembayaran dengan bukti foto, penagihan via WhatsApp, laporan PDF/Excel, tutup buku, dan log audit.',
+          'Aplikasi keuangan untuk kos dan kontrakan keluarga (dipakai internal): tagihan otomatis, pembayaran dengan bukti foto, penagihan via WhatsApp, laporan PDF/Excel, tutup buku, dan log audit. Beta privat; demo tersedia atas permintaan.',
         role: 'Product owner, QA & developer (berbantuan AI)',
+      },
+      portfolio: {
+        title: 'Portofolio ini',
+        description:
+          'Situs yang sedang Anda buka: portofolio dwibahasa dengan lensa kaca 3D, dibangun dengan Claude Code lewat 10 pull request yang ditinjau. Setiap perubahan lolos 600+ uji otomatis di Chromium, Firefox, dan WebKit, pengecekan Lighthouse, serta QA manual saya di iPhone dan HP Android.',
+        role: 'Developer & QA (berbantuan AI)',
       },
       'trading-compass': {
         title: 'Trading Compass',
@@ -132,7 +138,7 @@ const id = {
       'malau-website': {
         title: 'Situs komunitas & silsilah Malau Pase',
         description:
-          'Situs komunitas dan pohon silsilah (tarombo) untuk marga Malau Pase, saat ini dalam tahap desain UI/UX.',
+          'Website komunitas dan silsilah (tarombo) marga Malau Pase. Saya memimpinnya bersama satu data analyst: ruang lingkup, SRS 22 halaman, dan PRD sudah selesai; desain UI/UX sedang dikerjakan di Google Stitch dan Figma.',
         role: 'Project manager',
       },
       'kos-kontrakan-landing': {
@@ -144,8 +150,8 @@ const id = {
       'crypto-research': {
         title: 'Analisis Big Data untuk Mendeteksi Pola dan Tren Pergerakan Harga Cryptocurrency',
         description:
-          'Skripsi: studi kasus pasar altcoin, menggunakan analisis big data untuk mendeteksi pola dan tren pergerakan harga.',
-        role: 'Penulis (skripsi)',
+          'Penulisan Ilmiah, Universitas Gunadarma, 2024: studi kasus pasar altcoin dengan regresi, K-Means clustering, dan model Random Forest pada data harga dan volume.',
+        role: 'Penulis',
       },
     },
   },

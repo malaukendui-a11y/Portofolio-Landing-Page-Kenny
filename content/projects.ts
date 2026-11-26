@@ -7,7 +7,12 @@
  */
 
 export type ProjectId =
-  'pintukos' | 'trading-compass' | 'malau-website' | 'kos-kontrakan-landing' | 'crypto-research'
+  | 'pintukos'
+  | 'portfolio'
+  | 'trading-compass'
+  | 'malau-website'
+  | 'kos-kontrakan-landing'
+  | 'crypto-research'
 
 export type ProjectStatus =
   'live' | 'in-qa' | 'in-development' | 'in-design' | 'planned' | 'completed'
@@ -105,6 +110,49 @@ export const projects: readonly Project[] = [
     ],
   },
   {
+    // This site (v1.1 content). Live with no other URL to link (visitors are on it), so its boards
+    // are the preview; the first linked repository: public, with a real README since M5.
+    id: 'portfolio',
+    kind: 'product',
+    status: 'live',
+    year: '2026',
+    liveUrl: null,
+    repoUrl: 'https://github.com/malaukendui-a11y/Portofolio-Landing-Page-Kenny',
+    repoPublic: true,
+    pdfUrl: null,
+    stack: ['Next.js', 'TypeScript', 'Tailwind CSS', 'GSAP', 'React Three Fiber', 'Playwright'],
+    // Captured from this site by scripts/export-portfolio-shots.mjs (docs/DECISIONS.md).
+    images: [
+      {
+        src: '/images/projects/portfolio-01-hero.webp',
+        width: 1600,
+        height: 900,
+        alt: {
+          en: 'This portfolio on a laptop: the hero with the name ticker under the glass lens',
+          id: 'Portofolio ini di laptop: hero dengan ticker nama di bawah lensa kaca',
+        },
+      },
+      {
+        src: '/images/projects/portfolio-02-certifications.webp',
+        width: 1600,
+        height: 900,
+        alt: {
+          en: 'The certifications coverflow with six certificates',
+          id: 'Coverflow sertifikasi dengan enam sertifikat',
+        },
+      },
+      {
+        src: '/images/projects/portfolio-03-phone.webp',
+        width: 1600,
+        height: 900,
+        alt: {
+          en: 'This portfolio on a phone: the hero and the projects section',
+          id: 'Portofolio ini di HP: hero dan bagian proyek',
+        },
+      },
+    ],
+  },
+  {
     id: 'trading-compass',
     kind: 'product',
     status: 'in-qa',
@@ -146,12 +194,13 @@ export const projects: readonly Project[] = [
     id: 'crypto-research',
     kind: 'research',
     status: 'completed',
-    // Completed January 2026 (owner, M4b batch 2); the PDF keeps its 2025 file name.
-    year: '2026',
+    // A scientific paper (Penulisan Ilmiah), defended 21 Aug 2024 (v1.1 content, from the PDF's
+    // title page); not the bachelor thesis the card said before.
+    year: '2024',
     liveUrl: null,
     repoUrl: null,
     repoPublic: false,
-    pdfUrl: '/papers/big-data-altcoin-analysis-2025.pdf',
+    pdfUrl: '/papers/big-data-altcoin-analysis-2024.pdf',
     stack: ['Big data', 'Time-series analysis', 'Cryptocurrency markets'],
     images: [],
   },

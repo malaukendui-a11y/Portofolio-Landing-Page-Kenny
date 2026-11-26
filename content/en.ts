@@ -120,8 +120,14 @@ const en = {
       pintukos: {
         title: 'PintuKos',
         description:
-          'Finance app for the family’s boarding houses and rentals (private deployment): automatic invoices, payments with photo proof, WhatsApp billing, PDF/Excel reports, book closing and an audit log.',
+          'Finance app for the family’s boarding houses and rentals (private deployment): automatic invoices, payments with photo proof, WhatsApp billing, PDF/Excel reports, book closing and an audit log. Private beta; a demo is available on request.',
         role: 'Product owner, QA & developer (AI-assisted)',
+      },
+      portfolio: {
+        title: 'This portfolio',
+        description:
+          'The site you’re on: a bilingual portfolio with a 3D glass lens, built with Claude Code over 10 reviewed pull requests. Every change passes 600+ automated tests in Chromium, Firefox and WebKit, Lighthouse checks and my own manual QA on an iPhone and an Android phone.',
+        role: 'Developer & QA (AI-assisted)',
       },
       'trading-compass': {
         title: 'Trading Compass',
@@ -132,7 +138,7 @@ const en = {
       'malau-website': {
         title: 'Malau Pase community & genealogy website',
         description:
-          'Community website and family tree (tarombo) for the Malau Pase clan, currently in UI/UX design.',
+          'Community website and family tree (tarombo) for the Malau Pase clan. I lead it with one data analyst: the scope, a 22-page SRS and the PRD are done, and the UI/UX design is in progress in Google Stitch and Figma.',
         role: 'Project manager',
       },
       'kos-kontrakan-landing': {
@@ -144,8 +150,8 @@ const en = {
       'crypto-research': {
         title: 'Big Data Analysis to Detect Cryptocurrency Price Movement Patterns and Trends',
         description:
-          'Bachelor thesis: a case study of the altcoin market, using big-data analysis to detect price movement patterns and trends.',
-        role: 'Author (bachelor thesis)',
+          'Scientific paper (Penulisan Ilmiah), Universitas Gunadarma, 2024: a case study of the altcoin market using regression, K-Means clustering and a Random Forest model on price and volume data.',
+        role: 'Author',
       },
     },
   },

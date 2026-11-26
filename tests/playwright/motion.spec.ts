@@ -419,8 +419,13 @@ test.describe('stacked cards', () => {
             rect.right <= window.innerWidth,
         }
       })
-    // Since M4b the cards between have no controls, so Shift+Tab from the last card lands on
-    // PintuKos' "Preview", in the first card, under all the others.
+    // The cards between have no controls, so Shift+Tab from the last card lands on the last
+    // control of the nearest card with one: since v1.1 content this portfolio's GitHub link, in the
+    // second card, under all the later ones (until then PintuKos' "Preview", in the first).
+    const portfolio = page.locator('#work article').filter({
+      has: page.getByRole('heading', { name: en.projects.items.portfolio.title, exact: true }),
+    })
+    const github = portfolio.getByRole('link', { name: en.projects.cta.github, exact: true })
     const pintukos = page.locator('#work article').filter({
       has: page.getByRole('heading', { name: en.projects.items.pintukos.title, exact: true }),
     })
@@ -436,7 +441,7 @@ test.describe('stacked cards', () => {
       await expect(lastControl).toBeFocused()
       await page.keyboard.press('Shift+Tab')
       await expect(lastControl).not.toBeFocused()
-      await expect(preview).toBeFocused()
+      await expect(github).toBeFocused()
       await expect
         .poll(focusState, { message: `${viewport.width}x${viewport.height}` })
         .toEqual({ topmost: true, inViewport: true })
