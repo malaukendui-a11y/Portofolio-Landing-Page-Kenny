@@ -163,18 +163,22 @@ test.describe('contact actions', () => {
 })
 
 // TC-014 (PRD F-09): the nav (desktop), the menu (mobile), Intro and, since M4b batch 2, Reach Out
-// link the PDF for download, in both languages, and the build serves it as a PDF.
+// link the PDF for download, in both languages, and the build serves it as a PDF. Since v1.1
+// content the one CV is Indonesian: every link says so with `hreflang="id"`, and the English file
+// it replaced is gone.
 test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', async ({
   page,
   request,
   viewport,
 }) => {
-  expect(site.cvUrl).toMatch(/^\/cv\/.+\.pdf$/)
+  expect(site.cvUrl).toMatch(/^\/cv\/.+-id\.pdf$/)
+  expect(site.cvLang).toBe('id')
   const cv = site.cvUrl!
   const expectCv = async (link: Locator) => {
     await expect(link).toBeVisible()
     await expect(link).toHaveAttribute('href', cv)
     await expect(link).toHaveAttribute('download', '')
+    await expect(link).toHaveAttribute('hreflang', 'id')
   }
 
   await page.goto('/')
@@ -216,6 +220,8 @@ test('Download CV links the PDF from the nav, the menu, Intro and Reach Out', as
   const body = await response.body()
   expect(body.subarray(0, 5).toString('latin1')).toBe('%PDF-')
   expect(body.length, 'CV ≤ 500 KB').toBeLessThanOrEqual(500 * 1024)
+  // The English CV of M4b is no longer served.
+  expect((await request.get('/cv/kenny-cv-2026-11-en.pdf')).status()).toBe(404)
 })
 
 // TC-102 (PRD §3.3 "contact CTA visible without scrolling", DESIGN §4.2): on a first visit, once

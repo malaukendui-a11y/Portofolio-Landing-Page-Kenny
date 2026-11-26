@@ -45,7 +45,7 @@ export function Intro() {
           {t.intro.seeWork}
         </ButtonLink>
         {site.cvUrl && (
-          <ButtonLink href={site.cvUrl} variant="outlined" download>
+          <ButtonLink href={site.cvUrl} hrefLang={site.cvLang} variant="outlined" download>
             {t.intro.downloadCv}
           </ButtonLink>
         )}

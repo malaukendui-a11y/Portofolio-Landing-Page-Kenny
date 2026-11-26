@@ -43,7 +43,7 @@ const en = {
     paragraph:
       'Bachelor of Information Systems from Universitas Gunadarma, with hands-on QA experience on Project Kopra at Bank Mandiri. I design, build and test web products end to end, and I write the documentation that goes with them.',
     seeWork: 'See my work',
-    downloadCv: 'Download CV',
+    downloadCv: 'Download CV (Indonesian)',
   },
   services: {
     label: 'What I do',
@@ -273,7 +273,7 @@ const en = {
     },
     location: { label: 'Location', value: 'East Jakarta, Indonesia · on-site, hybrid or remote' },
     availability: 'Open to work',
-    ctas: { email: 'Email me', cv: 'Download CV', whatsapp: 'Chat on WhatsApp' },
+    ctas: { email: 'Email me', cv: 'Download CV (Indonesian)', whatsapp: 'Chat on WhatsApp' },
     socialsLabel: 'Elsewhere',
     backToTop: 'Back to top',
   },

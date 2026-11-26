@@ -28,6 +28,7 @@ export function ButtonLink({
   variant = 'filled',
   external = false,
   download = false,
+  hrefLang,
   children,
   className = '',
 }: {
@@ -35,6 +36,8 @@ export function ButtonLink({
   variant?: Variant
   external?: boolean
   download?: boolean
+  /** Language of the linked resource (e.g. the CV PDF), when it differs from the page's. */
+  hrefLang?: string
   children: ReactNode
   className?: string
 }) {
@@ -42,6 +45,7 @@ export function ButtonLink({
   return (
     <a
       href={href}
+      hrefLang={hrefLang}
       {...externalProps}
       download={download || undefined}
       className={buttonClasses(variant, className)}
