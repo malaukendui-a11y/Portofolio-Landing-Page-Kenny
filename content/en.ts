@@ -234,25 +234,43 @@ const en = {
         title: 'Intro to Software Engineering',
         issuer: 'RevoU Coding Camp',
         period: 'September 2026',
-        scope: '1-week certified online course · certificate of attendance',
+        scope:
+          '1-week online course · certificate of attendance · mini project: a personal finance web app',
       },
       'gunadarma-designing-software': {
         title: 'Designing Software',
         issuer: 'Universitas Gunadarma',
         period: 'May – Jun 2025',
-        scope: 'Software design principles, modelling and documentation',
+        scope:
+          'Software structure and components, user interface (UI) and user experience (UX) design',
+      },
+      'gunadarma-go-lang-for-beginner': {
+        title: 'Go-Lang for Beginner',
+        issuer: 'Universitas Gunadarma',
+        period: 'Aug 2024',
+        scope:
+          'Go basics: data types, loops and branching, structs, pointers, slices and maps; a Go web server with Polymer',
       },
       'gunadarma-desktop-programming': {
-        title: 'Fundamental Desktop Programming — Java & Oracle PL/SQL',
+        title: 'Fundamental Desktop Programming',
         issuer: 'Universitas Gunadarma',
         period: 'Feb 2024',
-        scope: 'Desktop applications in Java with Oracle PL/SQL databases',
+        scope:
+          'Delphi, Visual Basic .NET and Java (AWT, Swing), with an introduction to Oracle PL/SQL',
       },
       'gunadarma-javascript-fundamentals': {
-        title: 'JavaScript Programming Language Fundamentals',
+        title: 'JavaScript Programming Language Fundamental',
         issuer: 'Universitas Gunadarma',
         period: 'Nov 2023',
-        scope: 'Core JavaScript: syntax, functions, the DOM and asynchronous code',
+        scope:
+          'Variables and data types, operators, arrays, branching and loops, and object-oriented JavaScript',
+      },
+      'gunadarma-fundamental-web-programming': {
+        title: 'Fundamental Web Programming',
+        issuer: 'Universitas Gunadarma',
+        period: 'Feb 2022',
+        scope:
+          'Introduction to web programming with Go, Java EE (Servlet, JSP) and ASP.NET with C#',
       },
     },
   },

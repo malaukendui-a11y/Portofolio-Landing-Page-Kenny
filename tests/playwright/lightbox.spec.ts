@@ -144,7 +144,10 @@ test('certificate lightbox: arrows navigate, Tab stays inside, Esc closes and re
 
   await page.keyboard.press('ArrowRight')
   await expect(dialog).toContainText(counter(2))
-  await expect(dialog.getByRole('img')).toHaveAttribute('src', /cert-gunadarma-designing/)
+  await expect(dialog.getByRole('img')).toHaveAttribute(
+    'src',
+    /cert-gunadarma-designing-software-v2/,
+  )
   await page.keyboard.press('ArrowLeft')
   await expect(dialog).toContainText(counter(1))
   await page.keyboard.press('ArrowLeft')
