@@ -22,11 +22,11 @@ date: "25 October 2026"
 
 # 2. Summary
 
-A single-page, desktop-first, bilingual (EN default / ID) portfolio for Ananda Kenny, positioned as a **Software Engineer with a QA foundation**, aimed at (a) recruiters for QA / IT roles and (b) freelance web-development clients in Indonesia and abroad.
+A single-page, desktop-first, bilingual (EN default / ID) portfolio for Ananda Kenny, positioned as a **Software Engineer with a QA foundation** (v1.1 content: the hero roles now read "Junior QA Engineer" and "Junior Software Engineer", owner decision 26 Nov 2026), aimed at (a) recruiters for QA / IT roles and (b) freelance web-development clients in Indonesia and abroad.
 
 The page adopts the structure and rhythm of the *Alexfolio* reference (hero with a giant name ticker and a layered portrait, dark sections with `//` labels, stacked service and project cards, mirrored "Reach Out" footer) and adds a **lightweight 3D glass element** in the hero. It is a *hybrid* 3D page: one lazy-loaded WebGL element plus GSAP motion design — not a full 3D world.
 
-The rebuild starts from zero in a new repository. Content is largely carried over from the previous portfolio (contact, education, Bank Mandiri QA experience, three certifications) and extended with a project section that honestly shows **status** (Live / In QA / In Development / In Design / Planned), because at the time of writing none of the four showcased projects is live yet.
+The rebuild starts from zero in a new repository. Content is largely carried over from the previous portfolio (contact, education, Bank Mandiri QA experience, three certifications) and extended with a project section that honestly shows **status** (Live / In QA / In Development / In Design / Planned), because at the time of writing none of the four showcased projects is live yet. (v1.1 content: six certificates; five project cards, two of them Live — PintuKos and this portfolio — plus the research card.)
 
 # 3. Goals, non-goals and success metrics
 
@@ -77,15 +77,15 @@ Single route `/` with anchored sections. Language toggle switches all copy in pl
 |---|---|---|---|
 | 0 | Loader | Brand moment, hides font/3D loading; max 1.5 s, skippable, never shown twice per session | Percentage counter, brand mark |
 | 1 | Navigation (sticky) | Orientation + two persistent CTAs | Brand "© Ananda Kenny", links (Work, About, Contact), EN/ID toggle, "Download CV" |
-| 2 | Hero (`#top`) | Identity in one screen | Giant name ticker, portrait cutout (photo 1, original colour), roles ("Software Engineer", "QA & Web Developer"), social links, 3D glass element, availability badge |
-| 3 | Intro (`#about`) | One-paragraph positioning + proof pointers | Big statement with accented keywords, short bio, CTAs "See my work", "Download CV" |
-| 4 | What I Do (`#services`) | Services for clients, competencies for recruiters | 3 stacked cards: 01 Quality Assurance & Testing, 02 Web Development, 03 Product & Project Management — each with 4–6 numbered items |
-| 5 | Projects (`#work`) | Proof of work with honest status | 4 project cards + 1 research card (see §6) |
+| 2 | Hero (`#top`) | Identity in one screen | Giant name ticker, portrait cutout (photo 1, original colour), roles ("Junior QA Engineer", "Junior Software Engineer"; v1.1 content, were "Software Engineer", "QA & Web Developer"), social links, 3D glass element, availability badge |
+| 3 | Intro (`#about`) | One-paragraph positioning + proof pointers | Big statement with accented keywords, short bio, CTAs "See my work", "Download CV (Indonesian)" (EN label; ID "Unduh CV"; v1.1 content) |
+| 4 | What I Do (`#services`) | Services for clients, competencies for recruiters | 3 stacked cards: 01 Quality Assurance & Testing, 02 Web Development, 03 Product & Project Management — each with 5–7 numbered items (01 six, 02 seven, 03 five; v1.1 content) |
+| 5 | Projects (`#work`) | Proof of work with honest status | 5 project cards (incl. this portfolio) + 1 research card (see §6; v1.1 content) |
 | 6 | QA Evidence (`#qa`) | Differentiator for QA roles | Bank Mandiri experience summary + evidence from Kenny's own product PintuKos (a CI run, an E2E report and a UAT sheet; M4b batch 2), shown as images in a lightbox |
-| 7 | Experience & Education (`#experience`) | Timeline | Bank Mandiri (Project Kopra), Universitas Gunadarma |
-| 8 | Certifications (`#certifications`) | Credentials | 4 certificates (RevoU + 3 Gunadarma), newest first, in a coverflow carousel with lightbox (v1.1, DECISIONS 2026-11-14) |
+| 7 | Experience & Education (`#experience`) | Timeline | Bank Mandiri (Kopra), Universitas Gunadarma, a self-study entry (Feb — Jul 2026) under the degree (v1.1 content) |
+| 8 | Certifications (`#certifications`) | Credentials | 6 certificates (RevoU + 5 Gunadarma; v1.1 content), newest first, five visible on the ring, in a coverflow carousel with lightbox (v1.1, DECISIONS 2026-11-14) |
 | 9 | Reach Out (`#contact`) | Mirror of hero; conversion | Giant "Reach Out" ticker, polaroid line (DECISIONS 2026-11-02), email, WhatsApp, Download CV (M4b batch 2), location, availability, social links, back-to-top |
-| 10 | Footer | Legal / meta | © year, "Built with Next.js, GSAP & React Three Fiber", language note |
+| 10 | Footer | Legal / meta | © year, "Built with Next.js, GSAP & React Three Fiber, with Claude Code" (v1.1 content), language note |
 
 # 6. Project showcase model
 
@@ -97,7 +97,7 @@ Every project card carries exactly one status. CTAs are derived from status, lin
 |---|---|---|---|
 | **Live** | Deployed and public (`liveUrl` set, no `access`) | "Live demo" (external) | "GitHub" if the repo is public |
 | **Live** (invite only) | Deployed behind a login for invited users; `liveUrl` set and `access: 'private'` (M4b batch 2: PintuKos) | "Open app · invite only" (external, new tab) | "Preview" (opens screenshot lightbox) if it has images; "GitHub" if the repo is public |
-| **Live** (no public URL) | Deployed for a private audience behind a login; `liveUrl` is null (PintuKos until M4b batch 2; no project uses it now) | "Preview" (opens screenshot lightbox) if it has images, otherwise none | "GitHub" if the repo is public |
+| **Live** (no public URL) | Deployed with no URL to link: a private audience behind a login, or this site itself; `liveUrl` is null (PintuKos until M4b batch 2; since v1.1 content "This portfolio", which is public but has no other URL to link) | "Preview" (opens screenshot lightbox) if it has images, otherwise none | "GitHub" if the repo is public |
 | **In QA** | Feature-complete, being tested | "Preview" (opens screenshot lightbox) | "GitHub" if public |
 | **In Development** | Being built | "Preview" | "GitHub" if public |
 | **In Design** | UI/UX stage, no code yet | "Preview designs" | — |
@@ -105,15 +105,18 @@ Every project card carries exactly one status. CTAs are derived from status, lin
 
 A card without a public repo **must not** show a GitHub button. A card without a live URL **must not** show a "Live demo" button, and an invite-only app is never labelled "Live demo": its link says it needs an invite. Status is data (`content/projects.ts`), so a status flip or a new link is a one-line change and a redeploy.
 
-## 6.2 Project inventory (as of 25 Oct 2026; rows 1, 2 and 4 updated for M4b, rows 1, 2, 3 and 5 for M4b batch 2, 13 Nov 2026 — `content/projects.ts` holds the live data)
+The portfolio card (v1.1 content) is the "Live (no public URL)" case with a public repo: "Preview" plus "GitHub". No rule changed.
+
+## 6.2 Project inventory (as of 25 Oct 2026; rows 1, 2 and 4 updated for M4b, rows 1, 2, 3 and 5 for M4b batch 2, 13 Nov 2026, numbered as they were then; v1.1 content, 27 Nov 2026: row 2 "This portfolio" added, the rows below it renumbered, PintuKos, Malau and Research updated — `content/projects.ts` holds the live data)
 
 | # | Product name | Role | Status | Live URL | GitHub | Notes |
 |---|---|---|---|---|---|---|
-| 1 | **PintuKos** — finance app for the family's boarding houses & rentals | Product owner, QA & developer (AI-assisted) | **Live** as a private family deployment behind a login (M4b) | `https://app.pintukos.my.id/` — invite only (`access: 'private'`, M4b batch 2) | `malaukendui-a11y/Pengelola-Keuangan-Kos-Kontrakan-Kenny` — **private while in beta** | "Open app · invite only" links the app (§6.1 "Live (invite only)", M4b batch 2); "Preview" opens four design renders with sample data; no GitHub button |
-| 2 | **Trading Compass** (formerly Trading Journal X1) — trading discipline journal | Full-stack developer, QA | **In QA** (paused) | TBD | `malaukendui-a11y/Trading-Journal-X1` — public, but not linked | README is still the Vite template boilerplate and the repo has no description: no GitHub button until it is real (M4b); stack React · Vite · Supabase confirmed and no images, both by owner decision (M4b batch 2) |
-| 3 | **Malau Pase community & genealogy website** (Tarombo) | Project Manager | **In Design** (UI/UX stage) | — | `malaukendui-a11y/malau-website` — **currently private (404)** | No images by owner decision (M4b batch 2), so no CTA; no GitHub button until public |
-| 4 | **Kos & Kontrakan Kenny — landing page** | Product & business strategy | **In Development** (PRD and design done; Vite, React, TypeScript, Tailwind CSS) (M4b) | — | — | No CTA until it has images or a URL |
-| 5 | **Research:** Big Data Analysis to Detect Cryptocurrency Price Movement Patterns and Trends (Altcoin market) | Author (bachelor thesis) | **Completed** | PDF (1.76 MB) | — | The only finished artifact; keep as a fifth card labelled *Research*; card year 2026 (completed January 2026, M4b batch 2; the PDF keeps its `-2025` file name) |
+| 1 | **PintuKos** — finance app for the family's boarding houses & rentals | Product owner, QA & developer (AI-assisted) | **Live** as a private family deployment behind a login (M4b) | `https://app.pintukos.my.id/` — invite only (`access: 'private'`, M4b batch 2) | `malaukendui-a11y/Pengelola-Keuangan-Kos-Kontrakan-Kenny` — **private while in beta** | "Open app · invite only" links the app (§6.1 "Live (invite only)", M4b batch 2); "Preview" opens four design renders with sample data; no GitHub button; private beta, a demo is available on request (v1.1 content) |
+| 2 | **This portfolio** — the site you're on: bilingual, with a 3D glass lens | Developer & QA (AI-assisted) | **Live** (v1.1 content) | — (this site) | `malaukendui-a11y/Portofolio-Landing-Page-Kenny` — **public** (the first linked repo) | §6.1 "Live (no public URL)" with a public repo: "Preview" opens three 1600 × 900 boards, "GitHub" opens the repo in a new tab; stack Next.js · TypeScript · Tailwind CSS · GSAP · React Three Fiber · Playwright (v1.1 content) |
+| 3 | **Trading Compass** (formerly Trading Journal X1) — trading discipline journal | Full-stack developer, QA | **In QA** (paused) | TBD | `malaukendui-a11y/Trading-Journal-X1` — public, but not linked | README is still the Vite template boilerplate and the repo has no description: no GitHub button until it is real (M4b); stack React · Vite · Supabase confirmed and no images, both by owner decision (M4b batch 2) |
+| 4 | **Malau Pase community & genealogy website** (Tarombo) | Project Manager | **In Design** (UI/UX stage) | — | `malaukendui-a11y/malau-website` — **currently private (404)** | No images by owner decision (M4b batch 2), so no CTA; no GitHub button until public; led with one data analyst, the scope, a 22-page SRS and the PRD are done, UI/UX design in progress in Google Stitch and Figma (v1.1 content) |
+| 5 | **Kos & Kontrakan Kenny — landing page** | Product & business strategy | **In Development** (PRD and design done; Vite, React, TypeScript, Tailwind CSS) (M4b) | — | — | No CTA until it has images or a URL |
+| 6 | **Research:** Big Data Analysis to Detect Cryptocurrency Price Movement Patterns and Trends (Altcoin market) | Author (scientific paper, *Penulisan Ilmiah*, 2024; v1.1 content, was "bachelor thesis") | **Completed** | PDF (1.76 MB) | — | The only finished artifact; keep as the last card labelled *Research*; card year 2024 and PDF `public/papers/big-data-altcoin-analysis-2024.pdf`, the old `-2025` URL now 404 (v1.1 content; supersedes the card year 2026 of M4b batch 2) |
 
 Each card shows: status badge, year, title, a short description (one or two sentences; the card must fit below its sticky top, DESIGN §4.5), role, 3–6 stack tags, 2–4 screenshots (WebP, lazy, lightbox), CTAs per §6.1.
 
@@ -188,7 +191,7 @@ Build order is strict: **M1 before M2 before M3**. The 3D element is the last th
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| No project is live at launch | Weaker proof for clients | Status model (§6.1); the portfolio itself is the live demo; flip statuses as projects ship; thesis PDF as a finished artifact |
+| No project is live at launch | Weaker proof for clients | Status model (§6.1); the portfolio itself is the live demo; flip statuses as projects ship; the research paper PDF as a finished artifact (a thesis until v1.1 content) |
 | Two of three repos are private; public repo README is boilerplate | A recruiter who clicks GitHub sees nothing or a template README — worse than no link | Before M4: either make repos public after a secret scan (Supabase keys, `.env`) and write real READMEs, or omit the GitHub button via the status rules |
 | QA evidence from Bank Mandiri is confidential | Legal/professional risk | Never publish Kopra artifacts. The evidence comes from Kenny's own product PintuKos: screenshots of a green CI run, a Playwright E2E report (45 passed) and an 85-step UAT sheet, sample data only (M4b batch 2; the source moved from Trading Compass in M4b) |
 | 3D element hurts performance on low-end laptops | Metric failure, bad first impression | Lazy load, DPR clamp, `samples` ≤ 6, pause off-screen, static fallback; budgets enforced in CI; M3 is last and can be cut without touching the rest |
@@ -199,12 +202,12 @@ Build order is strict: **M1 before M2 before M3**. The 3D element is the last th
 
 # 12. Content inputs still needed from the owner
 
-1. **Screenshots**: 2–4 per project (PintuKos, Trading Compass from local/staging; Malau design screens; Kos & Kontrakan concept if any). 1600 px wide minimum, PNG; the build pipeline converts to WebP. — **Partial (M4b, 2026-11-13):** PintuKos has four 1600 × 900 design boards (WebP, design renders with sample data); Trading Compass and Malau stay without images by owner decision (M4b batch 2); Kos & Kontrakan has none yet.
+1. **Screenshots**: 2–4 per project (PintuKos, Trading Compass from local/staging; Malau design screens; Kos & Kontrakan concept if any). 1600 px wide minimum, PNG; the build pipeline converts to WebP. — **Partial (M4b, 2026-11-13):** PintuKos has four 1600 × 900 design boards (WebP, design renders with sample data); Trading Compass and Malau stay without images by owner decision (M4b batch 2); Kos & Kontrakan has none yet. "This portfolio" has three 1600 × 900 boards (WebP) from `scripts/export-portfolio-shots.mjs` (v1.1 content).
 2. **Stack and one-line description** for PintuKos and the Malau website (Trading Compass: React + Vite + Supabase from the repo). — **Partial (M4b):** PintuKos stack and description done, Kos & Kontrakan stack and description too, Trading Compass's React · Vite · Supabase confirmed by the owner (M4b batch 2); the Malau stack is still pending.
 3. **Repository decision** for the two private repos (make public + README, or no GitHub button). — **Done (M4b):** no repo is linked. PintuKos stays private while in beta, Malau stays private, and Trading Compass's public repo shows no GitHub button until its README is real.
-4. **CV PDF** (English, ATS version) for the "Download CV" button. — **Done (M4b):** `public/cv/kenny-cv-2026-11-en.pdf`.
+4. **CV PDF** (English, ATS version) for the "Download CV" button. — **Done (M4b):** `public/cv/kenny-cv-2026-11-en.pdf`. **Done (v1.1 content):** Indonesian only, `public/cv/kenny-cv-2026-11-id.pdf`; every CV link carries `hreflang="id"`; the English CV is removed.
 5. **LinkedIn URL** and preferred display name on LinkedIn. — **Pending** (still open at the M5 launch; the LinkedIn links stay hidden while `site.linkedin` is null).
-6. **Bank Mandiri dates** (month/year start–end) and the exact programme/internship title for the timeline. — **Done (M4b):** work `Aug 2026` / `Agu 2026`, title `QA Tester (Manual Testing) — Project Kopra by Mandiri` / `QA Tester (Pengujian Manual) — Project Kopra by Mandiri` (M4b batch 2, from the owner's CV; was `Quality Assurance — …`, DECISIONS 2026-11-12); education `2021 — Jan 2026`.
+6. **Bank Mandiri dates** (month/year start–end) and the exact programme/internship title for the timeline. — **Done (M4b):** work `Aug 2026` / `Agu 2026`, title `QA Tester (Manual Testing) — Project Kopra by Mandiri` / `QA Tester (Pengujian Manual) — Project Kopra by Mandiri` (M4b batch 2, from the owner's CV; was `Quality Assurance — …`, DECISIONS 2026-11-12); education `2021 — Jan 2026`. v1.1 content: work period `Aug 2026 (1 month)` / `Agu 2026 (1 bulan)`, and a self-study entry (`Feb — Jul 2026`, Self-study — Software engineering, Self-directed / Otodidak) under the degree.
 7. **QA artifacts** from PintuKos (Trading Compass until M4b): test plan, 5–10 test cases, 2–3 bug reports (sanitised screenshots or PDF). — **Done (M4b batch 2, 2026-11-13), with different evidence:** asked were a test plan, 5–10 test cases and 2–3 bug reports; delivered were three screenshots from the PintuKos repository, sample data only — the green GitHub Actions run, the Playwright report (45 passed) and the 85-step UAT sheet — shown as `ci-run`, `e2e-report` and `uat-sheet` (DESIGN §4.6; owner decision).
 8. **Domain**: confirm `anandakenny.com` (or similar) purchase, or launch on `*.vercel.app` first. — **Decided (M5, 2026-11-13):** launch on `https://portofolio-landing-page-kenny.vercel.app`; a custom domain comes later through `NEXT_PUBLIC_SITE_URL` (Vercel Production) and `site.url`, with a re-check of OG and JSON-LD (`docs/DECISIONS.md`).
 
@@ -224,12 +227,14 @@ Build order is strict: **M1 before M2 before M3**. The 3D element is the last th
 
 # Appendix A — Content inventory carried over from the previous site
 
+Positioning, experience, certifications, research and assets updated for v1.1 content (27 Nov 2026).
+
 - **Name:** Ananda Kenny Esqiel Bisaratua · brand: *Ananda Kenny*
-- **Positioning:** Software Engineer · QA & Web Developer · Bachelor of Information Systems
+- **Positioning:** Junior QA Engineer · Junior Software Engineer · Bachelor of Information Systems
 - **Location:** East Jakarta, Indonesia · open to on-site, hybrid or remote
 - **Contact:** malaukendui@gmail.com · WhatsApp +62 877-2005-2003 (`wa.me/6287720052003`) · GitHub `malaukendui-a11y` · LinkedIn (TBD)
 - **Education:** Universitas Gunadarma, Faculty of Computer Science & Information Technology — Bachelor of Information Systems (S.Kom), Depok. Highlights: software QA & testing standards; big-data mining, machine learning & systems analysis; full-stack web development & database architecture.
-- **Experience:** PT Bank Mandiri (Persero) Tbk — Quality Assurance, Project Kopra by Mandiri (wholesale digital super-platform): manual and UAT testing with regression cycles; test scenario/test case design and execution reporting in Atlassian Jira; defect lifecycle tracking (severity, re-test, sign-off) in Jira. Dates: TBD.
-- **Certifications (Universitas Gunadarma):** Designing Software (May–Jun 2025); JavaScript Programming Language Fundamentals (Nov 2023); Fundamental Desktop Programming — Java & Oracle PL/SQL (Feb 2024).
-- **Research:** *Big Data Analysis to Detect Cryptocurrency Price Movement Patterns and Trends (A Case Study of the Altcoin Market)* — bachelor thesis, PDF.
-- **Assets available:** portrait cutouts (hero crop + footer, colour / colour-soft / grayscale, @2x WebP + PNG masters), certificate photos ×3, campus photos ×3, work photos ×4, K monogram SVG.
+- **Experience:** PT Bank Mandiri (Persero) Tbk — QA Tester (Manual Testing) — Project Kopra by Mandiri (wholesale digital super-platform), via PT Bahtera Pesat Lintasbuana, Aug 2026, one month: manual and UAT testing with regression cycles, ~250 test cases and ~20 defects logged in Atlassian Jira; defect lifecycle tracking (severity, re-test, sign-off) in Jira.
+- **Certifications (six, newest first):** Intro to Software Engineering, RevoU Coding Camp (Sep 2026); Universitas Gunadarma: Designing Software (May–Jun 2025), Go-Lang for Beginner (Aug 2024), Fundamental Desktop Programming (Feb 2024), JavaScript Programming Language Fundamental (Nov 2023), Fundamental Web Programming (Feb 2022).
+- **Research:** *Big Data Analysis to Detect Cryptocurrency Price Movement Patterns and Trends (A Case Study of the Altcoin Market)* — scientific paper (*Penulisan Ilmiah*), 2024, PDF.
+- **Assets available:** portrait cutouts (hero crop + footer, colour / colour-soft / grayscale, @2x WebP + PNG masters), certificate images ×6, campus photos ×3, work photos ×4, K monogram SVG.
