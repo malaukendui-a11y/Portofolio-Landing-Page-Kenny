@@ -9,6 +9,10 @@ import { site } from '../../content/site'
 import { siteUrl } from '../../lib/seo'
 import { selectLang, tabsToLinks } from './helpers'
 
+/** Text as React writes it into raw HTML: `&`, `<` and `>` escaped. */
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
 /** Next writes the root URL without its trailing slash; compare URLs in normalised form. */
 const normalise = (url: string | null) => (url === null ? null : new URL(url).href)
 
@@ -28,8 +32,11 @@ test('the title and description follow the language, also after a reload', async
   page,
   request,
 }) => {
-  // The server renders English: that is what crawlers and link previews read.
-  expect(await (await request.get('/')).text()).toContain(`<title>${en.meta.title}</title>`)
+  // The server renders English: that is what crawlers and link previews read. The raw HTML
+  // escapes markup characters (v1.1 content: the title has an "&").
+  expect(await (await request.get('/')).text()).toContain(
+    `<title>${escapeHtml(en.meta.title)}</title>`,
+  )
 
   await page.goto('/')
   await expect(page).toHaveTitle(en.meta.title)

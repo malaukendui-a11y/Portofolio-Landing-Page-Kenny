@@ -3,9 +3,9 @@ import type { Copy } from './types'
 
 const en = {
   meta: {
-    title: 'Ananda Kenny — Software Engineer with a QA foundation',
+    title: 'Ananda Kenny — Junior QA & Software Engineer',
     description:
-      'Portfolio of Ananda Kenny, a software engineer and QA & web developer in East Jakarta, Indonesia. Next.js web products, tested like a user would.',
+      'Portfolio of Ananda Kenny, a junior QA and software engineer in East Jakarta, Indonesia. Web products built with AI and tested like a user would.',
     og: {
       label: 'Portfolio',
       alt: 'Portfolio card: “Ananda Kenny” in large type on warm paper, with the roles Junior QA Engineer and Junior Software Engineer',
@@ -34,14 +34,14 @@ const en = {
   intro: {
     label: 'Intro',
     statement: [
-      { text: 'I’m a software engineer with a ' },
-      { text: 'QA mindset', accent: true },
-      { text: ' — I build web products and ' },
-      { text: 'test them like a user would', accent: true },
+      { text: 'I’m an Information Systems graduate ' },
+      { text: 'learning software engineering', accent: true },
+      { text: ' — I build with AI and ' },
+      { text: 'test everything like a user would', accent: true },
       { text: '.' },
     ],
     paragraph:
-      'Bachelor of Information Systems from Universitas Gunadarma, with hands-on QA experience on Project Kopra at Bank Mandiri. I design, build and test web products end to end, and I write the documentation that goes with them.',
+      'Bachelor of Information Systems, Universitas Gunadarma (GPA 3.43, January 2026), and QA Tester on Kopra by Mandiri. I build real products with AI agents such as Claude Code and Codex, then review and test every change. PintuKos has 2,000+ unit tests; this site runs 600+ automated tests on every pull request.',
     seeWork: 'See my work',
     downloadCv: 'Download CV (Indonesian)',
   },
@@ -60,20 +60,21 @@ const en = {
           'Regression planning and execution reporting',
           'Bug reporting and defect lifecycle in Jira',
           'Exploratory testing',
-          'API testing basics',
+          'Automated tests with Playwright and Vitest in my own projects',
         ],
       },
       {
         index: '02',
         title: 'Web Development',
         description:
-          'Landing pages, company profiles and dashboards built with Next.js and React, backed by Supabase and deployed on Vercel.',
+          'Landing pages, company profiles and dashboards built with React and Next.js, backed by Supabase and deployed on Vercel or Cloudflare Pages. Built with AI assistance, then reviewed and tested.',
         items: [
           'Landing pages and company profiles',
           'Dashboards and internal tools',
-          'Next.js / React front-ends',
+          'React / Next.js front-ends',
           'Supabase databases and auth',
-          'Deployment on Vercel',
+          'Deployment on Vercel and Cloudflare Pages',
+          'AI-assisted development with Claude Code and Codex',
           'Performance and accessibility checks',
         ],
       },
@@ -83,7 +84,8 @@ const en = {
         description:
           'From PRD to release: scoping, backlog, milestones and the QA plan that keeps a project honest.',
         items: [
-          'PRD and design documents',
+          'SRS, PRD and design documents',
+          'UI design in Figma and Google Stitch',
           'Backlog and milestone planning',
           'Stakeholder coordination',
           'QA planning and sign-off',
@@ -151,9 +153,9 @@ const en = {
     label: 'QA evidence',
     heading: 'How I test',
     statement:
-      'At Bank Mandiri I tested Project Kopra, a wholesale digital super-platform, through manual and UAT cycles.',
+      'On Kopra by Mandiri I tested a wholesale banking platform through UAT and regression cycles: about 250 test cases and 20 defects logged in Jira.',
     paragraph:
-      'Kopra artifacts are confidential, so the evidence here comes from my own product, PintuKos: 2,000+ unit tests, 45 Playwright end-to-end runs across 14 flows with axe audits, SQL checks and an 85-step UAT.',
+      'Kopra artifacts are confidential, so the evidence here comes from my own product, PintuKos: 2,000+ unit tests, 45 Playwright end-to-end runs across 14 flows with axe audits, 693 database checks and an 85-step UAT.',
     artifacts: {
       'ci-run': {
         title: 'CI run — main flows',
@@ -286,7 +288,7 @@ const en = {
   },
   footer: {
     copyright: '© {year} Ananda Kenny',
-    builtWith: 'Built with Next.js, GSAP & React Three Fiber',
+    builtWith: 'Built with Next.js, GSAP & React Three Fiber, with Claude Code',
     languageNote: 'Available in English and Bahasa Indonesia.',
   },
   notFound: {

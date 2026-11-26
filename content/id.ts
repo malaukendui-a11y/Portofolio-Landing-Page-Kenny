@@ -3,9 +3,9 @@ import type { Copy } from './types'
 
 const id = {
   meta: {
-    title: 'Ananda Kenny — Software Engineer dengan fondasi QA',
+    title: 'Ananda Kenny — Junior QA & Software Engineer',
     description:
-      'Portofolio Ananda Kenny, software engineer serta QA & web developer di Jakarta Timur, Indonesia. Produk web Next.js, diuji seperti pengguna sungguhan.',
+      'Portofolio Ananda Kenny, junior QA dan software engineer di Jakarta Timur. Produk web yang dibangun dengan AI dan diuji seperti pengguna sungguhan.',
     og: {
       label: 'Portofolio',
       alt: 'Kartu portofolio: “Ananda Kenny” dalam huruf besar di atas kertas hangat, dengan peran Junior QA Engineer dan Junior Software Engineer',
@@ -34,14 +34,14 @@ const id = {
   intro: {
     label: 'Perkenalan',
     statement: [
-      { text: 'Saya software engineer dengan ' },
-      { text: 'pola pikir QA', accent: true },
-      { text: ' — saya membangun produk web dan ' },
-      { text: 'mengujinya seperti pengguna sungguhan', accent: true },
+      { text: 'Saya lulusan Sistem Informasi yang ' },
+      { text: 'sedang mendalami software engineering', accent: true },
+      { text: ' — saya membangun dengan AI dan ' },
+      { text: 'menguji semuanya seperti pengguna', accent: true },
       { text: '.' },
     ],
     paragraph:
-      'Sarjana Sistem Informasi dari Universitas Gunadarma, dengan pengalaman QA langsung di Project Kopra, Bank Mandiri. Saya merancang, membangun, dan menguji produk web dari awal sampai akhir, lengkap dengan dokumentasinya.',
+      'Sarjana Sistem Informasi, Universitas Gunadarma (IPK 3,43, Januari 2026), dan QA Tester di Kopra by Mandiri. Saya membangun produk nyata bersama agen AI seperti Claude Code dan Codex, lalu meninjau dan menguji setiap perubahan. PintuKos punya 2.000+ unit test; situs ini menjalankan 600+ uji otomatis di setiap pull request.',
     seeWork: 'Lihat karya saya',
     downloadCv: 'Unduh CV',
   },
@@ -56,25 +56,26 @@ const id = {
           'Pengujian manual dan UAT yang menangkap hal-hal yang terlewat oleh pemeriksaan otomatis, didokumentasikan agar tim bisa menindaklanjutinya.',
         items: [
           'Pengujian manual & UAT dengan siklus regresi',
-          'Perancangan skenario dan test case',
-          'Perencanaan regresi dan pelaporan eksekusi',
-          'Pelaporan bug dan siklus hidup defect di Jira',
+          'Perancangan skenario & test case',
+          'Perencanaan regresi dan laporan eksekusi',
+          'Pelaporan bug dan siklus defect di Jira',
           'Exploratory testing',
-          'Dasar-dasar pengujian API',
+          'Uji otomatis dengan Playwright dan Vitest di proyek saya sendiri',
         ],
       },
       {
         index: '02',
         title: 'Pengembangan Web',
         description:
-          'Landing page, company profile, dan dashboard yang dibangun dengan Next.js dan React, didukung Supabase, dan di-deploy di Vercel.',
+          'Landing page, company profile, dan dashboard dengan React dan Next.js, didukung Supabase, dan di-deploy di Vercel atau Cloudflare Pages. Dibangun dengan bantuan AI, lalu ditinjau dan diuji.',
         items: [
           'Landing page dan company profile',
           'Dashboard dan tools internal',
-          'Front-end Next.js / React',
+          'Front-end React / Next.js',
           'Database dan autentikasi Supabase',
-          'Deployment di Vercel',
-          'Pemeriksaan performa dan aksesibilitas',
+          'Deployment di Vercel dan Cloudflare Pages',
+          'Pengembangan berbantuan AI dengan Claude Code dan Codex',
+          'Pengecekan performa dan aksesibilitas',
         ],
       },
       {
@@ -83,9 +84,10 @@ const id = {
         description:
           'Dari PRD sampai rilis: penentuan lingkup, backlog, milestone, dan rencana QA yang menjaga proyek tetap jujur.',
         items: [
-          'PRD dan dokumen desain',
+          'Dokumen SRS, PRD, dan desain',
+          'Desain UI di Figma dan Google Stitch',
           'Perencanaan backlog dan milestone',
-          'Koordinasi pemangku kepentingan',
+          'Koordinasi stakeholder',
           'Perencanaan dan sign-off QA',
         ],
       },
@@ -151,9 +153,9 @@ const id = {
     label: 'Bukti QA',
     heading: 'Cara saya menguji',
     statement:
-      'Di Bank Mandiri saya menguji Project Kopra, super-platform digital wholesale, melalui siklus pengujian manual dan UAT.',
+      'Di Kopra by Mandiri saya menguji platform wholesale banking lewat siklus UAT dan regresi: sekitar 250 test case dan 20 defect tercatat di Jira.',
     paragraph:
-      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, 45 jalan uji end-to-end Playwright di 14 alur dengan audit axe, pengujian SQL, dan UAT 85 langkah.',
+      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, 45 jalan uji end-to-end Playwright di 14 alur dengan audit axe, 693 cek database, dan UAT 85 langkah.',
     artifacts: {
       'ci-run': {
         title: 'Jalan CI — alur utama',
@@ -287,7 +289,7 @@ const id = {
   },
   footer: {
     copyright: '© {year} Ananda Kenny',
-    builtWith: 'Dibangun dengan Next.js, GSAP & React Three Fiber',
+    builtWith: 'Dibangun dengan Next.js, GSAP & React Three Fiber, bersama Claude Code',
     languageNote: 'Tersedia dalam bahasa Inggris dan Indonesia.',
   },
   notFound: {
