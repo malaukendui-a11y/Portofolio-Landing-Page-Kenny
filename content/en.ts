@@ -8,7 +8,7 @@ const en = {
       'Portfolio of Ananda Kenny, a software engineer and QA & web developer in East Jakarta, Indonesia. Next.js web products, tested like a user would.',
     og: {
       label: 'Portfolio',
-      alt: 'Portfolio card: “Ananda Kenny” in large type on warm paper, with the roles Software Engineer and QA & Web Developer',
+      alt: 'Portfolio card: “Ananda Kenny” in large type on warm paper, with the roles Junior QA Engineer and Junior Software Engineer',
     },
   },
   nav: {
@@ -25,7 +25,7 @@ const en = {
   },
   hero: {
     name: 'Ananda Kenny',
-    roles: ['Software Engineer', 'QA & Web Developer'],
+    roles: ['Junior QA Engineer', 'Junior Software Engineer'],
     availability: 'Open to work',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Intro',

@@ -1,5 +1,6 @@
 // M4a polish (PRD F-14, F-15, §8 SEO): sitemap, robots, canonical, JSON-LD, OpenGraph image,
 // per-language title and description, the 404 page, Experience rows. TC-075 to TC-084.
+import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
@@ -174,6 +175,8 @@ test('the OpenGraph image is a 1200 × 630 PNG shared by the Twitter card', asyn
   expect(await metaContent(page, 'og:image:height')).toBe('630')
   expect(await metaContent(page, 'og:image:type')).toBe('image/png')
   expect(await metaContent(page, 'og:image:alt')).toBe(en.meta.og.alt)
+  // The alt file is written by scripts/export-og.mjs with the PNG: a stale export shows here.
+  expect(readFileSync('app/opengraph-image.alt.txt', 'utf8')).toBe(en.meta.og.alt)
   expect(await metaContent(page, 'og:type')).toBe('website')
   expect(await metaContent(page, 'og:site_name')).toBe(site.brand)
   expect(await metaContent(page, 'og:locale')).toBe(site.ogLocale.en)
