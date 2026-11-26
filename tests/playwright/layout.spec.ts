@@ -323,17 +323,18 @@ test('the hero roles fit beside the portrait and the corner UI', async ({ page, 
             ?.getBoundingClientRect(),
           cue: [...document.querySelectorAll('#top p')]
             .filter(shown)
-            .find((p) => p.textContent?.trim() === labels.cue)
+            .find((p) => p.textContent?.trim().endsWith(labels.cue)) // after the aria-hidden '//'
             ?.getBoundingClientRect(),
-          badge: [...document.querySelectorAll('#top *')]
+          badge: [...document.querySelectorAll('#top p')]
             .filter(shown)
-            .find(
-              (element) =>
-                element.childElementCount === 0 && element.textContent?.includes(labels.badge),
-            )
+            .find((p) => p.textContent?.includes(labels.badge))
             ?.getBoundingClientRect(),
           nav: document.querySelector('header')?.getBoundingClientRect(),
         }
+        // Every corner element must be found, or its overlap check would pass silently.
+        const missing = Object.entries(corner)
+          .filter(([, rect]) => rect === undefined)
+          .map(([name]) => name)
         const touches = Object.entries(corner)
           .filter(
             ([, rect]) =>
@@ -396,6 +397,7 @@ test('the hero roles fit beside the portrait and the corner UI', async ({ page, 
           }
         }
         return {
+          missing,
           inside: box.left >= 0 && box.right <= innerWidth,
           touches,
           samples,
@@ -420,6 +422,7 @@ test('the hero roles fit beside the portrait and the corner UI', async ({ page, 
         `min contrast ${fit.minContrast ?? '—'} : 1, lines ${fit.lines.join('/')}`,
     )
     expect(fit.inside, `${label}: roles inside the viewport`).toBe(true)
+    expect(fit.missing, `${label}: corner UI found`).toEqual([])
     expect(fit.touches, `${label}: roles clear of the corner UI`).toEqual([])
     if (fit.minContrast !== null)
       expect(fit.minContrast, `${label}: ink on the portrait`).toBeGreaterThanOrEqual(3)
