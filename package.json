@@ -10,6 +10,8 @@
     "format": "prettier --write .",
     "test": "pnpm build && playwright test",
     "analyze": "next analyze",
+    "stack:icons": "node scripts/export-stack-icons.mjs",
+    "stack:contributions": "node scripts/export-github-contributions.mjs",
     "lhci": "pnpm build && lhci autorun && node scripts/check-lhci-3d.mjs && lhci autorun --config=lighthouserc.mobile.cjs"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
+    "@iconify-json/devicon-plain": "1.2.76",
     "@lhci/cli": "0.15.1",
     "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "4.3.3",
@@ -35,6 +38,7 @@
     "eslint-config-next": "16.4.6",
     "eslint-config-prettier": "10.1.8",
     "prettier": "3.9.10",
+    "simple-icons": "16.38.1",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3"
   },
