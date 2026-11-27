@@ -7,6 +7,7 @@ import { Projects } from '@/components/sections/Projects'
 import { QAEvidence } from '@/components/sections/QAEvidence'
 import { ReachOut } from '@/components/sections/ReachOut'
 import { Services } from '@/components/sections/Services'
+import { Stack } from '@/components/sections/Stack'
 import { LangHtmlSync } from '@/components/ui/LangHtmlSync'
 import { Loader } from '@/components/ui/Loader'
 import { MotionRoot } from '@/components/ui/MotionRoot'
@@ -27,6 +28,7 @@ export default function HomePage() {
         <Hero />
         <Intro />
         <Services />
+        <Stack />
         <Projects />
         <QAEvidence />
         <Experience />

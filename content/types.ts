@@ -92,6 +92,46 @@ export interface Copy {
     heading: string
     cards: readonly [ServiceCard, ServiceCard, ServiceCard]
   }
+  /** Tools & stack (components/sections/Stack, DESIGN §4.4a, v1.1). Tool names are data in content/stack.ts. */
+  stack: {
+    label: string
+    heading: string
+    /** `{total}` is replaced at render time. */
+    summary: string
+    /** `{date}` is replaced at render time ("27 Nov 2026"). */
+    asOf: string
+    /** The graph's accessible name; `{handle}`, `{total}` and `{date}` are replaced at render time. */
+    graphLabel: string
+    /** Caption under the graph while no square is hovered or tapped. */
+    hint: string
+    /** Captions for one day; `{n}` and `{date}` are replaced at render time. */
+    dayNone: string
+    dayOne: string
+    dayMany: string
+    less: string
+    more: string
+    /** Name of the graph's scroll region (only while it scrolls). */
+    scrollRegion: string
+    /** Accessible names of the two logo rows, in `stackRows` order. */
+    rows: readonly [string, string]
+    pause: string
+    play: string
+    /** Fixed short month names, January first (not Intl: en-GB writes "Sept"). */
+    months: readonly [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+    ]
+  }
   projects: {
     label: string
     heading: string

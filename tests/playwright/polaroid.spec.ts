@@ -364,9 +364,11 @@ test.describe('polaroid line', () => {
     const area = (await root(page).boundingBox())!
     for (const button of [pause(page), next(page), previous(page)]) {
       const box = (await button.boundingBox())!
-      // DESIGN §9: a 2 px ring at a 2 px offset, and the root clips its overflow.
-      expect(box.x + box.width + 4).toBeLessThanOrEqual(area.x + area.width)
-      expect(box.y + box.height + 4).toBeLessThanOrEqual(area.y + area.height)
+      // DESIGN §9: a 2 px ring at a 2 px offset, and the root clips its overflow. The ring meets the
+      // clip exactly, so at a fractional page offset (the Tools & stack section moved this strip in
+      // v1.1) float noise of ~0.0001 px decided a strict comparison in Firefox: allow 0.01 px.
+      expect(box.x + box.width + 4).toBeLessThanOrEqual(area.x + area.width + 0.01)
+      expect(box.y + box.height + 4).toBeLessThanOrEqual(area.y + area.height + 0.01)
     }
   })
 
