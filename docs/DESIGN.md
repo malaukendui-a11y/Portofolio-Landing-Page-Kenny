@@ -105,6 +105,7 @@ Section label pattern: `//  LABEL` in `label` style, accent colour. Highlighted 
 | `dur-slow` | 1.0 s | Hero entrance, loader exit |
 | `stagger` | 0.06 s | Lines / list items |
 | `marquee-speed` | 1 full loop / 40 s desktop, 28 s mobile | Ticker |
+| `duration-logo-tile` | 2.5 s per 76 px tile pitch (≈ 30 px/s), any width | Tools & stack logo rows (§4.4a): a row's loop lasts its tile count × 2.5 s |
 
 Reduced motion (`prefers-reduced-motion: reduce`): reveals become instant (opacity only, 0.2 s), marquee is static (name shown once), stacked cards become a plain list, glass element becomes a static image, Lenis disabled.
 
@@ -139,6 +140,22 @@ Content (v1.1 content): **01 Quality Assurance & Testing** (manual & UAT, test c
 Short windows: on stacking widths shorter than 860 px (53.75rem) the rows are 8 px shorter and the list starts 16 px higher, so card 02 fits below its sticky top (TC-092; tightest 7 px at 1024×768). 1440×900 is unchanged.
 
 Mobile: cards stack normally (no sticky), numeral hidden, list unchanged.
+
+## 4.4a Tools & stack (dark, logo cloud; v1.1)
+
+Right after What I Do, before Projects (`#stack`; not in the nav). Layout after the 21st.dev "Logo Cloud" by @clevision (MIT; the idea only, no code taken: DECISIONS 2026-11-27), in the site's tokens. Label `//  TOOLS & STACK` (ID `//  TOOLS & TEKNOLOGI`), then a visible `h2` *"Tools I build, test and ship with."* (ID *"Tools yang saya pakai untuk membangun, menguji, dan merilis."*); both reveal like the other sections.
+
+One card: `ink-800`, 1 px `ink-700` border, 24 px radius, no shadow, padding 20 px (32 px from 768). In it, top to bottom:
+
+1. **Head**: `@malaukendui-a11y` (body 600, the GitHub profile in a new tab) and, in mono `muted-on-dark`, "{total} contributions on GitHub in the last year · As of {date}" (ID "… kontribusi di GitHub dalam setahun terakhir · Per {date}"), dates as "27 Nov 2026" / "27 Nov 2026".
+2. **Contribution graph**: the real public graph, a snapshot (`content/github-contributions.json`, `pnpm stack:contributions`; no fetch at build or run time). 7 rows (Sunday to Saturday) × the weeks, month labels above from fixed lists (EN Jan … Dec with "Sep"; ID Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des), square cells 10–20 px that fill the card between those bounds, 3 px gaps, 3 px radius (`radius-cell`). Level 0 `ink-700`; levels 1–4 `accent-400` mixed into `ink-700` at 28 / 52 / 76 / 100 %. The graph is one `role="img"` with the summary as its name; the cells are decorative. Under it, a mono `muted-on-dark` caption line: the hint "Hover or tap a square to see that day." until a square is hovered (or tapped), then "3 contributions on 7 May 2026" / "1 contribution on …" / "No contributions on …" (ID "3 kontribusi pada 7 Mei 2026", "Tidak ada kontribusi pada …"); a mouse leaving the graph brings the hint back. No tooltip. A mono legend "Less ▢▢▢▢▢ More" ("Sedikit … Banyak") on the right. A card too narrow for 10 px cells (below an 800 px window: 686 px of graph + gutters + card padding) scrolls the graph inside the card, starting on the latest week; that scroller is then focusable and named.
+3. A hairline across the full card width.
+4. **Two logo rows**: row 1 Build + Test (13 logos) runs left, row 2 Deploy + Design + AI + Tools (10) runs right, on the `marquee-track` loop at `duration-logo-tile` (≈ 30 px/s; each copy of a row repeats its logos until it is wider than a 2560 px window's card, so the loop never shows a gap). Tiles 64 × 64 px, `ink-900`, 1 px `ink-700` border, 16 px radius (`radius-tile`), 12 px apart; logo 32 px, monochrome `currentColor`, `muted-on-dark`, `text-on-dark` (and a `muted-on-dark` border) on hover; the tool's name as the tile's `title`. Row ends fade with a mask (6 %). Logos, not monograms or names: Simple Icons (CC0 as a package; Git CC BY 3.0 and JavaScript MIT) and devicon (MIT), copied into `content/stack-icons.ts` by `pnpm stack:icons` and served as one static same-origin sprite, `/stack-logos.svg`, that each tile draws with `<use>`; Google Stitch, in no licensed set, is a neutral stitched square (not Google's logo).
+5. **Pause / Play**: a small mono pill under the rows on the right, "Pause" / "Play" (ID "Jeda" / "Putar"), `aria-pressed`, at least 44 px tall (WCAG 2.2.2). Hovering a row pauses that row; the rows also pause off-screen and in a hidden tab.
+
+Accessibility: each row is a `role="group"` named "Build and test tools" / "Deploy, design, AI and everyday tools" (ID "Tools untuk membangun dan menguji" / "Tools untuk rilis, desain, AI, dan sehari-hari"); only the first copy of each logo is exposed (`role="img"` with the tool's name), every repeat is `aria-hidden`.
+
+Reduced motion: no animation and no fade; each row is a static wrapped grid with every logo once (all 23 visible at 390 and 1440); the Pause button is not shown; the graph and its caption work as above.
 
 ## 4.5 Projects (dark, stacked cards)
 
