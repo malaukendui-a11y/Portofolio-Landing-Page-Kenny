@@ -106,6 +106,9 @@
   --radius-image: 1rem;
   --radius-pill: 999px;
   --radius-lightbox: 0.75rem;
+  /* DESIGN §4.4a: contribution-graph squares (3 px) and logo tiles (16 px). */
+  --radius-cell: 0.1875rem;
+  --radius-tile: 1rem;
 
   --shadow-*: initial;
   --shadow-lightbox: 0 24px 64px rgba(0, 0, 0, 0.5);
@@ -120,6 +123,8 @@
   --duration-stagger: 60ms;
   --duration-marquee: 40s;
   --duration-marquee-sm: 28s;
+  /* Logo rows (DESIGN §4.4a): one 76 px tile pitch per 2.5 s, about 30 px/s at any row length. */
+  --duration-logo-tile: 2.5s;
 }
 
 /* Font families come from next/font variables set on <html> (app/fonts.ts). */
@@ -269,6 +274,142 @@
     @media (prefers-reduced-motion: reduce) {
       display: none;
     }
+  }
+}
+
+/* Tools & stack (components/sections/Stack, DESIGN §4.4a). Contribution graph: 7 rows (Sunday to
+   Saturday) × `--weeks` columns, square cells 10–20 px with 3 px gaps; the graph fills the card
+   between those bounds and scrolls inside the card below them. */
+@utility stack-scroller {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  border-radius: var(--radius-cell);
+}
+@utility stack-graph {
+  --cell-gap: 3px;
+  width: 100%;
+  min-width: calc(var(--weeks) * 0.625rem + (var(--weeks) - 1) * var(--cell-gap));
+  max-width: calc(var(--weeks) * 1.25rem + (var(--weeks) - 1) * var(--cell-gap));
+  padding-bottom: 0.25rem;
+}
+@utility stack-months {
+  display: grid;
+  grid-template-columns: repeat(var(--weeks), minmax(0, 1fr));
+  column-gap: var(--cell-gap);
+  margin-bottom: 0.375rem;
+  font-size: var(--text-label-sm);
+  line-height: 1;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+@utility stack-cells {
+  display: grid;
+  grid-template-rows: repeat(7, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--cell-gap);
+}
+/* Level 0 is the card's hairline tone; levels 1–4 mix accent-400 into it at 28 / 52 / 76 / 100 %. */
+@utility stack-cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-cell);
+  background: var(--color-ink-700);
+  &[data-level='1'] {
+    background: color-mix(in srgb, var(--color-accent-400) 28%, var(--color-ink-700));
+  }
+  &[data-level='2'] {
+    background: color-mix(in srgb, var(--color-accent-400) 52%, var(--color-ink-700));
+  }
+  &[data-level='3'] {
+    background: color-mix(in srgb, var(--color-accent-400) 76%, var(--color-ink-700));
+  }
+  &[data-level='4'] {
+    background: var(--color-accent-400);
+  }
+  &[data-date]:hover {
+    outline: 1px solid var(--fg);
+    outline-offset: 1px;
+  }
+}
+@utility stack-cell-pad {
+  aspect-ratio: 1;
+}
+@utility stack-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  & > .stack-cell {
+    width: 0.6875rem;
+  }
+  & > span:first-child {
+    margin-inline-end: 0.25rem;
+  }
+  & > span:last-child {
+    margin-inline-start: 0.25rem;
+  }
+}
+
+/* Logo rows: the `marquee-track` loop with a speed set by the row's length (`--logo-tiles` per copy ×
+   `--duration-logo-tile`), so both rows move at about 30 px/s. Hovering a row, or focus inside it,
+   pauses it, as `data-paused` does. Reduced motion: no animation, no fade, one tile per tool in a
+   wrapped grid. The durations are declared on the track itself, which carries `--logo-tiles`: a custom
+   property resolves its var() where it is declared, so on the row it would be invalid and the
+   `marquee-track` shorthand would fall back to no animation at all. */
+@utility stack-row {
+  overflow: hidden;
+  & > .marquee-track {
+    --duration-marquee: calc(var(--logo-tiles) * var(--duration-logo-tile));
+    --duration-marquee-sm: calc(var(--logo-tiles) * var(--duration-logo-tile));
+  }
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  &:hover > .marquee-track,
+  &:focus-within > .marquee-track {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    overflow: visible;
+    mask-image: none;
+    & > .marquee-track {
+      position: static;
+      translate: none;
+      width: auto;
+    }
+  }
+}
+@utility stack-group {
+  display: flex;
+  gap: 0.75rem;
+  padding-inline-end: 0.75rem;
+  @media (prefers-reduced-motion: reduce) {
+    flex-wrap: wrap;
+    padding-inline-end: 0;
+    &[data-marquee-copy],
+    & [data-repeat] {
+      display: none;
+    }
+  }
+}
+@utility stack-tile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--color-ink-900);
+  color: var(--fg-muted);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  &:hover {
+    border-color: var(--fg-muted);
+    color: var(--fg);
+  }
+  & > svg {
+    width: 2rem;
+    height: 2rem;
+    fill: currentColor;
   }
 }
 
