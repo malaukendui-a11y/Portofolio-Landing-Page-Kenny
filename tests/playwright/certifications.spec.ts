@@ -507,6 +507,16 @@ test.describe('certificate coverflow', () => {
     page,
   }) => {
     await gotoCoverflow(page)
+    // WebKit loads a lazy image only once it is inside the frame's clip (`.cf-frame` is
+    // overflow: hidden); with six certificates the card half a turn away, and at 390 the cards two
+    // steps out, sit wholly outside it. Turn the ring through every card so each has loaded, in
+    // every engine, then come back to the newest.
+    for (let n = 1; n <= COUNT; n++) {
+      await dot(page, n).click()
+      await expect(current(page)).toHaveAttribute('data-cf-index', String(n - 1))
+    }
+    await dot(page, 1).click()
+    await expect(current(page)).toHaveAttribute('data-cf-index', '0')
     // Loaded as they are (no switch to eager, which can re-select a larger cached candidate).
     await expect
       .poll(
