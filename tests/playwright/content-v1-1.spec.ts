@@ -1,7 +1,8 @@
 // v1.1 content refresh (the owner's copy deck, 26 Nov 2026; docs/QA-PLAN.md TC-118 onwards):
 // TC-118 (junior roles and per-language title), TC-119 (intro accents), TC-120 (services items),
 // TC-121 (QA evidence statement and the database checks), TC-122 (footer credit), TC-124 (this
-// portfolio's card), TC-125 (the PintuKos and Malau sentences).
+// portfolio's card), TC-125 (the PintuKos and Malau sentences), TC-128 (the test count, no PR
+// count).
 // Literals here are the owner's approved strings: a silent copy change fails these tests.
 import { readFileSync } from 'node:fs'
 import { expect, test } from './fixtures'
@@ -211,6 +212,33 @@ test('the PintuKos and Malau cards carry the owner’s new sentences', async ({ 
       await expect(
         page.locator('#work').getByText(copy.projects.items[project].description, { exact: true }),
       ).toHaveCount(1)
+    }
+  }
+})
+
+// TC-128: the copy states the distinct test count from `playwright test --list` (180 when this
+// landed), never the run count, and counts no pull requests (DECISIONS 2026-11-27).
+test('the intro and the portfolio card state the test count, not a PR count', async ({ page }) => {
+  const prCount = /\d+\s+(?:reviewed\s+)?pull requests?\b|\d+\s+reviewed\b/i
+  await page.goto('/')
+  for (const { copy, toggle } of languages) {
+    if (copy === id) {
+      await selectLang(page, toggle)
+      await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+    }
+    const shown = [
+      page.locator('#about p').getByText(copy.intro.paragraph, { exact: true }),
+      page
+        .locator('#work article')
+        .nth(1)
+        .getByText(copy.projects.items.portfolio.description, { exact: true }),
+    ]
+    for (const text of shown) {
+      await expect(text).toHaveCount(1)
+      const content = (await text.textContent()) ?? ''
+      expect(content).toContain('180+')
+      expect(content).not.toContain('600+')
+      expect(content).not.toMatch(prCount)
     }
   }
 })

@@ -41,7 +41,7 @@ const id = {
       { text: '.' },
     ],
     paragraph:
-      'Sarjana Sistem Informasi, Universitas Gunadarma (IPK 3,43, Januari 2026), dan QA Tester di Kopra by Mandiri. Saya membangun produk nyata bersama agen AI seperti Claude Code dan Codex, lalu meninjau dan menguji setiap perubahan. PintuKos punya 2.000+ unit test; situs ini menjalankan 600+ uji otomatis di setiap pull request.',
+      'Sarjana Sistem Informasi, Universitas Gunadarma (IPK 3,43, Januari 2026), dan QA Tester di Kopra by Mandiri. Saya membangun produk nyata bersama agen AI seperti Claude Code dan Codex, lalu meninjau dan menguji setiap perubahan. PintuKos punya 2.000+ unit test; situs ini punya 180+ uji otomatis yang berjalan di Chromium, Firefox, dan WebKit di setiap pull request.',
     seeWork: 'Lihat karya saya',
     downloadCv: 'Unduh CV',
   },
@@ -126,7 +126,7 @@ const id = {
       portfolio: {
         title: 'Portofolio ini',
         description:
-          'Situs yang sedang Anda buka: portofolio dwibahasa dengan lensa kaca 3D, dibangun dengan Claude Code lewat 10 pull request yang ditinjau. Setiap perubahan lolos 600+ uji otomatis di Chromium, Firefox, dan WebKit, pengecekan Lighthouse, serta QA manual saya di iPhone dan HP Android.',
+          'Situs yang sedang Anda buka: portofolio dwibahasa dengan lensa kaca 3D, dibangun dengan Claude Code, dan setiap pull request ditinjau sebelum digabung. Setiap perubahan lolos 180+ uji otomatis di Chromium, Firefox, dan WebKit, pengecekan Lighthouse, serta QA manual saya di iPhone dan HP Android.',
         role: 'Developer & QA (berbantuan AI)',
       },
       'trading-compass': {

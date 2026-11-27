@@ -41,7 +41,7 @@ const en = {
       { text: '.' },
     ],
     paragraph:
-      'Bachelor of Information Systems, Universitas Gunadarma (GPA 3.43, January 2026), and QA Tester on Kopra by Mandiri. I build real products with AI agents such as Claude Code and Codex, then review and test every change. PintuKos has 2,000+ unit tests; this site runs 600+ automated tests on every pull request.',
+      'Bachelor of Information Systems, Universitas Gunadarma (GPA 3.43, January 2026), and QA Tester on Kopra by Mandiri. I build real products with AI agents such as Claude Code and Codex, then review and test every change. PintuKos has 2,000+ unit tests; this site has 180+ automated tests that run in Chromium, Firefox and WebKit on every pull request.',
     seeWork: 'See my work',
     downloadCv: 'Download CV (Indonesian)',
   },
@@ -126,7 +126,7 @@ const en = {
       portfolio: {
         title: 'This portfolio',
         description:
-          'The site you’re on: a bilingual portfolio with a 3D glass lens, built with Claude Code over 10 reviewed pull requests. Every change passes 600+ automated tests in Chromium, Firefox and WebKit, Lighthouse checks and my own manual QA on an iPhone and an Android phone.',
+          'The site you’re on: a bilingual portfolio with a 3D glass lens, built with Claude Code, with every pull request reviewed before merge. Every change passes 180+ automated tests in Chromium, Firefox and WebKit, Lighthouse checks and my own manual QA on an iPhone and an Android phone.',
         role: 'Developer & QA (AI-assisted)',
       },
       'trading-compass': {
