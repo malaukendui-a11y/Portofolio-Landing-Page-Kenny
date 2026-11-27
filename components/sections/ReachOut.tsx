@@ -102,7 +102,7 @@ export function ReachOut() {
             <div className="mt-10 flex flex-wrap gap-4">
               <ButtonLink href={`mailto:${site.email}`}>{t.reachOut.ctas.email}</ButtonLink>
               {site.cvUrl && (
-                <ButtonLink href={site.cvUrl} variant="outlined" download>
+                <ButtonLink href={site.cvUrl} hrefLang={site.cvLang} variant="outlined" download>
                   {t.reachOut.ctas.cv}
                 </ButtonLink>
               )}

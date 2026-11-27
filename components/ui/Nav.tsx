@@ -111,7 +111,7 @@ export function Nav({ base = '' }: { base?: string }) {
           <div className="hidden items-center justify-end gap-6 md:flex">
             <LangToggle />
             {site.cvUrl && (
-              <ButtonLink href={site.cvUrl} download>
+              <ButtonLink href={site.cvUrl} hrefLang={site.cvLang} download>
                 {t.nav.downloadCv}
               </ButtonLink>
             )}
@@ -168,7 +168,12 @@ export function Nav({ base = '' }: { base?: string }) {
             <div className="mt-auto flex flex-col gap-6 border-t border-hairline pt-6">
               <LangToggle />
               {site.cvUrl && (
-                <ButtonLink href={site.cvUrl} download className="self-start">
+                <ButtonLink
+                  href={site.cvUrl}
+                  hrefLang={site.cvLang}
+                  download
+                  className="self-start"
+                >
                   {t.nav.downloadCv}
                 </ButtonLink>
               )}

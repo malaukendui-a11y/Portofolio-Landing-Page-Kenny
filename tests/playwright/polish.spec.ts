@@ -1,5 +1,6 @@
 // M4a polish (PRD F-14, F-15, §8 SEO): sitemap, robots, canonical, JSON-LD, OpenGraph image,
 // per-language title and description, the 404 page, Experience rows. TC-075 to TC-084.
+import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 import en from '../../content/en'
@@ -7,6 +8,10 @@ import id from '../../content/id'
 import { site } from '../../content/site'
 import { siteUrl } from '../../lib/seo'
 import { selectLang, tabsToLinks } from './helpers'
+
+/** Text as React writes it into raw HTML: `&`, `<` and `>` escaped. */
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 /** Next writes the root URL without its trailing slash; compare URLs in normalised form. */
 const normalise = (url: string | null) => (url === null ? null : new URL(url).href)
@@ -27,8 +32,11 @@ test('the title and description follow the language, also after a reload', async
   page,
   request,
 }) => {
-  // The server renders English: that is what crawlers and link previews read.
-  expect(await (await request.get('/')).text()).toContain(`<title>${en.meta.title}</title>`)
+  // The server renders English: that is what crawlers and link previews read. The raw HTML
+  // escapes markup characters (v1.1 content: the title has an "&").
+  expect(await (await request.get('/')).text()).toContain(
+    `<title>${escapeHtml(en.meta.title)}</title>`,
+  )
 
   await page.goto('/')
   await expect(page).toHaveTitle(en.meta.title)
@@ -174,6 +182,8 @@ test('the OpenGraph image is a 1200 × 630 PNG shared by the Twitter card', asyn
   expect(await metaContent(page, 'og:image:height')).toBe('630')
   expect(await metaContent(page, 'og:image:type')).toBe('image/png')
   expect(await metaContent(page, 'og:image:alt')).toBe(en.meta.og.alt)
+  // The alt file is written by scripts/export-og.mjs with the PNG: a stale export shows here.
+  expect(readFileSync('app/opengraph-image.alt.txt', 'utf8')).toBe(en.meta.og.alt)
   expect(await metaContent(page, 'og:type')).toBe('website')
   expect(await metaContent(page, 'og:site_name')).toBe(site.brand)
   expect(await metaContent(page, 'og:locale')).toBe(site.ogLocale.en)
@@ -247,12 +257,26 @@ test.describe('404 page', () => {
   })
 })
 
-// TC-082: an empty period or description renders no empty paragraph; the owner's periods
-// (PRD §12.6, M4b) show in both languages. The education description is still empty, so the
-// empty-paragraph rule keeps running on live data.
-test('the Experience timeline shows both periods and has no empty paragraphs', async ({ page }) => {
+// TC-082: an empty period, location or description renders no empty paragraph, and an entry
+// without bullets renders no list; the owner's periods (PRD §12.6) show in both languages. Since
+// v1.1 content the Education column also holds the self-study entry, under the degree, with no
+// location and no bullets, so both rules run on live data.
+test('the Experience timeline shows every period and has no empty paragraphs or lists', async ({
+  page,
+}) => {
+  expect(en.experience.work.period).toBe('Aug 2026 (1 month)')
+  expect(id.experience.work.period).toBe('Agu 2026 (1 bulan)')
   expect(en.experience.education.period).toBe('2021 — Jan 2026')
   expect(id.experience.education.period).toBe('2021 — Jan 2026')
+  expect([en.experience.selfStudy.period, id.experience.selfStudy.period]).toEqual([
+    'Feb — Jul 2026',
+    'Feb — Jul 2026',
+  ])
+  // "Otodidak", not "Mandiri", which would read as the bank (owner decision).
+  expect([en.experience.selfStudy.org, id.experience.selfStudy.org]).toEqual([
+    'Self-directed',
+    'Otodidak',
+  ])
   await page.goto('/')
   const timeline = page.locator('#experience')
   for (const copy of [en, id]) {
@@ -260,14 +284,27 @@ test('the Experience timeline shows both periods and has no empty paragraphs', a
       await selectLang(page, 'ID')
       await expect(page.locator('html')).toHaveAttribute('lang', 'id')
     }
-    const empty = await timeline
-      .locator('p')
-      .evaluateAll((paragraphs) => paragraphs.filter((p) => !p.textContent?.trim()).length)
-    expect(empty).toBe(0)
-    for (const entry of [copy.experience.work, copy.experience.education]) {
+    const empty = await timeline.evaluate((section) => ({
+      paragraphs: [...section.querySelectorAll('p')].filter((p) => !p.textContent?.trim()).length,
+      lists: [...section.querySelectorAll('ul')].filter((ul) => ul.children.length === 0).length,
+    }))
+    expect(empty).toEqual({ paragraphs: 0, lists: 0 })
+    const { work, education, selfStudy } = copy.experience
+    for (const entry of [work, education, selfStudy]) {
       await expect(timeline.getByText(entry.period, { exact: true })).toBeVisible()
       await expect(timeline.getByRole('heading', { name: entry.title })).toBeVisible()
+      await expect(timeline.getByText(entry.description, { exact: true })).toBeVisible()
     }
+    // Entries in order: the job, then the degree, then the self-study under it.
+    await expect(timeline.getByRole('heading', { level: 3 })).toHaveText([
+      work.title,
+      education.title,
+      selfStudy.title,
+    ])
+    // The self-study entry has no location, so no dangling separator after its org.
+    const study = timeline.locator('article').nth(2)
+    await expect(study.getByText(selfStudy.org, { exact: true })).toBeVisible()
+    await expect(study.locator('ul')).toHaveCount(0)
   }
 })
 

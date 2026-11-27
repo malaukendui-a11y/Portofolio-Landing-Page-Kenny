@@ -3,12 +3,12 @@ import type { Copy } from './types'
 
 const id = {
   meta: {
-    title: 'Ananda Kenny — Software Engineer dengan fondasi QA',
+    title: 'Ananda Kenny — Junior QA & Software Engineer',
     description:
-      'Portofolio Ananda Kenny, software engineer serta QA & web developer di Jakarta Timur, Indonesia. Produk web Next.js, diuji seperti pengguna sungguhan.',
+      'Portofolio Ananda Kenny, junior QA dan software engineer di Jakarta Timur. Produk web yang dibangun dengan AI dan diuji seperti pengguna sungguhan.',
     og: {
       label: 'Portofolio',
-      alt: 'Kartu portofolio: “Ananda Kenny” dalam huruf besar di atas kertas hangat, dengan peran Software Engineer serta QA & Web Developer',
+      alt: 'Kartu portofolio: “Ananda Kenny” dalam huruf besar di atas kertas hangat, dengan peran Junior QA Engineer dan Junior Software Engineer',
     },
   },
   nav: {
@@ -25,7 +25,7 @@ const id = {
   },
   hero: {
     name: 'Ananda Kenny',
-    roles: ['Software Engineer', 'QA & Web Developer'],
+    roles: ['Junior QA Engineer', 'Junior Software Engineer'],
     availability: 'Terbuka untuk bekerja',
     socials: { linkedin: 'LinkedIn', github: 'GitHub', whatsapp: 'WhatsApp' },
     scrollCue: 'Perkenalan',
@@ -34,14 +34,14 @@ const id = {
   intro: {
     label: 'Perkenalan',
     statement: [
-      { text: 'Saya software engineer dengan ' },
-      { text: 'pola pikir QA', accent: true },
-      { text: ' — saya membangun produk web dan ' },
-      { text: 'mengujinya seperti pengguna sungguhan', accent: true },
+      { text: 'Saya lulusan Sistem Informasi yang ' },
+      { text: 'sedang mendalami software engineering', accent: true },
+      { text: ' — saya membangun dengan AI dan ' },
+      { text: 'menguji semuanya seperti pengguna', accent: true },
       { text: '.' },
     ],
     paragraph:
-      'Sarjana Sistem Informasi dari Universitas Gunadarma, dengan pengalaman QA langsung di Project Kopra, Bank Mandiri. Saya merancang, membangun, dan menguji produk web dari awal sampai akhir, lengkap dengan dokumentasinya.',
+      'Sarjana Sistem Informasi, Universitas Gunadarma (IPK 3,43, Januari 2026), dan QA Tester di Kopra by Mandiri. Saya membangun produk nyata bersama agen AI seperti Claude Code dan Codex, lalu meninjau dan menguji setiap perubahan. PintuKos punya 2.000+ unit test; situs ini punya 180+ uji otomatis yang berjalan di Chromium, Firefox, dan WebKit di setiap pull request.',
     seeWork: 'Lihat karya saya',
     downloadCv: 'Unduh CV',
   },
@@ -56,25 +56,26 @@ const id = {
           'Pengujian manual dan UAT yang menangkap hal-hal yang terlewat oleh pemeriksaan otomatis, didokumentasikan agar tim bisa menindaklanjutinya.',
         items: [
           'Pengujian manual & UAT dengan siklus regresi',
-          'Perancangan skenario dan test case',
-          'Perencanaan regresi dan pelaporan eksekusi',
-          'Pelaporan bug dan siklus hidup defect di Jira',
+          'Perancangan skenario & test case',
+          'Perencanaan regresi dan laporan eksekusi',
+          'Pelaporan bug dan siklus defect di Jira',
           'Exploratory testing',
-          'Dasar-dasar pengujian API',
+          'Uji otomatis dengan Playwright dan Vitest di proyek saya sendiri',
         ],
       },
       {
         index: '02',
         title: 'Pengembangan Web',
         description:
-          'Landing page, company profile, dan dashboard yang dibangun dengan Next.js dan React, didukung Supabase, dan di-deploy di Vercel.',
+          'Landing page, company profile, dan dashboard dengan React dan Next.js, didukung Supabase, dan di-deploy di Vercel atau Cloudflare Pages. Dibangun dengan bantuan AI, lalu ditinjau dan diuji.',
         items: [
           'Landing page dan company profile',
           'Dashboard dan tools internal',
-          'Front-end Next.js / React',
+          'Front-end React / Next.js',
           'Database dan autentikasi Supabase',
-          'Deployment di Vercel',
-          'Pemeriksaan performa dan aksesibilitas',
+          'Deployment di Vercel dan Cloudflare Pages',
+          'Pengembangan berbantuan AI dengan Claude Code dan Codex',
+          'Pengecekan performa dan aksesibilitas',
         ],
       },
       {
@@ -83,9 +84,10 @@ const id = {
         description:
           'Dari PRD sampai rilis: penentuan lingkup, backlog, milestone, dan rencana QA yang menjaga proyek tetap jujur.',
         items: [
-          'PRD dan dokumen desain',
+          'Dokumen SRS, PRD, dan desain',
+          'Desain UI di Figma dan Google Stitch',
           'Perencanaan backlog dan milestone',
-          'Koordinasi pemangku kepentingan',
+          'Koordinasi stakeholder',
           'Perencanaan dan sign-off QA',
         ],
       },
@@ -118,8 +120,14 @@ const id = {
       pintukos: {
         title: 'PintuKos',
         description:
-          'Aplikasi keuangan untuk kos dan kontrakan keluarga (dipakai internal): tagihan otomatis, pembayaran dengan bukti foto, penagihan via WhatsApp, laporan PDF/Excel, tutup buku, dan log audit.',
+          'Aplikasi keuangan untuk kos dan kontrakan keluarga (dipakai internal): tagihan otomatis, pembayaran dengan bukti foto, penagihan via WhatsApp, laporan PDF/Excel, tutup buku, dan log audit. Beta privat; demo tersedia atas permintaan.',
         role: 'Product owner, QA & developer (berbantuan AI)',
+      },
+      portfolio: {
+        title: 'Portofolio ini',
+        description:
+          'Situs yang sedang Anda buka: portofolio dwibahasa dengan lensa kaca 3D, dibangun dengan Claude Code, dan setiap pull request ditinjau sebelum digabung. Setiap perubahan lolos 180+ uji otomatis di Chromium, Firefox, dan WebKit, pengecekan Lighthouse, serta QA manual saya di iPhone dan HP Android.',
+        role: 'Developer & QA (berbantuan AI)',
       },
       'trading-compass': {
         title: 'Trading Compass',
@@ -130,7 +138,7 @@ const id = {
       'malau-website': {
         title: 'Situs komunitas & silsilah Malau Pase',
         description:
-          'Situs komunitas dan pohon silsilah (tarombo) untuk marga Malau Pase, saat ini dalam tahap desain UI/UX.',
+          'Website komunitas dan silsilah (tarombo) marga Malau Pase. Saya memimpinnya bersama satu data analyst: ruang lingkup, SRS 22 halaman, dan PRD sudah selesai; desain UI/UX sedang dikerjakan di Google Stitch dan Figma.',
         role: 'Project manager',
       },
       'kos-kontrakan-landing': {
@@ -142,8 +150,8 @@ const id = {
       'crypto-research': {
         title: 'Analisis Big Data untuk Mendeteksi Pola dan Tren Pergerakan Harga Cryptocurrency',
         description:
-          'Skripsi: studi kasus pasar altcoin, menggunakan analisis big data untuk mendeteksi pola dan tren pergerakan harga.',
-        role: 'Penulis (skripsi)',
+          'Penulisan Ilmiah, Universitas Gunadarma, 2024: studi kasus pasar altcoin dengan regresi, K-Means clustering, dan model Random Forest pada data harga dan volume.',
+        role: 'Penulis',
       },
     },
   },
@@ -151,9 +159,9 @@ const id = {
     label: 'Bukti QA',
     heading: 'Cara saya menguji',
     statement:
-      'Di Bank Mandiri saya menguji Project Kopra, super-platform digital wholesale, melalui siklus pengujian manual dan UAT.',
+      'Di Kopra by Mandiri saya menguji platform wholesale banking lewat siklus UAT dan regresi: sekitar 250 test case dan 20 defect tercatat di Jira.',
     paragraph:
-      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, 45 jalan uji end-to-end Playwright di 14 alur dengan audit axe, pengujian SQL, dan UAT 85 langkah.',
+      'Artefak Kopra bersifat rahasia, jadi bukti di sini berasal dari produk saya sendiri, PintuKos: 2.000+ unit test, 45 jalan uji end-to-end Playwright di 14 alur dengan audit axe, 693 cek database, dan UAT 85 langkah.',
     artifacts: {
       'ci-run': {
         title: 'Jalan CI — alur utama',
@@ -177,15 +185,16 @@ const id = {
     heading: 'Pengalaman',
     educationHeading: 'Pendidikan',
     work: {
-      period: 'Agu 2026',
+      period: 'Agu 2026 (1 bulan)',
       title: 'QA Tester (Pengujian Manual) — Project Kopra by Mandiri',
       org: 'PT Bank Mandiri (Persero) Tbk',
       location: 'Jakarta',
-      description: 'QA di Kopra by Mandiri, super-platform digital wholesale.',
+      description:
+        'Magang / kontrak proyek melalui PT Bahtera Pesat Lintasbuana, menguji Kopra by Mandiri, platform digital wholesale banking.',
       bullets: [
-        'Pengujian manual dan UAT dengan siklus regresi',
-        'Perancangan skenario dan test case; pelaporan eksekusi di Atlassian Jira',
-        'Pelacakan siklus hidup defect di Jira: severity, re-test, dan sign-off',
+        'Mengeksekusi sekitar 250 test case UAT dan regresi',
+        'Melaporkan sekitar 20 defect di Jira dengan langkah reproduksi dan severity; sekitar 90% diselesaikan sebelum rilis',
+        'Merancang dan mendokumentasikan test case dan test report terstruktur di Jira',
       ],
     },
     education: {
@@ -193,12 +202,21 @@ const id = {
       title: 'Sarjana Sistem Informasi (S.Kom)',
       org: 'Universitas Gunadarma — Fakultas Ilmu Komputer & Teknologi Informasi',
       location: 'Depok',
-      description: '',
+      description:
+        'IPK 3,43 / 4,00. Penulisan Ilmiah (2024) tentang analisis big data harga altcoin.',
       bullets: [
         'Standar QA dan pengujian perangkat lunak',
         'Big-data mining, machine learning, dan analisis sistem',
-        'Pengembangan web full-stack dan arsitektur database',
+        'Pemrograman web dan perancangan basis data',
       ],
+    },
+    selfStudy: {
+      period: 'Feb — Jul 2026',
+      title: 'Belajar mandiri — Software engineering',
+      org: 'Otodidak',
+      location: '',
+      description: 'JavaScript, React, TypeScript, Git, dan GitHub.',
+      bullets: [],
     },
   },
   certifications: {
@@ -222,25 +240,39 @@ const id = {
         title: 'Intro to Software Engineering',
         issuer: 'RevoU Coding Camp',
         period: 'September 2026',
-        scope: 'Kursus online bersertifikat 1 minggu · sertifikat kehadiran',
+        scope: 'Kursus online 1 minggu · sertifikat kehadiran · proyek mini: web pencatat keuangan',
       },
       'gunadarma-designing-software': {
-        title: 'Designing Software',
+        title: 'Merancang Perangkat Lunak',
         issuer: 'Universitas Gunadarma',
         period: 'Mei – Jun 2025',
-        scope: 'Prinsip desain perangkat lunak, pemodelan, dan dokumentasi',
+        scope: 'Struktur dan komponen perangkat lunak, perancangan UI dan UX',
+      },
+      'gunadarma-go-lang-for-beginner': {
+        title: 'Pemrograman Go untuk Tingkat Pemula',
+        issuer: 'Universitas Gunadarma',
+        period: 'Agu 2024',
+        scope:
+          'Dasar Go: tipe data, perulangan dan percabangan, struct, pointer, slice, map; web server Go dengan Polymer',
       },
       'gunadarma-desktop-programming': {
-        title: 'Fundamental Desktop Programming — Java & Oracle PL/SQL',
+        title: 'Dasar Pemrograman Berbasis Desktop',
         issuer: 'Universitas Gunadarma',
         period: 'Feb 2024',
-        scope: 'Aplikasi desktop dengan Java dan database Oracle PL/SQL',
+        scope: 'Delphi, Visual Basic .NET, dan Java (AWT, Swing), dengan pengenalan Oracle PL/SQL',
       },
       'gunadarma-javascript-fundamentals': {
-        title: 'JavaScript Programming Language Fundamentals',
+        title: 'Dasar Bahasa Pemrograman JavaScript',
         issuer: 'Universitas Gunadarma',
         period: 'Nov 2023',
-        scope: 'Dasar JavaScript: sintaks, fungsi, DOM, dan kode asinkron',
+        scope:
+          'Variabel dan tipe data, operator, array, percabangan dan perulangan, serta JavaScript berorientasi objek',
+      },
+      'gunadarma-fundamental-web-programming': {
+        title: 'Dasar Pemrograman Berbasis Web',
+        issuer: 'Universitas Gunadarma',
+        period: 'Feb 2022',
+        scope: 'Pengantar pemrograman web dengan Go, Java EE (Servlet, JSP), dan ASP.NET dengan C#',
       },
     },
   },
@@ -287,7 +319,7 @@ const id = {
   },
   footer: {
     copyright: '© {year} Ananda Kenny',
-    builtWith: 'Dibangun dengan Next.js, GSAP & React Three Fiber',
+    builtWith: 'Dibangun dengan Next.js, GSAP & React Three Fiber, bersama Claude Code',
     languageNote: 'Tersedia dalam bahasa Inggris dan Indonesia.',
   },
   notFound: {

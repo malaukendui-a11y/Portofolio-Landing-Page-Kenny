@@ -85,13 +85,15 @@ test('ctasFor: the status → CTA matrix, including an invite-only app', () => {
   ])
 
   // The owner's data (M4b batch 2): PintuKos links its app (invite only) and previews its boards;
-  // only the thesis links a PDF.
+  // only the research paper links a PDF. Since v1.1 content this portfolio previews its boards and
+  // links its public repository, the only GitHub CTA.
   expect(
     Object.fromEntries(
       projects.map((project) => [project.id, ctasFor(project).map((c) => c.kind)]),
     ),
   ).toEqual({
     pintukos: ['liveDemoPrivate', 'preview'],
+    portfolio: ['preview', 'github'],
     'trading-compass': [],
     'malau-website': [],
     'kos-kontrakan-landing': [],
@@ -254,10 +256,12 @@ test('the PintuKos lightbox shows the four boards with captions in both language
     await expect(cover).toBeFocused()
   }
 
-  // The card's "Preview" CTA opens the same gallery (here in ID).
-  const preview = page
-    .locator('#work')
-    .getByRole('button', { name: id.projects.cta.preview, exact: true })
+  // The card's "Preview" CTA opens the same gallery (here in ID). Since v1.1 content this portfolio
+  // has a "Preview" too, so the button is the PintuKos card's.
+  const preview = card(page, id, 'pintukos').getByRole('button', {
+    name: id.projects.cta.preview,
+    exact: true,
+  })
   await preview.click()
   const dialog = page.getByRole('dialog', { name: id.lightbox.label })
   await expect(dialog).toContainText(
@@ -340,8 +344,10 @@ test('one Node major in package.json engines, CI and this machine', () => {
 
 // TC-096 (M4b batch 2): the owner's corrections from his CV answers, pinned as literals (TC-082
 // reads the title from the copy, so it cannot catch a wrong string): the Bank Mandiri work title,
-// and the thesis card's year (completed January 2026; its PDF keeps the 2025 file name).
-test('the work title and the thesis year follow the owner’s CV', async ({ page }) => {
+// and the research card. Since v1.1 content the research card is a 2024 scientific paper
+// (Penulisan Ilmiah, defended 21 Aug 2024), not a thesis: year 2024, role "Author", and the PDF
+// renamed to match; the old name answers 404.
+test('the work title and the research paper follow the owner’s CV', async ({ page, request }) => {
   const titles = {
     en: 'QA Tester (Manual Testing) — Project Kopra by Mandiri',
     id: 'QA Tester (Pengujian Manual) — Project Kopra by Mandiri',
@@ -361,12 +367,22 @@ test('the work title and the thesis year follow the owner’s CV', async ({ page
     await heading.scrollIntoViewIfNeeded()
     await expect(heading).toBeVisible()
 
-    const thesis = card(page, copy, 'crypto-research')
-    await thesis.scrollIntoViewIfNeeded()
-    await expect(thesis.getByText('(2026)', { exact: true })).toBeVisible()
-    await expect(thesis.getByRole('link', { name: copy.projects.cta.readPaper })).toHaveAttribute(
+    const paper = card(page, copy, 'crypto-research')
+    await paper.scrollIntoViewIfNeeded()
+    await expect(paper.getByText('(2024)', { exact: true })).toBeVisible()
+    expect(copy.projects.items['crypto-research'].role).toBe(lang === 'en' ? 'Author' : 'Penulis')
+    // The whole role line ("Penulis" alone would also match "Penulisan Ilmiah").
+    await expect(paper.locator('p', { hasText: `${copy.projects.roleLabel} · ` })).toHaveText(
+      `${copy.projects.roleLabel} · ${copy.projects.items['crypto-research'].role}`,
+    )
+    await expect(paper.getByRole('link', { name: copy.projects.cta.readPaper })).toHaveAttribute(
       'href',
-      '/papers/big-data-altcoin-analysis-2025.pdf',
+      '/papers/big-data-altcoin-analysis-2024.pdf',
     )
   }
+  const pdf = await request.get('/papers/big-data-altcoin-analysis-2024.pdf')
+  expect(pdf.status()).toBe(200)
+  expect(pdf.headers()['content-type']).toBe('application/pdf')
+  expect((await pdf.body()).subarray(0, 5).toString('latin1')).toBe('%PDF-')
+  expect((await request.get('/papers/big-data-altcoin-analysis-2025.pdf')).status()).toBe(404)
 })

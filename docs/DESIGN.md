@@ -121,26 +121,28 @@ Layer order, back to front:
 1. `paper-100` surface with a soft radial white glow centred behind the portrait (≈ 60 % opacity at centre, 0 at 520 px) and a faint `accent-glow` behind the glass element.
 2. **WebGL canvas** (desktop only): name ticker as drei `Text` in Inter Display, colour `ink-900`, size matching `display-ticker`, scrolling right-to-left; the **glass element** floating over the left third, refracting the letters as they pass. (HTML ticker fallback when the canvas is not active.)
 3. **Portrait cutout** `kenny-hero-formal@2x.webp` (1070 × 1600, the formal portrait since M4b), height ≈ 86 % of viewport, horizontally centred at 56 % of the width, anchored to the bottom edge; the soft alpha fades at its bottom edge and, on both sides, above the shoulder tips (M4b batch 2, checklist C-01) are part of the asset.
-4. UI: bottom-left social list (LinkedIn, GitHub, WhatsApp — `body`, with an `—` dash prefix); bottom-right two roles (`h2` size 32 px / 600, right-aligned: *Software Engineer* / *QA & Web Developer*); top-right under nav: availability pill `● Open to work · Oct 2026` (mono, success dot).
+4. UI: bottom-left social list (LinkedIn, GitHub, WhatsApp — `body`, with an `—` dash prefix); bottom-right two roles (`h2` size 32 px / 600, right-aligned: *Junior QA Engineer* / *Junior Software Engineer*, in both languages since v1.1 content; the longer roles were measured (TC-126): clear of the portrait at 1440 and 390; at 1024×768 they cross the portrait's faded lower edge (as the old roles did) and keep ≥ 6.8:1 ink contrast); top-right under nav: availability pill `● Open to work · Oct 2026` (mono, success dot).
 5. Bottom-left corner: `//  INTRO` label as the scroll cue, matching the reference's transition into the next section.
 
 Mobile: ticker at 96 px as HTML marquee, portrait height ≈ 55 % of viewport, roles stacked under the portrait, social list collapses into icons. No WebGL.
 
 ## 4.3 Intro (dark)
 
-Label `//  INTRO`. Statement (54 px) with 2–3 accented phrases, e.g. *"I'm a software engineer with a **QA mindset** — I build web products and **test them like a user would**."* Followed by a 2-line paragraph (`body-lg`, `muted-on-dark`, max 60ch) and two pill buttons: **See my work** (filled accent) and **Download CV** (outlined). Statement reveals line-by-line (SplitText, `stagger`).
+Label `//  INTRO`. Statement (54 px) with 2–3 accented phrases, as shipped in v1.1 content: *"I’m an Information Systems graduate **learning software engineering** — I build with AI and **test everything like a user would**."* Followed by a 2-line paragraph (`body-lg`, `muted-on-dark`, max 60ch) and two pill buttons: **See my work** (filled accent) and **Download CV** (outlined; the English label reads "Download CV (Indonesian)" since v1.1 content, as the CV is Indonesian only). Statement reveals line-by-line (SplitText, `stagger`).
 
 ## 4.4 What I Do (dark, stacked cards)
 
-Three cards, each `100vh` tall, sticky at `top: 0`, stacking: as card *n+1* scrolls up, card *n* scales to 0.96 and fades to 55 %. Card anatomy: huge outlined numeral `01` left (240 px, stroke only), title at `statement` size (54 px, 32 px mobile), description `body-lg muted`, then a numbered list of 4–6 items with hairline dividers and right-aligned mono indices `01…06`. Row hover: text shifts 8 px right, index turns accent.
+Three cards, each `100vh` tall, sticky at `top: 0`, stacking: as card *n+1* scrolls up, card *n* scales to 0.96 and fades to 55 %. Card anatomy: huge outlined numeral `01` left (240 px, stroke only), title at `statement` size (54 px, 32 px mobile), description `body-lg muted`, then a numbered list of 4–7 items with hairline dividers and right-aligned mono indices `01…07`. Row hover: text shifts 8 px right, index turns accent.
 
-Content: **01 Quality Assurance & Testing** (manual & UAT, test case design, regression, bug reporting in Jira, exploratory, API testing basics) · **02 Web Development** (landing pages, company profiles, dashboards, Next.js/React, Supabase, deployment on Vercel) · **03 Product & Project Management** (PRD & design docs, backlog & milestones, stakeholder coordination, QA planning).
+Content (v1.1 content): **01 Quality Assurance & Testing** (manual & UAT, test case design, regression, bug reporting in Jira, exploratory, automated tests with Playwright and Vitest in my own projects; no API testing) · **02 Web Development** (landing pages, company profiles, dashboards, Next.js/React, Supabase, deployment on Vercel and Cloudflare Pages, AI-assisted development with Claude Code and Codex, performance and accessibility checks: seven items) · **03 Product & Project Management** (SRS, PRD & design documents, UI design in Figma and Google Stitch, backlog & milestones, stakeholder coordination, QA planning and sign-off).
+
+Short windows: on stacking widths shorter than 860 px (53.75rem) the rows are 8 px shorter and the list starts 16 px higher, so card 02 fits below its sticky top (TC-092; tightest 7 px at 1024×768). 1440×900 is unchanged.
 
 Mobile: cards stack normally (no sticky), numeral hidden, list unchanged.
 
 ## 4.5 Projects (dark, stacked cards)
 
-Label `//  SELECTED WORK`. One card per project (§6 of the PRD), sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 5/7 from 1024 to 1279 px for a card with images, so a two-CTA row fits one line in either language there; M4b batch 2): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, a short description (one or two sentences), role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules (PintuKos: "Open app · invite only", then "Preview"; the Indonesian row still wraps from 1280 px to about 1300 px). A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092; tightest since batch 2: 32 px, Indonesian at 1280×800).
+Label `//  SELECTED WORK`. One card per project (§6 of the PRD); since v1.1 content there are six, in order: PintuKos, This portfolio, Trading Compass, Malau, Kos & Kontrakan and the research card. Sticky-stacked like Services with a 24 px offset per card. Card anatomy (grid 7/5 from 1280 px, 5/7 from 1024 to 1279 px for a card with images, so a two-CTA row fits one line in either language there; M4b batch 2): left — cover image (the first of 2–4, 16 px radius; click opens the lightbox with all of them, whose captions are the images' alt text); right — `(2026)` mono year, **status badge** (mono pill: `LIVE` accent, `IN QA` paper outline, `IN DEVELOPMENT` / `IN DESIGN` / `PLANNED` muted), title `h2` 32 px, a short description (one or two sentences), role line (mono), tag list with hairline dividers (two ruled columns from 1024 px), CTA row per the PRD rules (PintuKos: "Open app · invite only", then "Preview"; the Indonesian row still wraps from 1280 px to about 1300 px; This portfolio: "Preview", then "GitHub", the site's first linked repository). A stuck card must fit below its sticky top at 1440×900, 1366×768, 1280×800 and 1024×768 in both languages, or its bottom (the CTA row) never shows while the cards stack (M4b, TC-092; tightest since v1.1 content: 21 px, English at 1024×768).
 
 Research card uses the same anatomy with a PDF icon and "Read the paper (PDF)".
 
@@ -150,14 +152,14 @@ A deliberate surface switch to paper to signal "documents". Label `//  QA EVIDEN
 
 ## 4.7 Experience & Education (dark)
 
-Two-column timeline with a hairline spine; each entry: mono date range, `h3` title, body description. Entries: Bank Mandiri (QA — Project Kopra), Universitas Gunadarma (B.IS). Campus photos optional as a small 3-up strip under Education.
+Two-column timeline with a hairline spine; each entry: mono date range, `h3` title, body description. Entries: Bank Mandiri (QA Tester — Project Kopra), Universitas Gunadarma (B.IS) and, since v1.1 content, a self-study entry in the Education column under the degree (same entry pattern, no location, no bullets; org "Self-directed" / "Otodidak"). Campus photos optional as a small 3-up strip under Education.
 
 ## 4.8 Certifications (dark)
 
-**Coverflow** (`components/ui/CoverflowCarousel`, v1.1; owner decision 2026-11-14, ported from the 21st.dev "Coverflow Carousel" by Ruixen, MIT). The certificates, newest first, sit on a ring that folds away from the centre. This is the layout at every width: the v1.0 card grid (up to four certificates in a row) is gone.
+**Coverflow** (`components/ui/CoverflowCarousel`, v1.1; owner decision 2026-11-14, ported from the 21st.dev "Coverflow Carousel" by Ruixen, MIT). The six certificates (v1.1 content), newest first, sit on a ring that folds away from the centre. This is the layout at every width: the v1.0 card grid (up to four certificates in a row) is gone.
 
 - **Settings** (`lib/coverflow.ts`): rotate 44°, depth 0.6, perspective 3, falloff 0.56, fade 0.1, gap 0.05, loop on.
-  - With four certificates and loop on, the card half a turn away is faded out, so three show at a time (accepted by the owner).
+  - With six certificates and loop on, the card half a turn away is faded out, so five show at a time (v1.1 content; with four, three showed, accepted by the owner).
   - Tilt and recession ease off with distance (`ramp = distance ^ 0.56`), the tilt is capped at 82°, and a release settles with an exponential ease.
 - **Cards:** portrait 3 : 4, `clamp(148px, 22vw, 260px)` wide, in `ink-800` with a 1 px hairline and the `image` radius.
   - The centre card's border is `muted-on-dark`. No shadows.
@@ -170,15 +172,16 @@ Two-column timeline with a hairline spine; each entry: mono date range, `h3` tit
   - its height is reserved for the tallest caption, so the dots never move.
 - **Controls:**
   - two 44 px round arrows over the ring's edges;
-  - four dots with 44 px targets: inactive dots in `muted-on-dark` (WCAG 1.4.11), the current one a wider `text-on-dark` pill;
+  - six dots (one per certificate) with 44 px targets: inactive dots in `muted-on-dark` (WCAG 1.4.11), the current one a wider `text-on-dark` pill;
   - drag or swipe sideways; a flick carries at most two cards, and a release held still does not throw;
   - a click on the centre card opens the lightbox (F-08), a click on a side card turns it to the centre;
   - the ring itself is one Tab stop: ← → step, Enter opens the centre card, and focus returns there when the lightbox closes;
   - vertical scrolling and pinch-zoom stay the browser's.
 - **Reduced motion:** the ring jumps instead of easing, a release never throws and the caption does not fade. The tilt and depth stay, because they are layout.
+
 ## 4.9 Reach Out (paper — mirror of the hero)
 
-Giant ticker **"Reach Out —"** in `ink-900`, left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Three CTA pills: **Email me** (recruiters, filled), **Download CV** (recruiters, outlined, a `download` link shown only while `site.cvUrl` is set; M4b batch 2, PRD F-09) and **Chat on WhatsApp** (clients, outlined), which stays last so Tab from it reaches the polaroid line. Right block: the polaroid line, then social links and a circular back-to-top button.
+Giant ticker **"Reach Out —"** in `ink-900`, left block: **Email** `malaukendui@gmail.com` (copy button), **WhatsApp** `+62 877-2005-2003` (opens `wa.me` with a prefilled line), **Location** East Jakarta · on-site / hybrid / remote. Three CTA pills: **Email me** (recruiters, filled), **Download CV** (recruiters, outlined, a `download` link shown only while `site.cvUrl` is set; M4b batch 2, PRD F-09; English label "Download CV (Indonesian)" since v1.1 content) and **Chat on WhatsApp** (clients, outlined), which stays last so Tab from it reaches the polaroid line. Right block: the polaroid line, then social links and a circular back-to-top button.
 
 **Polaroid line** (`components/ui/PolaroidLine`, replaces the footer portrait): six square photos on `paper-50` prints with a blank lip (no titles or captions), pegged to a sagging string at 42 % ink. It starts on the third photo so the line looks full at load. Counter `03 / 06`, a pause/play toggle and two arrows, all 44 px round buttons, sit bottom-right. Drag with one finger or the mouse, click a print, arrows or ←/→ move the line, clamped at both ends; a pinch belongs to the browser and zooms the page. Autoplay advances every 4.5 s, wraps 06 → 01, runs only on screen and waits for hover and keyboard focus; the toggle stops it until pressed again. Height is reserved: `clamp(400px, 58vh, 600px)` at md+, `clamp(360px, 52svh, 480px)` below. Below md the carousel sits between the ticker and the contact block. Reduced motion: prints hang still, no autoplay and so no toggle, no scale/filter transition, and the line jumps to its target instead of springing; every other control keeps working.
 
@@ -186,7 +189,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 
 ## 4.10 Footer (dark, compact)
 
-`© 2026 Ananda Kenny` · *Built with Next.js, GSAP & React Three Fiber* · language note · nav links repeated in mono.
+`© 2026 Ananda Kenny` · *Built with Next.js, GSAP & React Three Fiber, with Claude Code* (v1.1 content) · language note · nav links repeated in mono.
 
 # 5. Components
 
@@ -220,7 +223,7 @@ Exceptions for this component only: the accent pegs may exceed the three-accent 
 - Portraits: the hero uses the colour original only (`kenny-hero-formal@2x.webp` since M4b); no alternate treatments are kept. Reach Out shows the polaroid line, not a portrait (§4.9).
 - Project screenshots: real UI only, 16:10 crops, no device mockups, no fake data that looks like real users; light drop of 1 px `ink-700` border on dark. **Owner exception (M4b):** design renders are allowed when every image's alt text, and so its lightbox caption, says so ("design render, sample data"). The PintuKos boards are 16:9 renders with phone frames and sample data, because the live app holds real tenants' data behind a login (`docs/DECISIONS.md` 2026-11-13).
 - QA evidence (§4.6): real screenshots of the owner's own tooling (the GitHub Actions run, the Playwright report, the UAT sheet), shown whole in uniform 4:3 frames (M5), sample data only, no mockups (M4b batch 2).
-- Certificates: photographed originals, straightened, no filters. The coverflow's blurred backdrop (§4.8) is a decorative copy behind the certificate; the certificate itself is shown unfiltered and uncropped.
+- Certificates: the five Gunadarma certificates are rendered from the owner's original e-certificate PDFs (v1.1 content); the RevoU certificate is a photographed original, straightened, no filters. The coverflow's blurred backdrop (§4.8) is a decorative copy behind the certificate; the certificate itself is shown unfiltered and uncropped.
 - No stock photos, no illustrations, no icons other than a minimal line set (Lucide) at 1.5 px stroke.
 
 # 8. Responsive behaviour
@@ -255,12 +258,13 @@ Touch targets ≥ 44 px. No horizontal scroll at any width (marquee is `overflow
 |---|---|---|
 | Hero portrait | `public/images/portrait/kenny-hero-formal@2x.webp` | 1070 × 1600 RGBA WebP (139 KB), the formal portrait (M4b), the only tracked portrait; the bottom fade and, since the M4b batch-2 re-export, a fade above the shoulder tips are baked in (outermost columns' alpha at most 6, was 210; checklist C-01) |
 | Reach Out polaroids | `public/images/polaroids/polaroid-{01-comprehensive-exam,02-graduation,03-working-laptop,04-nusa-penida,05-touring,06-portrait}.webp` | 1200 × 1200, each under 300 KB; data in `content/polaroids.ts` |
-| Project images | `public/images/projects/pintukos-{01-overview,02-payment-flow,03-owner-tools,04-design-system}.webp` | 1600 × 900 (16:9) WebP, 51–89 KB each; design renders with sample data and Indonesian on-board text (exception to §7); data and bilingual alts in `content/projects.ts` (M4b) |
+| Project images | `public/images/projects/pintukos-{01-overview,02-payment-flow,03-owner-tools,04-design-system}.webp`, `portfolio-{01-hero,02-certifications,03-phone}.webp` | 1600 × 900 (16:9) WebP; PintuKos 51–89 KB each, design renders with sample data and Indonesian on-board text (exception to §7; M4b); portfolio 39–47 KB each, captured from this site by `node scripts/export-portfolio-shots.mjs` against `next start -p 3100` (v1.1 content); data and bilingual alts in `content/projects.ts` |
 | QA evidence | `public/images/qa/pintukos-{ci-run,e2e-report,uat-sheet}.webp` | 1507 × 781, 1026 × 821 and 1640 × 1240 WebP (29, 166 and 53 KB); screenshots from the owner's PintuKos repository (GitHub Actions run, Playwright report, UAT sheet), sample data only, Indonesian UI text on the UAT sheet and the report; data in `content/qa.ts`, titles and captions in `content/en.ts` / `id.ts` (M4b batch 2) |
-| CV | `public/cv/kenny-cv-2026-11-en.pdf` | 62 KB English PDF, `site.cvUrl`; named by month, so a new version gets a new file name (M4b) |
+| CV | `public/cv/kenny-cv-2026-11-id.pdf` | 65 KB Indonesian PDF, one page, the only CV (v1.1 content; the English `-en.pdf` is removed), `site.cvUrl`; every CV link carries `hreflang="id"`; named `kenny-cv-YYYY-MM-<lang>.pdf`, so a new version gets a new file name (M4b) |
+| Papers | `public/papers/big-data-altcoin-analysis-2024.pdf` | PDF, the research card's paper (a 2024 scientific paper, *Penulisan Ilmiah*); renamed from `-2025.pdf` in v1.1 content |
 | Fonts | `public/fonts/InterDisplay-{Medium,SemiBold}.woff2`, `Inter-{Regular,Medium}.woff2`, `DMMono-{Regular,Medium}.woff2` | OFL; subset Latin |
 | Glass fallback | `public/3d/hero-glass-fallback@2x.webp` | 480 × 480 RGBA, lens only (no letters), 27 KB; `node scripts/export-glass-fallback.mjs` against `next dev -p 3100` (difference matte of the dev scene over black and white) |
 | Ticker font (WebGL) | `public/fonts/InterDisplay-Medium-ticker.woff` | 1.8 KB WOFF of Inter Display Medium, only the ticker's glyphs, GPOS `kern` only; subset command in `docs/DECISIONS.md` |
-| OG image | `app/opengraph-image.png` + `app/opengraph-image.alt.txt` | 1200 × 630 static PNG (≤ 300 KB) in the hero's language, no photo, no URL; `node scripts/export-og.mjs` captures the dev-only `/dev/og-export` against `next dev -p 3100` (M4a, `docs/DECISIONS.md`) |
-| Certificates | `public/images/certs/cert-gunadarma-{designing-software,javascript-fundamentals,desktop-programming}.webp`, `cert-revou-intro-software-engineering.webp` | WebP conversions of the photographed originals; data in `content/certifications.ts` |
+| OG image | `app/opengraph-image.png` + `app/opengraph-image.alt.txt` | 1200 × 630 static PNG (≤ 300 KB) in the hero's language, no photo, no URL; `node scripts/export-og.mjs` captures the dev-only `/dev/og-export` against `next dev -p 3100` (M4a, `docs/DECISIONS.md`); re-exported with the junior roles in v1.1 content (213.5 KB) |
+| Certificates | `public/images/certs/cert-gunadarma-{designing-software,desktop-programming,javascript-fundamentals,go-lang-for-beginner,fundamental-web-programming}-v2.webp`, `cert-revou-intro-software-engineering.webp` | Gunadarma: 1000 × 1415 WebP, 75–81 KB each, rendered from the original e-certificate PDFs, two of them new (v1.1 content); RevoU: 1600 × 1134 WebP of the photographed original, unchanged; data in `content/certifications.ts` |
 | Monogram | `public/brand/k-monogram.svg` | from `kenny-k-logo.svg`, recoloured to tokens |

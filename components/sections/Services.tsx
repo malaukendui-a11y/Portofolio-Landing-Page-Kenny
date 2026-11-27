@@ -11,7 +11,9 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
  * plain list below that and under reduced motion. Card anatomy: outlined numeral left
  * (desktop only), title at `statement` size, description, numbered rows with hairline
  * dividers and right-aligned mono indices. Row hover: text shifts 8 px right, index
- * turns accent (CSS transition only).
+ * turns accent (CSS transition only). On short desktop windows (below 860 px tall: 1366×768,
+ * 1280×800, 1024×768) the rows are 8 px shorter and the list starts 16 px higher, so card 02's
+ * seven rows fit below its sticky top (v1.1 content, owner decision; motion.spec TC-092).
  */
 export function Services() {
   const { t } = useLang()
@@ -43,11 +45,11 @@ export function Services() {
               <p className="mt-4 max-w-measure text-body-lg-sm text-fg-muted md:text-body-lg">
                 {card.description}
               </p>
-              <ol className="mt-10 max-w-measure border-t border-hairline">
+              <ol className="mt-10 max-w-measure border-t border-hairline lg:[@media(max-height:53.75rem)]:mt-6">
                 {card.items.map((item, index) => (
                   <li
                     key={item}
-                    className="group flex items-baseline justify-between gap-6 border-b border-hairline py-4"
+                    className="group flex items-baseline justify-between gap-6 border-b border-hairline py-4 lg:[@media(max-height:53.75rem)]:py-3"
                   >
                     <span className="text-body transition-transform duration-fast ease-out group-hover:translate-x-2">
                       {item}

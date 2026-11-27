@@ -27,6 +27,20 @@ const dot = (page: Page, n: number, copy: Copy = en) =>
 const title = (index: number, copy: Copy = en) =>
   copy.certifications.items[certifications[index].id].title
 
+// The ring's shape comes from the data (v1.1 content: six certificates). With loop on, the card
+// exactly half a turn away is faded out, so an even count hides one card and shows the rest
+// (CoverflowCarousel's edge fade: `count / 2 - distance`).
+const COUNT = certifications.length
+const HALF = COUNT / 2
+const HIDDEN = COUNT % 2 === 0 ? [HALF] : []
+const VISIBLE = [...Array(COUNT).keys()].filter((n) => !HIDDEN.includes(n))
+/** A slide's accessible name, 1-based. */
+const slideName = (n: number, copy: Copy = en) =>
+  copy.certifications.carousel.slide.replace('{n}', String(n)).replace('{count}', String(COUNT))
+/** The lightbox counter for certificate n (1-based) of all of them. */
+const counter = (n: number, copy: Copy = en) =>
+  copy.lightbox.counter.replace('{current}', String(n)).replace('{total}', String(COUNT))
+
 /** The selected card's index, 0-based, as a string. */
 const currentIndex = (page: Page) => current(page).getAttribute('data-cf-index')
 
@@ -162,7 +176,9 @@ function transformAfter50ms(page: Page): Promise<string> {
 
 test.describe('certificate coverflow', () => {
   // TC-105
-  test('renders four slides with the newest in the centre, captioned', async ({ page }) => {
+  test('renders every certificate as a slide, the newest in the centre, captioned', async ({
+    page,
+  }) => {
     const labels = en.certifications.carousel
     await gotoCoverflow(page)
     const region = page.getByRole('region', { name: labels.label })
@@ -171,15 +187,13 @@ test.describe('certificate coverflow', () => {
     await expect(ring).toHaveClass(/\bcf-frame\b/)
     await expect(ring).toHaveAttribute('tabindex', '0')
 
-    await expect(cards(page)).toHaveCount(4)
-    for (let n = 0; n < 4; n++) {
+    expect(COUNT).toBe(6)
+    await expect(cards(page)).toHaveCount(COUNT)
+    for (let n = 0; n < COUNT; n++) {
       const card = cards(page).nth(n)
       await expect(card).toHaveAttribute('role', 'group')
       await expect(card).toHaveAttribute('aria-roledescription', 'slide')
-      await expect(card).toHaveAttribute(
-        'aria-label',
-        labels.slide.replace('{n}', String(n + 1)).replace('{count}', '4'),
-      )
+      await expect(card).toHaveAttribute('aria-label', slideName(n + 1))
     }
     // Newest first: RevoU, selected and the only card with the open button.
     expect(certifications[0].id).toBe('revou-intro-software-engineering')
@@ -200,14 +214,17 @@ test.describe('certificate coverflow', () => {
     ])
 
     await expect(dot(page, 1)).toHaveAttribute('aria-current', 'true')
-    for (const n of [2, 3, 4]) await expect(dot(page, n)).not.toHaveAttribute('aria-current')
+    for (let n = 2; n <= COUNT; n++) await expect(dot(page, n)).not.toHaveAttribute('aria-current')
 
-    // Three cards show; the one half a turn away (card 3) is hidden, from screen readers too.
-    for (const n of [0, 1, 3]) await expect(cards(page).nth(n)).toHaveCSS('visibility', 'visible')
-    await expect(cards(page).nth(2)).toBeHidden()
-    const slide = (n: number) => labels.slide.replace('{n}', String(n)).replace('{count}', '4')
-    await expect(page.getByRole('group', { name: slide(3), exact: true })).toHaveCount(0)
-    await expect(page.getByRole('group', { name: slide(2), exact: true })).toHaveCount(1)
+    // Five of six show; the one half a turn away (card 4, index 3) is hidden, from screen
+    // readers too.
+    expect(VISIBLE).toHaveLength(COUNT - 1)
+    for (const n of VISIBLE) await expect(cards(page).nth(n)).toHaveCSS('visibility', 'visible')
+    for (const n of HIDDEN) {
+      await expect(cards(page).nth(n)).toBeHidden()
+      await expect(page.getByRole('group', { name: slideName(n + 1), exact: true })).toHaveCount(0)
+    }
+    await expect(page.getByRole('group', { name: slideName(2), exact: true })).toHaveCount(1)
 
     // The caption is quiet until the visitor is in the carousel, then polite.
     await expect(caption(page)).toHaveAttribute('aria-live', 'off')
@@ -298,7 +315,7 @@ test.describe('certificate coverflow', () => {
     await expect(dialog(page).getByRole('button', { name: en.lightbox.close })).toBeFocused()
     await page.waitForTimeout(300)
     await expect(dialog(page)).toBeVisible()
-    await expect(dialog(page)).toContainText('1 / 4')
+    await expect(dialog(page)).toContainText(counter(1))
     await page.keyboard.press('Escape')
     await expect(dialog(page)).toBeHidden()
     await expect(frame(page)).toBeFocused()
@@ -310,7 +327,7 @@ test.describe('certificate coverflow', () => {
       ),
     )
     await expect(dialog(page)).toBeVisible()
-    await expect(dialog(page)).toContainText('1 / 4')
+    await expect(dialog(page)).toContainText(counter(1))
     await page.keyboard.press('Escape')
     await expect(frame(page)).toBeFocused()
   })
@@ -340,7 +357,7 @@ test.describe('certificate coverflow', () => {
     for (const control of [
       button(page, labels.prev),
       button(page, labels.next),
-      ...[1, 2, 3, 4].map((n) => dot(page, n)),
+      ...Array.from({ length: COUNT }, (_, n) => dot(page, n + 1)),
     ]) {
       const box = (await control.boundingBox())!
       expect(box.width).toBeGreaterThanOrEqual(44)
@@ -349,14 +366,39 @@ test.describe('certificate coverflow', () => {
     await button(page, labels.next).click()
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
     await expect(dot(page, 2)).toHaveAttribute('aria-current', 'true')
-    await dot(page, 4).click()
-    await expect(current(page)).toHaveAttribute('data-cf-index', '3')
-    await expect(caption(page).locator('h3')).toHaveText(title(3))
+    await dot(page, COUNT).click()
+    await expect(current(page)).toHaveAttribute('data-cf-index', String(COUNT - 1))
+    await expect(caption(page).locator('h3')).toHaveText(title(COUNT - 1))
     // Loop on: from the last certificate, Next comes round to the newest.
     await button(page, labels.next).click()
     await expect(current(page)).toHaveAttribute('data-cf-index', '0')
     await button(page, labels.prev).click()
-    await expect(current(page)).toHaveAttribute('data-cf-index', '3')
+    await expect(current(page)).toHaveAttribute('data-cf-index', String(COUNT - 1))
+  })
+
+  // TC-123 (v1.1 content): the two new certificates are on the ring with their printed numbers, and
+  // the Gunadarma scans are the `-v2` renders of the original e-certificate PDFs.
+  test('the two new certificates are on the ring with their numbers', async ({ page, request }) => {
+    await gotoCoverflow(page)
+    const srcs = certifications.map((cert) => cert.image.src)
+    expect(srcs.filter((src) => src.includes('gunadarma'))).toHaveLength(5)
+    for (const src of srcs.filter((src) => src.includes('gunadarma')))
+      expect(src).toMatch(/-v2\.webp$/)
+    // The photographed scans they replace are gone.
+    for (const name of ['designing-software', 'desktop-programming', 'javascript-fundamentals'])
+      expect((await request.get(`/images/certs/cert-gunadarma-${name}.webp`)).status()).toBe(404)
+    for (const [certId, no] of [
+      ['gunadarma-go-lang-for-beginner', '596767'],
+      ['gunadarma-fundamental-web-programming', '852172'],
+    ] as const) {
+      const index = certifications.findIndex((cert) => cert.id === certId)
+      expect(index, certId).toBeGreaterThan(0)
+      expect(certifications[index].certificateNo).toBe(no)
+      await dot(page, index + 1).click()
+      await expect(current(page)).toHaveAttribute('data-cf-index', String(index))
+      await expect(caption(page).locator('h3')).toHaveText(title(index))
+      await expect(caption(page).locator('dd').first()).toHaveText(no)
+    }
   })
 
   // TC-108
@@ -391,7 +433,7 @@ test.describe('certificate coverflow', () => {
     const rest = await transformOf(page, 0) // the centre pose, as this engine writes it
     await button(page, en.certifications.carousel.openCurrent).click()
     await expect(dialog(page)).toBeVisible()
-    await expect(dialog(page)).toContainText('1 / 4')
+    await expect(dialog(page)).toContainText(counter(1))
     await expect(dialog(page).getByRole('img')).toHaveAttribute('src', /cert-revou/)
     await expect(dialog(page).locator('figcaption > span').first()).toHaveText(title(0))
     await page.keyboard.press('Escape')
@@ -440,7 +482,7 @@ test.describe('certificate coverflow', () => {
     const centre = await pointOnCard(page, 1)
     await page.mouse.click(centre.x, centre.y)
     await expect(dialog(page)).toBeVisible()
-    await expect(dialog(page)).toContainText('2 / 4')
+    await expect(dialog(page)).toContainText(counter(2))
     await page.keyboard.press('Escape')
     // The frame's padding stays inert.
     const area = (await frame(page).boundingBox())!
@@ -465,6 +507,16 @@ test.describe('certificate coverflow', () => {
     page,
   }) => {
     await gotoCoverflow(page)
+    // WebKit loads a lazy image only once it is inside the frame's clip (`.cf-frame` is
+    // overflow: hidden); with six certificates the card half a turn away, and at 390 the cards two
+    // steps out, sit wholly outside it. Turn the ring through every card so each has loaded, in
+    // every engine, then come back to the newest.
+    for (let n = 1; n <= COUNT; n++) {
+      await dot(page, n).click()
+      await expect(current(page)).toHaveAttribute('data-cf-index', String(n - 1))
+    }
+    await dot(page, 1).click()
+    await expect(current(page)).toHaveAttribute('data-cf-index', '0')
     // Loaded as they are (no switch to eager, which can re-select a larger cached candidate).
     await expect
       .poll(
@@ -478,7 +530,7 @@ test.describe('certificate coverflow', () => {
       )
       .toBe(true)
     const backdrops = page.locator('#certifications .cf-backdrop')
-    await expect(backdrops).toHaveCount(4)
+    await expect(backdrops).toHaveCount(COUNT)
     const found = await backdrops.evaluateAll((list) =>
       list.map((img) => ({
         hidden: img.getAttribute('aria-hidden'),
@@ -504,14 +556,16 @@ test.describe('certificate coverflow', () => {
     await selectLang(page, 'ID')
     await expect(page.locator('html')).toHaveAttribute('lang', 'id')
     await expect(current(page)).toHaveAttribute('data-cf-index', '1')
-    await expect(current(page)).toHaveAttribute('aria-label', '2 dari 4')
+    await expect(current(page)).toHaveAttribute('aria-label', slideName(2, id))
     await expect(page.getByRole('region', { name: labels.label })).toBeVisible()
     await expect(page.getByRole('group', { name: labels.frame, exact: true })).toHaveCount(1)
     for (const name of [labels.prev, labels.next, labels.openCurrent])
       await expect(button(page, name)).toHaveCount(1)
     await expect(dot(page, 2, id)).toHaveAttribute('aria-current', 'true')
-    // The title reads the same in both languages; the subtitle and the scope do not.
+    // Since v1.1 content the Gunadarma titles have their Indonesian wording (as printed on each
+    // certificate), so the title changes with the language too.
     const item = id.certifications.items['gunadarma-designing-software']
+    expect(item.title).toBe('Merancang Perangkat Lunak')
     await expect(caption(page).locator('h3')).toHaveText(item.title)
     await expect(caption(page).locator('p')).toHaveText(`${item.issuer} · ${item.period}`)
     await expect(caption(page).locator('dt')).toHaveText(['No.', id.certifications.scope])
@@ -686,8 +740,8 @@ test.describe('certificate coverflow with motion (controls for TC-110)', () => {
     )
 
     // 1.1 cards in four moves 12 ms apart: about 23 cards a second, a carry of about four cards
-    // before the clamp. Clamped to two: round(1.1 + 2) = 3. With no throw, 1; with no clamp, 1 again
-    // (round(5.2) = 5 is index 1 on a ring of four).
+    // before the clamp. Clamped to two: round(1.1 + 2) = 3. With no throw, 1; with no clamp, 5
+    // (round(5.2) = 5, index 5 on a ring of six).
     await gotoCoverflow(page)
     await flick(page, -1.1 * (await pitch(page)), { steps: 4, gap: 12 })
     await expect(current(page)).toHaveAttribute('data-cf-index', '3')
@@ -704,7 +758,7 @@ test.describe('certificate coverflow under touch', () => {
     await gotoCoverflow(page)
     await button(page, en.certifications.carousel.openCurrent).tap()
     await expect(dialog(page)).toBeVisible()
-    await expect(dialog(page)).toContainText('1 / 4')
+    await expect(dialog(page)).toContainText(counter(1))
     await page.keyboard.press('Escape')
     await expect(dialog(page)).toBeHidden()
     await expect(frame(page)).toBeFocused()
